@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="ksi_dll" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="../bin/ksi" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option object_output="../obj/" />
+				<Option type="3" />
+				<Option compiler="mingw64" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-std=c++17" />
+					<Add option="-m64" />
+					<Add option="-DKSI_LIB" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-m64" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="../src/any.cpp" />
+		<Unit filename="../src/any.h" />
+		<Unit filename="../src/any_space.cpp" />
+		<Unit filename="../src/ast.cpp" />
+		<Unit filename="../src/ast.h" />
+		<Unit filename="../src/extra.cpp" />
+		<Unit filename="../src/extra.h" />
+		<Unit filename="../src/fn.cpp" />
+		<Unit filename="../src/fn.h" />
+		<Unit filename="../src/fn.inc.h" />
+		<Unit filename="../src/instr.h" />
+		<Unit filename="../src/ksi_api.cpp" />
+		<Unit filename="../src/ksi_api.h" />
+		<Unit filename="../src/ksi_lib.cpp" />
+		<Unit filename="../src/ksi_lib.h" />
+		<Unit filename="../src/ksi_lib.inc.h" />
+		<Unit filename="../src/ksi_types.cpp" />
+		<Unit filename="../src/ksi_types.h" />
+		<Unit filename="../src/main.cpp" />
+		<Unit filename="../src/rules.cpp" />
+		<Unit filename="../src/rules.h" />
+		<Unit filename="../src/rules.inc.h" />
+		<Unit filename="../src/rules.ksi.h" />
+		<Unit filename="../src/rules_ast.cpp" />
+		<Unit filename="../src/rules_instr.cpp" />
+		<Unit filename="../src/space.h" />
+		<Unit filename="../src/tokens.cpp" />
+		<Unit filename="../src/tokens.h" />
+		<Unit filename="../src/tokens.inc.h" />
+		<Unit filename="../test01.ksi" />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

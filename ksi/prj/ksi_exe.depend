@@ -1,0 +1,42 @@
+# depslib dependency file v1.0
+1619062645 source:d:\prog\dropbox\cpp\hive\ksi\res\res.rc
+
+1616208553 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_types.cpp
+	"ksi_types.h"
+	<fstream>
+	<ctime>
+	<iomanip>
+
+1619276090 d:\prog\dropbox\cpp\hive\ksi\src\ksi_types.h
+	"extra.h"
+
+1619279201 d:\prog\dropbox\cpp\hive\ksi\src\extra.h
+	<initializer_list>
+	<cstring>
+	<cwchar>
+	<iostream>
+
+1619065214 source:d:\prog\dropbox\cpp\hive\ksi\src_exe\ksi_lib_loader.cpp
+	"ksi_lib_loader.h"
+	<windows.h>
+
+1616406798 d:\prog\dropbox\cpp\hive\ksi\src_exe\ksi_lib_loader.h
+	"../src/ksi_api.h"
+
+1616405519 d:\prog\dropbox\cpp\hive\ksi\src\ksi_api.h
+	"extra.h"
+	<exception>
+
+1616401419 source:d:\prog\dropbox\cpp\hive\ksi\src\extra.cpp
+	"extra.h"
+	<string>
+	<sstream>
+	<fstream>
+	<filesystem>
+
+1616407084 source:d:\prog\dropbox\cpp\hive\ksi\src_exe\main.cpp
+	"ksi_lib_loader.h"
+	"../src/ksi_types.h"
+	<clocale>
+	<new>
+

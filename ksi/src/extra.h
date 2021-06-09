@@ -983,7 +983,7 @@ struct ref {
 	}
 	static void none_deleter(const T *) {}
 
-	ref() {}
+	ref() = default;
 	ref(T * h) : h_(h), deleter_(deleter) {}
 	~ref() {
 		deleter_(h_);
@@ -1023,6 +1023,7 @@ struct ref {
 	}
 	ref & operator = (const ref & r) {
 		swap(r);
+		return *this;
 	}
 };
 

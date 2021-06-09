@@ -302,9 +302,9 @@ struct instructions {
 	} */
 	FN_GET_INSTR_TYPE_2(mod, inner_number_op<var::op_mod>)
 
-	struct op_bit_and	{ static id calc(id n1, id n2) { return n1 & n2; } static wtext get_name() { return L"_and"; } };
-	struct op_bit_or	{ static id calc(id n1, id n2) { return n1 | n2; } static wtext get_name() { return L"_or" ; } };
-	struct op_bit_xor	{ static id calc(id n1, id n2) { return n1 ^ n2; } static wtext get_name() { return L"_xor"; } };
+	struct op_bit_and	{ static id calc(id n1, id n2) { return n1 & n2; } static wtext get_name() { return L"`_and"; } };
+	struct op_bit_or	{ static id calc(id n1, id n2) { return n1 | n2; } static wtext get_name() { return L"`_or" ; } };
+	struct op_bit_xor	{ static id calc(id n1, id n2) { return n1 ^ n2; } static wtext get_name() { return L"`_xor"; } };
 
 	template <class Op>
 	static void inner_bit_op(

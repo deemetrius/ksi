@@ -1,10 +1,10 @@
 # depslib dependency file v1.0
-1616404442 source:d:\prog\dropbox\cpp\hive\ksi\src\main.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\main.cpp
 	<windows.h>
 	<clocale>
 	<new>
 
-1619279201 d:\prog\dropbox\cpp\hive\ksi\src\extra.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\extra.h
 	<initializer_list>
 	<cstring>
 	<cwchar>
@@ -13,30 +13,30 @@
 1582436279 d:\prog\dropbox\cpp\hive\ksi\src\tester.h
 	<iostream>
 
-1616402096 source:d:\prog\dropbox\cpp\hive\ksi\src\any.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\any.cpp
 	"any.h"
 	<errno.h>
 
-1623070271 d:\prog\dropbox\cpp\hive\ksi\src\any.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\any.h
 	"ksi_types.h"
 	"ksi_api.h"
 	<climits>
 	<cmath>
 
-1619276090 d:\prog\dropbox\cpp\hive\ksi\src\ksi_types.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\ksi_types.h
 	"extra.h"
 
-1618671232 d:\prog\dropbox\cpp\hive\ksi\src\space.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\space.h
 	"fn.h"
 
-1614355503 source:d:\prog\dropbox\cpp\hive\ksi\src\any_space.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\any_space.cpp
 	"space.h"
 
 1586592791 source:d:\prog\dropbox\cpp\hive\ksi\src\any_lib.cpp
 	"any.h"
 	<windows.h>
 
-1619280294 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_lib.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_lib.cpp
 	"ast.h"
 	"rules.h"
 	<windows.h>
@@ -45,80 +45,80 @@
 	"ksi_types.h"
 	"ksi_api.h"
 
-1616401419 source:d:\prog\dropbox\cpp\hive\ksi\src\extra.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\extra.cpp
 	"extra.h"
 	<string>
 	<sstream>
 	<fstream>
 	<filesystem>
 
-1616208553 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_types.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_types.cpp
 	"ksi_types.h"
 	<fstream>
 	<ctime>
 	<iomanip>
 
-1619027451 d:\prog\dropbox\cpp\hive\ksi\src\fn.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\fn.h
 	"any.h"
 	"ksi_api.h"
 	<type_traits>
 
-1619286789 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
 	"fn.inc.h"
 
-1619284304 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
 	"rules.ksi.h"
 	<errno.h>
 
-1615116250 d:\prog\dropbox\cpp\hive\ksi\src\rules.inc.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\rules.inc.h
 	"rules.h"
 	<cwctype>
 
-1602243617 d:\prog\dropbox\cpp\hive\ksi\src\rules.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\rules.h
 	"tokens.h"
 
-1608548541 d:\prog\dropbox\cpp\hive\ksi\src\tokens.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\tokens.h
 	"ksi_types.h"
 
-1619283240 d:\prog\dropbox\cpp\hive\ksi\src\tokens.inc.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\tokens.inc.h
 	"tokens.h"
 
-1619284357 d:\prog\dropbox\cpp\hive\ksi\src\rules.ksi.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\rules.ksi.h
 	"rules.inc.h"
 	"tokens.inc.h"
 
-1603634690 d:\prog\dropbox\cpp\hive\ksi\src\fn.inc.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\fn.inc.h
 	"space.h"
 
-1623072101 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
+1623232447 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
 	"space.h"
 
-1619285956 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
 	"space.h"
 
-1623072341 source:d:\prog\dropbox\cpp\hive\ksi\src\ast.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\ast.cpp
 	"ast.h"
 	"instr.h"
 
-1619285934 source:d:\prog\dropbox\cpp\hive\ksi\src\tokens.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\tokens.cpp
 	"tokens.inc.h"
 	"ast.h"
 	"instr.h"
 
-1619028475 source:d:\prog\dropbox\cpp\hive\ksi\src\rules_ast.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\rules_ast.cpp
 	"rules.ksi.h"
 	"ast.h"
 
 1610605737 source:d:\prog\dropbox\cpp\hive\ksi\res\res.rc
 
-1619028483 source:d:\prog\dropbox\cpp\hive\ksi\src\rules_instr.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\rules_instr.cpp
 	"rules.ksi.h"
 	"instr.h"
 
-1616405519 d:\prog\dropbox\cpp\hive\ksi\src\ksi_api.h
+1623174680 d:\prog\dropbox\cpp\hive\ksi\src\ksi_api.h
 	"extra.h"
 	<exception>
 
-1616405266 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_api.cpp
+1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_api.cpp
 	"ksi_api.h"
 

@@ -149,7 +149,7 @@ struct instructions {
 			var::keep_map * km = arr->value_.keep_->k_map();
 			wtext msg;
 			km->set(var::n_null::val, stk->items_.last(0), msg, true);
-			if( !msg.empty() )
+			if( msg )
 			log->add({msg, fns->mod_->path_, params.pos_});
 		}
 		stk->items_.remove_last_n(1);
@@ -163,7 +163,7 @@ struct instructions {
 			var::keep_map * km = arr->value_.keep_->k_map();
 			wtext msg;
 			km->set(stk->items_.last(1), stk->items_.last(0), msg, true);
-			if( !msg.empty() )
+			if( msg )
 			log->add({msg, fns->mod_->path_, params.pos_});
 		}
 		stk->items_.remove_last_n(2);
@@ -198,7 +198,7 @@ struct instructions {
 			wtext msg;
 			var::ref_var * link = ka->any_link_get();
 			link->h_->val_.type_->element_set(*target, stk->items_.last(1), ka, msg);
-			if( !msg.empty() )
+			if( msg )
 			log->add({msg, fns->mod_->path_, params.pos_});
 		}
 		stk->items_.remove_from_end(1);
@@ -215,7 +215,7 @@ struct instructions {
 			wtext msg;
 			var::ref_var * link = ka->any_link_get();
 			bool good = link->h_->val_.type_->element_set(*target, key.h_->val_, ka, msg);
-			if( !msg.empty() )
+			if( msg )
 			log->add({msg, fns->mod_->path_, params.pos_});
 
 			if( !good )
@@ -262,11 +262,11 @@ struct instructions {
 		wtext msg1, msg2;
 		stk->items_.last(1) = var::number_op<Op>::calc(stk->items_.last(1), stk->items_.last(0), msg1, msg2);
 		stk->items_.remove_last_n(1);
-		if( !msg1.empty() )
+		if( msg1 )
 		log->add({ex::implode(
 			{msg1, L" When doing math action ", Op::get_name(), L" (left operand)."}), fns->mod_->path_, params.pos_}
 		);
-		if( !msg2.empty() )
+		if( msg2 )
 		log->add({ex::implode(
 			{msg2, L" When doing math action ", Op::get_name(), L" (right operand)."}), fns->mod_->path_, params.pos_}
 		);
@@ -317,11 +317,11 @@ struct instructions {
 		id
 		n1 = a1->type_->to_int(*a1, msg1),
 		n2 = a2->type_->to_int(*a2, msg2);
-		if( !msg1.empty() )
+		if( msg1 )
 		log->add({ex::implode(
 			{msg1, L" When doing bitwise operator ", Op::get_name(), L" (left operand)."}), fns->mod_->path_, params.pos_}
 		);
-		if( !msg2.empty() )
+		if( msg2 )
 		log->add({ex::implode(
 			{msg2, L" When doing bitwise operator ", Op::get_name(), L" (right operand)."}), fns->mod_->path_, params.pos_}
 		);
@@ -351,9 +351,9 @@ struct instructions {
 		*h1 = ex::implode({t1, t2});
 
 		stk->items_.remove_last_n(1);
-		if( !msg1.empty() )
+		if( msg1 )
 		log->add({ex::implode({msg1, L" When doing text concatenation (left operand)."}), fns->mod_->path_, params.pos_});
-		if( !msg2.empty() )
+		if( msg2 )
 		log->add({ex::implode({msg2, L" When doing text concatenation (right operand)."}), fns->mod_->path_, params.pos_});
 	}
 	static const instr_type * get_concat() {
@@ -378,7 +378,7 @@ struct instructions {
 		stk->items_.remove_last_n(1);
 		t_stack::for_implode * fi = stk->for_implode_.last(0);
 		fi->append(tx);
-		if( !msg.empty() ) {
+		if( msg ) {
 			wtext add_msg = L" When doing text concatenation (left operand).";
 			if( params.data_ )
 			add_msg = L" When doing text concatenation (right operand).";
@@ -433,8 +433,8 @@ struct instructions {
 		var::any * a = &stk->items_.last(0);
 		wtext msg;
 		bool b = a->type_->to_bool(*a, msg);
-		if( !msg.empty() )
-		log->add({ex::implode({msg, L" When doing logical operation AND (left operand)."}), fns->mod_->path_, params.pos_});
+		if( msg )
+		log->add({ex::implode({msg, L" When doing logical operation `and (left operand)."}), fns->mod_->path_, params.pos_});
 		if( b ) {
 			stk->items_.remove_last_n(1);
 			fns->fn_body_->sides_.items_[params.extra_]->call(spc, fns, stk, log);
@@ -447,8 +447,8 @@ struct instructions {
 		var::any * a = &stk->items_.last(0);
 		wtext msg;
 		bool b = a->type_->to_bool(*a, msg);
-		if( !msg.empty() )
-		log->add({ex::implode({msg, L" When doing logical operation OR (left operand)."}), fns->mod_->path_, params.pos_});
+		if( msg )
+		log->add({ex::implode({msg, L" When doing logical operation `or (left operand)."}), fns->mod_->path_, params.pos_});
 		if( !b ) {
 			stk->items_.remove_last_n(1);
 			fns->fn_body_->sides_.items_[params.extra_]->call(spc, fns, stk, log);
@@ -461,10 +461,10 @@ struct instructions {
 		var::any * a1 = &stk->items_.last(1), * a2 = &stk->items_.last(0);
 		wtext msg1, msg2;
 		bool b1 = a1->type_->to_bool(*a1, msg1), b2 = a2->type_->to_bool(*a2, msg2);
-		if( !msg1.empty() )
-		log->add({ex::implode({msg1, L" When doing logical operation XOR (left operand)."}), fns->mod_->path_, params.pos_});
-		if( !msg2.empty() )
-		log->add({ex::implode({msg2, L" When doing logical operation XOR (right operand)."}), fns->mod_->path_, params.pos_});
+		if( msg1 )
+		log->add({ex::implode({msg1, L" When doing logical operation `xor (left operand)."}), fns->mod_->path_, params.pos_});
+		if( msg2 )
+		log->add({ex::implode({msg2, L" When doing logical operation `xor (right operand)."}), fns->mod_->path_, params.pos_});
 		if( b1 != b2 ) {
 			if( b1 )
 			stk->items_.remove_last_n(1);
@@ -482,7 +482,7 @@ struct instructions {
 		var::any * a = &stk->items_.last(0);
 		wtext msg;
 		bool b = a->type_->to_bool(*a, msg);
-		if( !msg.empty() )
+		if( msg )
 		log->add({
 			ex::implode({msg, L" In left operand of conditional expression (question mark)."}),
 			fns->mod_->path_, params.pos_
@@ -501,7 +501,7 @@ struct instructions {
 		var::any * a = &stk->items_.last(0);
 		wtext msg;
 		bool b = a->type_->to_bool(*a, msg);
-		if( !msg.empty() )
+		if( msg )
 		log->add({
 			ex::implode({msg, L" In left operand of conditional expression (question mark)."}),
 			fns->mod_->path_, params.pos_
@@ -522,7 +522,7 @@ struct instructions {
 		var::any * a = &stk->items_.last(0);
 		wtext msg;
 		bool ret = a->type_->to_bool(*a, msg);
-		if( !msg.empty() ) {
+		if( msg ) {
 			if constexpr( Is_pre )
 			log->add({
 				ex::implode({msg, L" In the pre-condition of loop while."}),

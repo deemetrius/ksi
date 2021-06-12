@@ -4,7 +4,7 @@
 	<clocale>
 	<new>
 
-1623245504 d:\prog\dropbox\cpp\hive\ksi\src\extra.h
+1623453668 d:\prog\dropbox\cpp\hive\ksi\src\extra.h
 	<initializer_list>
 	<cstring>
 	<cwchar>
@@ -63,7 +63,7 @@
 	"ksi_api.h"
 	<type_traits>
 
-1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
+1623454384 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
 	"fn.inc.h"
 
 1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
@@ -90,7 +90,7 @@
 1623174680 d:\prog\dropbox\cpp\hive\ksi\src\fn.inc.h
 	"space.h"
 
-1623232447 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
+1623455244 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
 	"space.h"
 
 1623174680 d:\prog\dropbox\cpp\hive\ksi\src\ast.h

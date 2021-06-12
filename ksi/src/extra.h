@@ -828,6 +828,9 @@ struct basic_text : public base_text {
 	bool empty() const {
 		return h_->len_ == 0;
 	}
+	operator bool () const {
+		return h_->len_;
+	}
 };
 
 using wtext = basic_text<wchar_t>;

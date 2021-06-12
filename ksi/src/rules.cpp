@@ -404,7 +404,7 @@ bool lit_text_single::parse(state & st, t_tokens & toks, base_log * log) {
 		hive::operand::maybe_next_expr(st, toks, log);
 		toks.append(new tokens::token_put_text(st.liner_.get_pos(st.prev_str_), s_cat.tx_) );
 		st.liner_ = ln;
-	} else if( !msg.empty() ) {
+	} else if( msg ) {
 		st.done_ = true;
 		log->add({ msg, st.inf_->path_, ln.get_pos(end) });
 	}
@@ -427,7 +427,7 @@ bool lit_text_double::parse(state & st, t_tokens & toks, base_log * log) {
 		hive::operand::maybe_next_expr(st, toks, log);
 		toks.append(new tokens::token_put_text(st.liner_.get_pos(st.prev_str_), s_cat.tx_) );
 		st.liner_ = ln;
-	} else if( !msg.empty() ) {
+	} else if( msg ) {
 		st.done_ = true;
 		log->add({ msg, st.inf_->path_, ln.get_pos(end) });
 	}

@@ -35,8 +35,36 @@ void fn_as_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t
 	var::var_type tp = get_type_value(fns->args_[2]);
 	wtext msg;
 	fns->args_[0] = tp->convert_from(fns->args_[1], msg, spc);
-	if( msg.h_->len_ )
+	if( msg )
 	log->add({msg, fns->file_path(), fns->pos_});
+}
+
+// not
+
+void fn_not_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+	var::any * a = fns->args_ + 1;
+	wtext msg;
+	bool b = a->type_->to_bool(*a, msg);
+	if( msg )
+	log->add({ex::implode(
+		{msg, L" Inside #not (left argument)."}), fns->mod_->path_, fns->pos_}
+	);
+
+	*fns->args_ = !b;
+}
+
+// _not
+
+void fn_bitwise_not_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+	var::any * a = fns->args_ + 1;
+	wtext msg;
+	id n = a->type_->to_int(*a, msg);
+	if( msg )
+	log->add({ex::implode(
+		{msg, L" Inside #_not (left argument)."}), fns->mod_->path_, fns->pos_}
+	);
+
+	*fns->args_ = ~n;
 }
 
 // echo
@@ -125,6 +153,10 @@ void fn_dump_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns,
 	else {
 		wtext msg;
 		structured = fns->args_[2].type_->to_bool(fns->args_[2], msg);
+		if( msg )
+		log->add({ex::implode(
+			{msg, L" Inside #dump (right argument)."}), fns->mod_->path_, fns->pos_}
+		);
 	}
 	fns->args_[1].type_->dump(fns->args_[1], std::wcout, structured);
 	fns->args_[0] = fns->args_[1];
@@ -309,6 +341,12 @@ native_config::native_config() {
 	// #as
 	fun = fn_map_.obtain(L"#as");
 	fun->over_.set_common(native::fn_as_def);
+	// #not
+	fun = fn_map_.obtain(L"#not");
+	fun->over_.set_common(native::fn_not_def);
+	// #_not
+	fun = fn_map_.obtain(L"#_not");
+	fun->over_.set_common(native::fn_bitwise_not_def);
 	// #clear
 	fun = fn_map_.obtain(L"#clear");
 	fun->over_.add(&var::hcfg->t_array, native::fn_clear_array);

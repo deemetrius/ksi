@@ -11,7 +11,7 @@
 				<Option object_output="../obj_exe/" />
 				<Option type="1" />
 				<Option compiler="mingw64" />
-				<Option parameters='&quot;../test01.ksi&quot; -show_log' />
+				<Option parameters='&quot;../test01.ksi&quot; -show_log -debug' />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-std=c++17" />

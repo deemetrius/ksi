@@ -122,6 +122,29 @@ void fn_call_places::update_instructions(space * spc, base_log * log) {
 	}
 }
 
+void actions::do_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
+	body * bd = pd->body_.h_;
+	mod::side * sd = pd->body_.h_->current_side();
+	// left
+	nd->lt_->info_.action_(pd, tr, nd, nd->lt_);
+	// right
+	sd = pd->body_.h_->current_side();
+	nd->rt_->info_.action_(pd, tr, nd, nd->rt_);
+	if( parent->info_.kind_ == nk_cmp_x ) {
+		{
+			mod::instr tmp = nd->instr_;
+			tmp.type_ = mod::instructions::turn_cmp_x(tmp.type_);
+			sd->add_instr(tmp);
+		}
+		mod::instr * i_cmp_x = &sd->instructions_.last(0);
+		i_cmp_x->params_.extra_ = bd->add_side_pos();
+	} else {
+		sd->add_instr(nd->instr_);
+		if( id depth = calc_cmp_x_depth(nd) )
+		bd->del_side_pos(depth);
+	}
+}
+
 void actions::do_concat_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
 	if( parent->info_.kind_ != nk_concat ) {
 		id depth = calc_concat_depth(nd);
@@ -506,22 +529,22 @@ array_iter<op_info> actions::iter_op() {
 			mod::instructions::get_cmp_is_not(), ex::cmp::equal }
 		}, {
 			{L"<="}, {
-			{do_node_assoc_left, prec_less, prec_less},
+			{do_cmp_x_assoc_left, prec_less, prec_less, nk_cmp_x},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is_not(), ex::cmp::more }
 		}, {
 			{L">="}, {
-			{do_node_assoc_left, prec_less, prec_less},
+			{do_cmp_x_assoc_left, prec_less, prec_less, nk_cmp_x},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is_not(), ex::cmp::less }
 		}, {
 			{L"<"}, {
-			{do_node_assoc_left, prec_less, prec_less},
+			{do_cmp_x_assoc_left, prec_less, prec_less, nk_cmp_x},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is(), ex::cmp::less }
 		}, {
 			{L">"}, {
-			{do_node_assoc_left, prec_less, prec_less},
+			{do_cmp_x_assoc_left, prec_less, prec_less, nk_cmp_x},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is(), ex::cmp::more }
 		}, {

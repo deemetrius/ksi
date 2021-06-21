@@ -38,7 +38,7 @@ struct node;
 
 using hfn_action = void (*)(prepare_data * pd, tree * tr, node * parent, node * nd);
 
-enum n_node_kind { nk_not_set, nk_concat, nk_pair, nk_dot, nk_bracket, nk_bracket_args };
+enum n_node_kind { nk_not_set, nk_concat, nk_pair, nk_dot, nk_bracket, nk_bracket_args, nk_cmp_x };
 
 struct node_info {
 	hfn_action action_;
@@ -184,8 +184,8 @@ struct body : public fn_info {
 		fn_body_.h_->sides_.append(new mod::side);
 		return ret;
 	}
-	void del_side_pos() {
-		side_pos_.remove_last_n(1);
+	void del_side_pos(id n = 1) {
+		side_pos_.remove_last_n(n);
 	}
 
 	scope * current_scope() {
@@ -375,6 +375,16 @@ struct actions {
 		pd->fn_call_places_.place_side_pos(nd->info_.data_, sd, sd->instructions_.count_);
 		node_add_instr(pd, nd);
 	}
+
+	static id calc_cmp_x_depth(node * nd) {
+		id depth = 0;
+		for( node * it = nd->lt_; it->info_.kind_ == nk_cmp_x; it = it->lt_ )
+		++depth;
+
+		return depth;
+	}
+
+	static void do_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd);
 
 	static id calc_concat_depth(node * nd) {
 		id depth = 1;

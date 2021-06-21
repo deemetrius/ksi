@@ -1,6 +1,4 @@
 
 `plain -- привет
 
-x = [1], 1 `_xor=> x #_not # #dump #0
-"\n" #echo #
-0b10_ #_not # #dump #0
+(1 <= 2 <= 3 <= 4) #dump #0

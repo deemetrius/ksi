@@ -419,6 +419,36 @@ struct instructions {
 	}
 	FN_GET_INSTR_TYPE(cmp_is_not)
 
+	// cmp_x_is: (params.data_ ~ is compare result, params.extra_ ~ pos of side)
+	static void do_cmp_x_is(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		var::any * v1 = &stk->items_.last(1);
+		if( bool res = v1->type_->compare(*v1, stk->items_.last(0) ) == params.data_ ) {
+			stk->items_.remove(stk->items_.count_ -2);
+			fns->fn_body_->sides_.items_[params.extra_]->call(spc, fns, stk, log);
+		} else {
+			*v1 = res;
+			stk->items_.remove_last_n(1);
+		}
+	}
+	FN_GET_INSTR_TYPE(cmp_x_is)
+
+	// cmp_x_is_not: (params.data_ ~ is not compare result, params.extra_ ~ pos of side)
+	static void do_cmp_x_is_not(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		var::any * v1 = &stk->items_.last(1);
+		if( bool res = v1->type_->compare(*v1, stk->items_.last(0) ) != params.data_ ) {
+			stk->items_.remove(stk->items_.count_ -2);
+			fns->fn_body_->sides_.items_[params.extra_]->call(spc, fns, stk, log);
+		} else {
+			*v1 = res;
+			stk->items_.remove_last_n(1);
+		}
+	}
+	FN_GET_INSTR_TYPE(cmp_x_is_not)
+
+	static const instr_type * turn_cmp_x(const instr_type * itype) {
+		return itype->perform_ == do_cmp_is ? get_cmp_x_is() : get_cmp_x_is_not();
+	}
+
 	// null_coalesce: (params.extra_ ~ pos of side)
 	static void do_null_coalesce(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
 		if( stk->items_.last(0).type_ == &var::hcfg->t_null ) {

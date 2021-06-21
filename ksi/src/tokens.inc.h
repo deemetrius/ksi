@@ -277,7 +277,7 @@ struct token_loop_while_body_rest : public base_token {
 // other
 
 struct token_next_expr : public base_token {
-	token_next_expr() {}
+	token_next_expr() = default;
 	wtext get_name() const override { return L"token_next_expr"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };

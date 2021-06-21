@@ -112,7 +112,7 @@ struct base_func : ex::with_deleter<base_func> {
 
 	base_func(const var::any & name, id i, n_type type) : name_(name), id_(i), type_(type) {}
 
-	virtual ~base_func() {}
+	virtual ~base_func() = default;
 	virtual void call_2(space * spc, fn_space * caller, t_stack * stk, const also::t_pos & pos, base_log * log) const = 0;
 	virtual void call_3(space * spc, fn_space * caller, t_stack * stk, const also::t_pos & pos, base_log * log) const = 0;
 	virtual void call_2_bk(space * spc, fn_space * caller, t_stack * stk, const also::t_pos & pos, base_log * log) const = 0;

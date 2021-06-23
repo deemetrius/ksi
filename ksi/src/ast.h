@@ -38,7 +38,7 @@ struct node;
 
 using hfn_action = void (*)(prepare_data * pd, tree * tr, node * parent, node * nd);
 
-enum n_node_kind { nk_not_set, nk_concat, nk_pair, nk_dot, nk_bracket, nk_bracket_args, nk_cmp_x };
+enum n_node_kind { nk_not_set, nk_concat, nk_pair, nk_dot, nk_bracket, nk_bracket_args, nk_cmp_x, nk_cmp };
 
 struct node_info {
 	hfn_action action_;
@@ -376,15 +376,38 @@ struct actions {
 		node_add_instr(pd, nd);
 	}
 
+	template <n_node_kind Kind>
 	static id calc_cmp_x_depth(node * nd) {
 		id depth = 0;
-		for( node * it = nd->lt_; it->info_.kind_ == nk_cmp_x; it = it->lt_ )
+		for( node * it = nd->lt_; it->info_.kind_ == Kind; it = it->lt_ )
 		++depth;
 
 		return depth;
 	}
 
-	static void do_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd);
+	template <class Instructions, n_node_kind Kind>
+	static void do_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
+		body * bd = pd->body_.h_;
+		mod::side * sd = pd->body_.h_->current_side();
+		// left
+		nd->lt_->info_.action_(pd, tr, nd, nd->lt_);
+		// right
+		sd = pd->body_.h_->current_side();
+		nd->rt_->info_.action_(pd, tr, nd, nd->rt_);
+		if( parent->info_.kind_ == Kind ) {
+			{
+				mod::instr tmp = nd->instr_;
+				tmp.type_ = Instructions::turn_cmp_x(tmp.type_);
+				sd->add_instr(tmp);
+			}
+			mod::instr * i_cmp_x = &sd->instructions_.last(0);
+			i_cmp_x->params_.extra_ = bd->add_side_pos();
+		} else {
+			sd->add_instr(nd->instr_);
+			if( id depth = calc_cmp_x_depth<Kind>(nd) )
+			bd->del_side_pos(depth);
+		}
+	}
 
 	static id calc_concat_depth(node * nd) {
 		id depth = 1;

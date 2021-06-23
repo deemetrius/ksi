@@ -122,7 +122,7 @@ void fn_call_places::update_instructions(space * spc, base_log * log) {
 	}
 }
 
-void actions::do_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
+/* void actions::do_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
 	body * bd = pd->body_.h_;
 	mod::side * sd = pd->body_.h_->current_side();
 	// left
@@ -143,7 +143,7 @@ void actions::do_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, n
 		if( id depth = calc_cmp_x_depth(nd) )
 		bd->del_side_pos(depth);
 	}
-}
+} */
 
 void actions::do_concat_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
 	if( parent->info_.kind_ != nk_concat ) {
@@ -519,32 +519,32 @@ array_iter<op_info> actions::iter_op() {
 			mod::instructions::get_cmp() }
 		}, {
 			{L"=="}, {
-			{do_node_assoc_left, prec_eq, prec_eq},
+			{do_cmp_x_assoc_left<mod::instructions, nk_cmp>, prec_eq, prec_eq, nk_cmp},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is(), ex::cmp::equal }
 		}, {
 			{L"<>"}, {
-			{do_node_assoc_left, prec_eq, prec_eq},
+			{do_cmp_x_assoc_left<mod::instructions, nk_cmp>, prec_eq, prec_eq, nk_cmp},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is_not(), ex::cmp::equal }
 		}, {
 			{L"<="}, {
-			{do_cmp_x_assoc_left, prec_less, prec_less, nk_cmp_x},
+			{do_cmp_x_assoc_left<mod::instructions, nk_cmp_x>, prec_less, prec_less, nk_cmp_x},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is_not(), ex::cmp::more }
 		}, {
 			{L">="}, {
-			{do_cmp_x_assoc_left, prec_less, prec_less, nk_cmp_x},
+			{do_cmp_x_assoc_left<mod::instructions, nk_cmp_x>, prec_less, prec_less, nk_cmp_x},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is_not(), ex::cmp::less }
 		}, {
 			{L"<"}, {
-			{do_cmp_x_assoc_left, prec_less, prec_less, nk_cmp_x},
+			{do_cmp_x_assoc_left<mod::instructions, nk_cmp_x>, prec_less, prec_less, nk_cmp_x},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is(), ex::cmp::less }
 		}, {
 			{L">"}, {
-			{do_cmp_x_assoc_left, prec_less, prec_less, nk_cmp_x},
+			{do_cmp_x_assoc_left<mod::instructions, nk_cmp_x>, prec_less, prec_less, nk_cmp_x},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is(), ex::cmp::more }
 		}, {

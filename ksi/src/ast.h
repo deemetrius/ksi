@@ -387,13 +387,13 @@ struct actions {
 
 	template <class Instructions, n_node_kind Kind>
 	static void do_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
-		body * bd = pd->body_.h_;
-		mod::side * sd = pd->body_.h_->current_side();
 		// left
 		nd->lt_->info_.action_(pd, tr, nd, nd->lt_);
 		// right
-		sd = pd->body_.h_->current_side();
 		nd->rt_->info_.action_(pd, tr, nd, nd->rt_);
+		//
+		body * bd = pd->body_.h_;
+		mod::side * sd = bd->current_side();
 		if( parent->info_.kind_ == Kind ) {
 			{
 				mod::instr tmp = nd->instr_;

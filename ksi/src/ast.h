@@ -18,8 +18,8 @@ enum n_prec {
 	prec_or_,		//	`_or
 	prec_plus,		//	+ - % %% &user_fn #native_fn
 	prec_cmp,		//	<=>
-	prec_less,		//	< <= > >=
-	prec_eq,		//	== <>
+	// prec_less,	//	< <= > >=
+	prec_eq,		//	== <> < <= > >=
 	prec_throw,		//	`throw
 	prec_and,		//	`and			(logical)
 	prec_xor,		//	`xor
@@ -38,7 +38,7 @@ struct node;
 
 using hfn_action = void (*)(prepare_data * pd, tree * tr, node * parent, node * nd);
 
-enum n_node_kind { nk_not_set, nk_concat, nk_pair, nk_dot, nk_bracket, nk_bracket_args, nk_cmp_x, nk_cmp };
+enum n_node_kind { nk_not_set, nk_concat, nk_pair, nk_dot, nk_bracket, nk_bracket_args, /* nk_cmp_x, */ nk_cmp };
 
 struct node_info {
 	hfn_action action_;

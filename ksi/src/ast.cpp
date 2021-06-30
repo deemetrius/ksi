@@ -529,22 +529,22 @@ array_iter<op_info> actions::iter_op() {
 			mod::instructions::get_cmp_is_not(), ex::cmp::equal }
 		}, {
 			{L"<="}, {
-			{do_cmp_x_assoc_left<mod::instructions, nk_cmp_x>, prec_less, prec_less, nk_cmp_x},
+			{do_cmp_x_assoc_left<mod::instructions, nk_cmp>, prec_eq, prec_eq, nk_cmp},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is_not(), ex::cmp::more }
 		}, {
 			{L">="}, {
-			{do_cmp_x_assoc_left<mod::instructions, nk_cmp_x>, prec_less, prec_less, nk_cmp_x},
+			{do_cmp_x_assoc_left<mod::instructions, nk_cmp>, prec_eq, prec_eq, nk_cmp},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is_not(), ex::cmp::less }
 		}, {
 			{L"<"}, {
-			{do_cmp_x_assoc_left<mod::instructions, nk_cmp_x>, prec_less, prec_less, nk_cmp_x},
+			{do_cmp_x_assoc_left<mod::instructions, nk_cmp>, prec_eq, prec_eq, nk_cmp},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is(), ex::cmp::less }
 		}, {
 			{L">"}, {
-			{do_cmp_x_assoc_left<mod::instructions, nk_cmp_x>, prec_less, prec_less, nk_cmp_x},
+			{do_cmp_x_assoc_left<mod::instructions, nk_cmp>, prec_eq, prec_eq, nk_cmp},
 			tree::add_node_assoc_left,
 			mod::instructions::get_cmp_is(), ex::cmp::more }
 		}, {

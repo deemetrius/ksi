@@ -189,6 +189,28 @@ void fn_type_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns,
 	fns->args_[0] = fns->args_[1].type_;
 }
 
+// remove
+
+void fn_remove_array(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+	var::keep_array * ka = fns->args_[1].value_.keep_->k_array();
+	if( ka->lock_ )
+	log->add({L"warning: #remove was called for the locked array.", fns->file_path(), fns->pos_});
+	else
+	ka->unset(fns->args_[2]);
+	// result
+	fns->args_[0] = fns->args_[1];
+}
+
+void fn_remove_map(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+	var::keep_map * km = fns->args_[1].value_.keep_->k_map();
+	if( km->lock_ )
+	log->add({L"warning: #remove was called for the locked map.", fns->file_path(), fns->pos_});
+	else
+	km->unset(fns->args_[2]);
+	// result
+	fns->args_[0] = fns->args_[1];
+}
+
 // clear
 
 void fn_clear_array(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
@@ -347,6 +369,10 @@ native_config::native_config() {
 	// #_not
 	fun = fn_map_.obtain(L"#_not");
 	fun->over_.set_common(native::fn_bitwise_not_def);
+	// #remove
+	fun = fn_map_.obtain(L"#remove");
+	fun->over_.add(&var::hcfg->t_array, native::fn_remove_array);
+	fun->over_.add(&var::hcfg->t_map, native::fn_remove_map);
 	// #clear
 	fun = fn_map_.obtain(L"#clear");
 	fun->over_.add(&var::hcfg->t_array, native::fn_clear_array);

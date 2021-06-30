@@ -63,7 +63,7 @@
 	"ksi_api.h"
 	<type_traits>
 
-1623454384 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
+1625025140 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
 	"fn.inc.h"
 
 1623455757 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
@@ -93,7 +93,7 @@
 1624300809 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
 	"space.h"
 
-1624545433 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
+1625063545 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
 	"space.h"
 
 1624470659 source:d:\prog\dropbox\cpp\hive\ksi\src\ast.cpp

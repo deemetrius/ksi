@@ -9,24 +9,24 @@ enum n_prec {
 	prec_leaf,		// (leaf)
 	prec_x_then,	//	? `each `for	(if-then, loop)
 	prec_member,	//	a.key a[key]
-	prec_rtx_assign,//	=> +=> -=> *=> /=> %=> %%=> ??=>
-	prec_x_assign,	//	= += -= *= /= %= %%= ??=
+	prec_rtx_assign,//	=> +=> -=> *=> /=> %=> %%=> `and=> `or=> `xor=> ??=> `_and=> `_or=> `_xor=>
+	prec_x_assign,	//	= += -= *= /= %= %%= `and= `or= `xor= ??= `_and= `_or= `_xor=
 	prec_invoke,	//	! &				(fn call, fn ref)
 	prec_mult,		//	* / `mod
+	prec_and_,		//	`_and			(bitwise)
+	prec_xor_,		//	`_xor
+	prec_or_,		//	`_or
 	prec_plus,		//	+ - % %% &user_fn #native_fn
 	prec_cmp,		//	<=>
 	prec_less,		//	< <= > >=
 	prec_eq,		//	== <>
-	prec_and_,		//	`_and			(bitwise)
-	prec_xor_,		//	`_xor
-	prec_or_,		//	`_or
 	prec_throw,		//	`throw
 	prec_and,		//	`and			(logical)
 	prec_xor,		//	`xor
 	prec_or,		//	`or
 	prec_nullc,		//	??				(null coalescing)
-	prec_assign,	//	= += -= *= /= %= %%= ??=
-	prec_rt_assign,	//	=> +=> -=> *=> /=> %=> %%=> ??=>
+	prec_assign,	//	= += -= *= /= %= %%= `and= `or= `xor= ??= `_and= `_or= `_xor=
+	prec_rt_assign,	//	=> +=> -=> *=> /=> %=> %%=> `and=> `or=> `xor=> ??=> `_and=> `_or=> `_xor=>
 	prec_then,		//	? `each `for	(if-then, loop)
 	prec_pair,		//	:				(key-value pair)
 	prec_root,		//	(top)

@@ -20,6 +20,7 @@ struct module;
 namespace var {
 
 struct any;
+struct ref_var;
 
 // keep
 
@@ -48,6 +49,29 @@ struct keep_text : public base_keep {
 inline keep_text * base_keep::k_text() {
 	return static_cast<keep_text *>(this);
 }
+
+struct with_lock {
+	id lock_ = 0;
+
+	inline void lock()		{ ++lock_; }
+	inline void unlock()	{ --lock_; }
+};
+
+// each iterator
+
+struct ei_base : public ex::with_deleter<ei_base> {
+	enum n_order : id { order_asc, order_desc, order_key_asc, order_key_desc };
+
+	virtual ~ei_base() = default;
+	virtual bool valid() const { return false; }
+	virtual void next() {}
+	virtual void set_vars(ref_var & key, ref_var & val) {}
+	virtual void set_vars_ref(ref_var & key, ref_var & val) {}
+
+	template <class T>
+	static ei_base * make(const any & v) { return new T(v); }
+	using hfn_make = decltype(&ei_base::make<ei_base>);
+};
 
 // types
 
@@ -132,6 +156,8 @@ struct base_type : ex::with_deleter<base_type> {
 
 	virtual any element_get(const any & a, const any & key) const;
 	virtual bool element_set(any & a_link, const any & key, keep_array * ka, wtext & msg) const;
+
+	virtual ei_base * get_iterator(id order, const any & v) const;
 };
 
 using var_type = const base_type *;
@@ -198,6 +224,10 @@ struct type_null : public base_simple {
 
 	any to_array(const any & a, wtext & msg) const override;
 	any to_map(const any & a, wtext & msg) const override;
+
+	ei_base * get_iterator(id order, const any & v) const override {
+		return new ei_base;
+	}
 };
 
 struct type_bool : public base_simple {
@@ -385,6 +415,8 @@ struct type_array : public with_convert_bool<base_ref, type_array> {
 
 	any element_get(const any & a, const any & key) const override;
 	bool element_set(any & a_link, const any & key, keep_array * ka, wtext & msg) const override;
+
+	ei_base * get_iterator(id order, const any & v) const override;
 };
 
 struct type_map : public with_convert_bool<base_ref, type_map> {
@@ -683,10 +715,9 @@ struct t_index {
 	id pos_;
 };
 
-struct keep_array : public base_keep {
+struct keep_array : public base_keep, public with_lock {
 	using t_items = ex::array<ref_var, ex::del_object>;
 	t_items items_;
-	id lock_ = 0;
 	ref_var * link_ = nullptr;
 
 	keep_array() : items_(def_array_r, def_array_s) {}
@@ -696,7 +727,7 @@ struct keep_array : public base_keep {
 		items_.append_obj<const any &>(a);
 	}
 	keep_array(const keep_map * km);
-	keep_array(ref_var * link) : items_(1, 1), lock_(1), link_(link) {
+	keep_array(ref_var * link) : with_lock{1}, items_(1, 1), /* lock_(1), */ link_(link) {
 		items_.append_obj(link);
 	}
 
@@ -787,12 +818,12 @@ inline keep_array * base_keep::k_array() {
 }
 
 //
-struct keep_map : public base_keep {
+struct keep_map : public base_keep, public with_lock {
 	using t_items = ex::map<any, ref_var, ex::map_del_object, ex::map_del_object, cmp_any>;
 	using t_ref = ex::ref<t_items, false>;
 
 	t_ref ref_;
-	id lock_ = 0, next_id_ = 0;
+	id next_id_ = 0;
 	bool is_full_id_ = false;
 
 	struct pair {
@@ -887,6 +918,81 @@ struct keep_map : public base_keep {
 inline keep_map * base_keep::k_map() {
 	return static_cast<keep_map *>(this);
 }
+
+//
+
+struct ei_simple : public ei_base {
+	any val_;
+	bool valid_ = true;
+
+	ei_simple(const any & v) : val_(v) {}
+	bool valid() const override {
+		return valid_;
+	}
+	void next() override {
+		valid_ = false;
+		val_ = n_null::val;
+	}
+	inline void impl_set_vars(ref_var & key, ref_var & val) {
+		key.h_->val_ = n_null::val;
+		val.h_->val_ = val_;
+	}
+	void set_vars(		ref_var & key, ref_var & val) { impl_set_vars(key, val); }
+	void set_vars_ref(	ref_var & key, ref_var & val) { impl_set_vars(key, val); }
+};
+
+struct ei_array_base : public ei_base {
+	any val_;
+	ref_var * current_, * end_;
+	id pos_;
+
+	ei_array_base(const any & v) : val_(v) {}
+	~ei_array_base() {
+		val_.value_.keep_->k_array()->unlock();
+	}
+
+	bool valid() const override {
+		return current_ != end_;
+	}
+	void set_vars(ref_var & key, ref_var & val) override {
+		key.h_->val_ = pos_;
+		val = *current_;
+	}
+	void set_vars_ref(ref_var & key, ref_var & val) override {
+		key.h_->val_ = pos_;
+		val = current_;
+	}
+};
+
+struct ei_array_asc : public ei_array_base {
+	ei_array_asc(const any & v) : ei_array_base(v) {
+		keep_array * ka = val_.value_.keep_->k_array();
+		ka->lock();
+		current_ = ka->items_.begin();
+		end_ = ka->items_.end();
+		pos_ = 0;
+	}
+
+	void next() override {
+		++current_;
+		++pos_;
+	}
+};
+
+struct ei_array_desc : public ei_array_base {
+	ei_array_desc(const any & v) : ei_array_base(v) {
+		keep_array * ka = val_.value_.keep_->k_array();
+		ka->lock();
+		current_ = ka->items_.rbegin();
+		end_ = ka->items_.rend();
+		pos_ = ka->items_.count_ -1;
+	}
+
+	void next() override {
+		--current_;
+		--pos_;
+	}
+};
 
 //
 template <class Op>

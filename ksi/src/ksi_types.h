@@ -33,6 +33,7 @@ enum def : id {
 	def_ast_scopes_r = 1, def_ast_scopes_s = 2,
 	def_ast_pos_r = 2, def_ast_pos_s = 4,
 	def_for_implode_r = 2, def_for_implode_s = 4,
+	def_each_iterators_r = 2, def_each_iterators_s = 4,
 	def_ast_fn_info_r = 8, def_ast_fn_info_s = 8,
 	def_ast_fn_call_r = 8, def_ast_fn_call_s = 8
 };

@@ -194,6 +194,9 @@ struct array {
 	T * begin() const { return items_; }
 	T * end() const { return items_ + count_; }
 
+	T * rbegin() const { return  items_ + count_ -1; }
+	T * rend() const { return items_ -1; }
+
 	T & last(id num) {
 		return items_[count_ -1 - num];
 	}

@@ -78,7 +78,7 @@ struct fn_body;
 
 struct t_stack {
 	struct t_state {
-		id n_items_, n_implode_;
+		id n_items_, n_implode_, n_each_;
 	};
 
 	struct for_implode : public ex::with_deleter<for_implode>, public ex::wtext_array {
@@ -86,19 +86,32 @@ struct t_stack {
 	};
 	using t_for_implode = ex::def_array<for_implode *, ex::del_ex_pointer, def_for_implode_r, def_for_implode_s>;
 	using t_items = ex::def_array<var::any, ex::del_object, def_stack_r, def_stack_s>;
+	using t_each_iterators = ex::def_array<var::ei_base *, ex::del_ex_pointer, def_each_iterators_r, def_each_iterators_s>;
 
 	t_items items_;
 	t_for_implode for_implode_;
+	t_each_iterators each_iterators_;
 
 	t_state state_get() const {
-		return {items_.count_, for_implode_.count_};
+		return {items_.count_, for_implode_.count_, each_iterators_.count_};
+	}
+	template <class T>
+	static inline void inner_restore(T & items, id n) {
+		if( id diff = items.count_ - n; diff > 0 )
+		items.remove_last_n(diff);
 	}
 	void state_restore(const t_state & st) {
-		if( id diff = items_.count_ - st.n_items_; diff > 0 )
+		/* if( id diff = items_.count_ - st.n_items_; diff > 0 )
 		items_.remove_last_n(diff);
 
 		if( id diff = for_implode_.count_ - st.n_implode_; diff > 0 )
 		for_implode_.remove_last_n(diff);
+
+		if( id diff = each_iterators_.count_ - st.n_each_; diff > 0 )
+		each_iterators_.remove_last_n(diff); */
+		inner_restore(items_			, st.n_items_	);
+		inner_restore(for_implode_		, st.n_implode_	);
+		inner_restore(each_iterators_	, st.n_each_	);
 	}
 };
 

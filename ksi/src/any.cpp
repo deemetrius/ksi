@@ -606,6 +606,21 @@ bool type_map::element_set(any & a_link, const any & key, keep_array * ka, wtext
 	return false;
 }
 
+// get_iterator
+
+ei_base * base_type::get_iterator(id order, const any & v) const {
+	return new ei_simple(v);
+}
+ei_base * type_array::get_iterator(id order, const any & v) const {
+	static ei_base::hfn_make makers[] = {
+		ei_base::make<ei_array_asc>,
+		ei_base::make<ei_array_desc>,
+		ei_base::make<ei_array_asc>,
+		ei_base::make<ei_array_desc>
+	};
+	return makers[order](v);
+}
+
 } // ns
 } // ns
 

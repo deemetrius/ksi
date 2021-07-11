@@ -612,11 +612,20 @@ ei_base * base_type::get_iterator(id order, const any & v) const {
 	return new ei_simple(v);
 }
 ei_base * type_array::get_iterator(id order, const any & v) const {
-	static ei_base::hfn_make makers[] = {
+	static constexpr ei_base::hfn_make makers[] = {
 		ei_base::make<ei_array_asc>,
 		ei_base::make<ei_array_desc>,
 		ei_base::make<ei_array_asc>,
 		ei_base::make<ei_array_desc>
+	};
+	return makers[order](v);
+}
+ei_base * type_map::get_iterator(id order, const any & v) const {
+	static constexpr ei_base::hfn_make makers[] = {
+		ei_base::make<ei_map_seq<false> >,
+		ei_base::make<ei_map_seq<true> >,
+		ei_base::make<ei_map_key<false> >,
+		ei_base::make<ei_map_key<true> >
 	};
 	return makers[order](v);
 }

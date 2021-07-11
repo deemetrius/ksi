@@ -347,7 +347,7 @@ struct end_expr :
 public with_kind<rk_keep>,
 public check_kind_not<rk_operator, rk_fn_call> {
 	static wtext name(state & st) {
-		static hfn_name items[] = {
+		static constexpr hfn_name items[] = {
 			end_plain::name, end_fn::name,
 			end_scope::name, end_array::name, end_map::name,
 			end_bracket::name, end_condition::name,
@@ -357,7 +357,7 @@ public check_kind_not<rk_operator, rk_fn_call> {
 	}
 
 	static bool parse(state & st, t_tokens & toks, base_log * log) {
-		static hfn_parse items[] = {
+		static constexpr hfn_parse items[] = {
 			end_plain::parse, end_fn::parse,
 			end_scope::parse, end_array::parse, end_map::parse,
 			end_bracket::parse, end_condition::parse,
@@ -367,13 +367,13 @@ public check_kind_not<rk_operator, rk_fn_call> {
 	}
 
 	static void post_action(state & st, t_tokens & toks, base_log * log) {
-		static hfn_post_action items[] = {
+		static constexpr hfn_post_action items[] = {
 			end_plain::post_action, end_fn::post_action,
 			end_scope::post_action, end_array::post_action, end_map::post_action,
 			end_bracket::post_action, end_condition::post_action,
 			end_while_condition::post_action, end_loop_body::post_action
 		};
-		static n_rule_kind kinds[] = {
+		static constexpr n_rule_kind kinds[] = {
 			end_plain::kind, end_fn::kind,
 			end_scope::kind, end_array::kind, end_map::kind,
 			end_bracket::kind, end_condition::kind,

@@ -440,6 +440,8 @@ struct type_map : public with_convert_bool<base_ref, type_map> {
 
 	any element_get(const any & a, const any & key) const override;
 	bool element_set(any & a_link, const any & key, keep_array * ka, wtext & msg) const override;
+
+	ei_base * get_iterator(id order, const any & v) const override;
 };
 
 // config
@@ -919,7 +921,7 @@ inline keep_map * base_keep::k_map() {
 	return static_cast<keep_map *>(this);
 }
 
-//
+// each iterator simple
 
 struct ei_simple : public ei_base {
 	any val_;
@@ -941,9 +943,11 @@ struct ei_simple : public ei_base {
 	void set_vars_ref(	ref_var & key, ref_var & val) { impl_set_vars(key, val); }
 };
 
+// each iterator array
+
 struct ei_array_base : public ei_base {
 	any val_;
-	ref_var * current_, * end_;
+	ref_var * cur_, * end_;
 	id pos_;
 
 	ei_array_base(const any & v) : val_(v) {}
@@ -952,15 +956,15 @@ struct ei_array_base : public ei_base {
 	}
 
 	bool valid() const override {
-		return current_ != end_;
+		return cur_ != end_;
 	}
 	void set_vars(ref_var & key, ref_var & val) override {
 		key.h_->val_ = pos_;
-		val = *current_;
+		val = *cur_;
 	}
 	void set_vars_ref(ref_var & key, ref_var & val) override {
 		key.h_->val_ = pos_;
-		val = current_;
+		val = cur_;
 	}
 };
 
@@ -968,13 +972,13 @@ struct ei_array_asc : public ei_array_base {
 	ei_array_asc(const any & v) : ei_array_base(v) {
 		keep_array * ka = val_.value_.keep_->k_array();
 		ka->lock();
-		current_ = ka->items_.begin();
+		cur_ = ka->items_.begin();
 		end_ = ka->items_.end();
 		pos_ = 0;
 	}
 
 	void next() override {
-		++current_;
+		++cur_;
 		++pos_;
 	}
 };
@@ -983,14 +987,99 @@ struct ei_array_desc : public ei_array_base {
 	ei_array_desc(const any & v) : ei_array_base(v) {
 		keep_array * ka = val_.value_.keep_->k_array();
 		ka->lock();
-		current_ = ka->items_.rbegin();
+		cur_ = ka->items_.rbegin();
 		end_ = ka->items_.rend();
 		pos_ = ka->items_.count_ -1;
 	}
 
 	void next() override {
-		--current_;
+		--cur_;
 		--pos_;
+	}
+};
+
+// each iterator map
+
+struct ei_map_base : public ei_base {
+	using cnode = typename keep_map::t_items::cnode;
+
+	any val_;
+
+	ei_map_base(const any & v, keep_map * km) : val_(v) {
+		km->lock();
+	}
+	~ei_map_base() {
+		val_.value_.keep_->k_map()->unlock();
+	}
+};
+
+template <bool IsRev>
+struct ei_map_seq : public ei_map_base {
+	using t_iter = ex::list_iter<IsRev, cnode>;
+
+	static t_iter get_iter(keep_map * km) {
+		keep_map::t_items * m = km->ref_.h_;
+		if constexpr( IsRev )
+		return m->items_.get_rev_iter();
+		else
+		return m->items_.begin();
+	}
+
+	t_iter iter_;
+
+	ei_map_seq(const any & v) : ei_map_seq(v, v.value_.keep_->k_map() ) {}
+	ei_map_seq(const any & v, keep_map * km) : ei_map_base(v, km), iter_( get_iter(km) ) {}
+
+	bool valid() const override {
+		return iter_.cur_ != iter_.end_;
+	}
+	void next() override {
+		++iter_;
+	}
+	void set_vars(ref_var & key, ref_var & val) override {
+		cnode * nd = *iter_;
+		key = nd->key_;
+		val = nd->val_;
+	}
+	void set_vars_ref(ref_var & key, ref_var & val) override {
+		cnode * nd = *iter_;
+		key = nd->key_;
+		val = &nd->val_;
+	}
+};
+
+template <bool IsRev>
+struct ei_map_key : public ei_map_base {
+	cnode ** cur_, ** end_;
+
+	ei_map_key(const any & v) : ei_map_key(v, v.value_.keep_->k_map() ) {}
+	ei_map_key(const any & v, keep_map * km) : ei_map_base(v, km) {
+		keep_map::t_items * m = km->ref_.h_;
+		if constexpr( IsRev ) {
+			cur_ = m->sorted_.rbegin();
+			end_ = m->sorted_.rend();
+		} else {
+			cur_ = m->sorted_.begin();
+			end_ = m->sorted_.end();
+		}
+	}
+
+	bool valid() const override {
+		return cur_ != end_;
+	}
+	void next() override {
+		if constexpr( IsRev )
+		--cur_;
+		else
+		++cur_;
+	}
+	void set_vars(ref_var & key, ref_var & val) override {
+		key = (*cur_)->key_;
+		val = (*cur_)->val_;
+	}
+	void set_vars_ref(ref_var & key, ref_var & val) override {
+		key = (*cur_)->key_;
+		val = &(*cur_)->val_;
 	}
 };
 

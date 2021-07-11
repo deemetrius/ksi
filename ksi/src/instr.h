@@ -672,6 +672,68 @@ struct instructions {
 	}
 	FN_GET_INSTR_TYPE(while_post)
 
+	/* each: (
+		params.data_ ~ order
+		params.extra_ ~ side pos of loop body
+		params.mod_ ~ side pos of loop body after '\' if any (0 if absent)
+		params.also_ ~ side pos of additional block after loop vars and '\' before '~' if any (0 if absent)
+	) */
+	static void do_each(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		var::ei_base * ei;
+		{
+			var::any & v = stk->items_.last(0);
+			ei = v.type_->get_iterator(params.data_, v);
+			stk->each_iter_add(ei);
+		}
+		stk->items_.remove_last_n(1);
+		//
+		t_stack::t_state st = stk->state_get();
+		id steps = 0;
+		try {
+			id
+				side_pos = params.extra_,
+				rest_side_pos = (params.mod_ ? params.mod_ : side_pos)
+			;
+			if( params.also_ )
+			while( ei->valid() ) {
+				// loop body
+				++steps;
+				inner_loop_block(spc, fns, stk, log, side_pos, st); // primary side
+				side_pos = rest_side_pos;
+				inner_loop_block(spc, fns, stk, log, params.also_, st); // additional side
+				ei->next();
+			} else while( ei->valid() ) {
+				// loop body
+				++steps;
+				inner_loop_block(spc, fns, stk, log, side_pos, st); // primary side
+				side_pos = rest_side_pos;
+				ei->next();
+			}
+		} catch( const event_break & e ) {
+			if( e.depth_ == 1 )
+			stk->state_restore(st);
+			else
+			throw event_break{e.depth_ -1};
+		}
+		stk->each_iter_del();
+		stk->items_.append_obj(steps);
+	}
+	FN_GET_INSTR_TYPE(each)
+
+	// each_vars: (params.data_ ~ var pos of key, params.extra_ ~ var pos of val)
+	static void do_each_vars(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		var::ei_base * ei = stk->each_iter_cur();
+		ei->set_vars(fns->vars_[params.data_], fns->vars_[params.extra_]);
+	}
+	FN_GET_INSTR_TYPE(each_vars)
+
+	// each_vars_ref: (params.data_ ~ var pos of key, params.extra_ ~ var pos of val)
+	static void do_each_vars_ref(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		var::ei_base * ei = stk->each_iter_cur();
+		ei->set_vars_ref(fns->vars_[params.data_], fns->vars_[params.extra_]);
+	}
+	FN_GET_INSTR_TYPE(each_vars_ref)
+
 	// kw_break: (params.data_ ~ loop depth)
 	static void do_kw_break(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
 		throw event_break{params.data_};

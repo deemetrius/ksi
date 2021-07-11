@@ -493,7 +493,7 @@ struct any {
 		const mod::module * mod_;
 	};
 	t_value value_;
-	var_type type_;
+	const base_type * type_;
 
 	void hold() const {
 		if( type_->is_ref_ )

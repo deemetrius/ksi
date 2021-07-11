@@ -101,17 +101,19 @@ struct t_stack {
 		items.remove_last_n(diff);
 	}
 	void state_restore(const t_state & st) {
-		/* if( id diff = items_.count_ - st.n_items_; diff > 0 )
-		items_.remove_last_n(diff);
-
-		if( id diff = for_implode_.count_ - st.n_implode_; diff > 0 )
-		for_implode_.remove_last_n(diff);
-
-		if( id diff = each_iterators_.count_ - st.n_each_; diff > 0 )
-		each_iterators_.remove_last_n(diff); */
 		inner_restore(items_			, st.n_items_	);
 		inner_restore(for_implode_		, st.n_implode_	);
 		inner_restore(each_iterators_	, st.n_each_	);
+	}
+
+	void each_iter_add(var::ei_base * ei) {
+		each_iterators_.append(ei);
+	}
+	void each_iter_del() {
+		each_iterators_.remove_last_n(1);
+	}
+	var::ei_base * each_iter_cur() {
+		return each_iterators_.last(0);
 	}
 };
 

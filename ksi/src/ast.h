@@ -367,6 +367,8 @@ struct actions {
 		nd->rt_->info_.action_(pd, tr, nd, nd->rt_);
 	}
 
+	static void do_each_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd);
+
 	static void do_fn_global_call(prepare_data * pd, tree * tr, node * parent, node * nd) {
 		nd->lt_->info_.action_(pd, tr, nd, nd->lt_);
 		nd->rt_->info_.action_(pd, tr, nd, nd->rt_);
@@ -470,6 +472,7 @@ struct actions {
 	static void do_leaf(prepare_data * pd, tree * tr, node * parent, node * nd) {
 		node_add_instr(pd, nd);
 	}
+	static void do_leaf_none(prepare_data * pd, tree * tr, node * parent, node * nd) {}
 	// ()
 	static void do_leaf_scope(prepare_data * pd, tree * tr, node * parent, node * nd) {
 		scope * sc = pd->get_scopes()[nd->info_.data_];
@@ -511,6 +514,7 @@ struct actions {
 	static op_info_lite * op_bracket_get(); // []
 	static op_info_lite * op_bracket_set(); // []
 	static op_info_lite * op_then(); // ?
+	static op_info_lite * op_each(); // each
 };
 
 } // ns

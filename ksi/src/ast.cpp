@@ -232,9 +232,12 @@ void actions::do_concat_assoc_right(prepare_data * pd, tree * tr, node * parent,
 }
 
 struct action_condition {
-	template <bool Null_on_empty>
-	inline static id scope_to_side(prepare_data * pd, body * bd, node * nd, id scope_pos) {
+	template <bool Null_on_empty, bool Need_add = false>
+	inline static id scope_to_side(prepare_data * pd, body * bd, node * nd, id scope_pos, node * nd_add = nullptr) {
 		id ret = bd->add_side_pos();
+		if constexpr( Need_add )
+		actions::node_add_instr(pd, nd_add);
+		//
 		scope * sc = bd->scopes_.items_[scope_pos];
 		if( sc->trees_.count_ )
 		sc->perform(pd);
@@ -249,6 +252,22 @@ struct action_condition {
 		return ret;
 	}
 };
+
+// each
+void actions::do_each_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
+	nd->lt_->info_.action_(pd, tr, nd, nd->lt_);
+	body * bd = pd->body_.h_;
+	// primary loop body
+	nd->instr_.params_.extra_ = action_condition::scope_to_side<false, true>(pd, bd, nd, nd->info_.extra_, nd->rt_);
+	// rest loop body, maybe
+	if( nd->info_.mod_ )
+	nd->instr_.params_.mod_ = action_condition::scope_to_side<false, true>(pd, bd, nd, nd->info_.mod_, nd->rt_);
+	// additional block, maybe
+	if( nd->info_.also_ )
+	nd->instr_.params_.also_ = action_condition::scope_to_side<false>(pd, bd, nd, nd->info_.also_);
+	// current
+	node_add_instr(pd, nd);
+}
 
 // ?
 void actions::do_leaf_then(prepare_data * pd, tree * tr, node * parent, node * nd) {
@@ -605,9 +624,19 @@ actions::t_map_named_ops & actions::map_named_ops() {
 // ?
 op_info_lite * actions::op_then() {
 	static op_info_lite op = {
-		{do_node_assoc_left, prec_x_then, prec_then},
+		{do_none_assoc_left, prec_x_then, prec_then},
 		tree::add_node_assoc_left,
 		mod::instructions::get_nothing()
+	};
+	return &op;
+}
+
+// each
+op_info_lite * actions::op_each() {
+	static op_info_lite op = {
+		{do_each_assoc_left, prec_x_then, prec_then},
+		tree::add_node_assoc_left,
+		mod::instructions::get_each()
 	};
 	return &op;
 }

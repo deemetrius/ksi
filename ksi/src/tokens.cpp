@@ -301,6 +301,64 @@ void token_loop_while_body_rest::perform(space * spc, ast::prepare_data * pd, ba
 	nd_scope->info_.mod_ = bd->add_scope_pos( ast::scope::make_function_scope() );
 }
 
+//
+
+void token_loop_each_begin::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::tree * tr = pd->current_tree();
+	tr->add_op(pos_, op_);
+}
+
+void token_loop_each_order::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::tree * tr = pd->current_tree();
+	ast::node * nd_each = tr->nodes_.last(0);
+	nd_each->instr_.params_.data_ = order_;
+}
+
+void token_loop_each_key::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	mod::fn_body * fnb = pd->body_.h_->fn_body_.h_;
+	id data = fnb->reg_var(var_name_);
+	ast::tree * tr = pd->current_tree();
+	ast::tree::add_leaf(tr, new ast::node{
+		ast::actions::info_leaf(ast::actions::do_leaf_none),
+		{mod::instructions::get_each_vars(), {pos_, data} }
+	});
+}
+
+void token_loop_each_val::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::tree * tr = pd->current_tree();
+	ast::node * nd_each_vars = tr->leafs_.last(0);
+	mod::fn_body * fnb = pd->body_.h_->fn_body_.h_;
+	nd_each_vars->instr_.params_.extra_ = fnb->reg_var(var_name_);
+	if( is_by_ref_ )
+	nd_each_vars->instr_.type_ = mod::instructions::get_each_vars_ref();
+}
+
+void token_loop_each_also_block::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::body * bd = pd->body_.h_;
+	ast::tree * tr = pd->current_tree();
+	ast::node * nd_scope = tr->nodes_.last(0);
+	nd_scope->info_.also_ = bd->add_scope_pos( ast::scope::make_function_scope() );
+}
+
+void token_loop_each_body::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::body * bd = pd->body_.h_;
+	if( was_also_block_ )
+	bd->del_scope_pos();
+	ast::tree * tr = pd->current_tree();
+	ast::node * nd_scope = tr->nodes_.last(0);
+	nd_scope->info_.extra_ = bd->add_scope_pos( ast::scope::make_function_scope() );
+}
+
+void token_loop_each_body_rest::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::body * bd = pd->body_.h_;
+	bd->del_scope_pos();
+	ast::tree * tr = pd->current_tree();
+	ast::node * nd_scope = tr->nodes_.last(0);
+	nd_scope->info_.mod_ = bd->add_scope_pos( ast::scope::make_function_scope() );
+}
+
+//
+
 void token_next_expr::perform(space * spc, ast::prepare_data * pd, base_log * log) {
 	ast::body * bd = pd->body_.h_;
 	bd->current_scope()->add_tree();

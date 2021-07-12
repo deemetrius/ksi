@@ -274,6 +274,65 @@ struct token_loop_while_body_rest : public base_token {
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
 
+// each
+
+struct token_loop_each_begin : public base_token {
+	also::t_pos pos_;
+	const ast::op_info_lite * op_;
+
+	token_loop_each_begin(also::t_pos pos, const ast::op_info_lite * op) : pos_(pos), op_(op) {}
+	wtext get_name() const override { return L"token_begin_loop_each"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
+struct token_loop_each_end : public token_scope_end {
+	wtext get_name() const override { return L"token_end_loop_each"; }
+};
+
+struct token_loop_each_order : public base_token {
+	id order_;
+
+	token_loop_each_order(id order) : order_(order) {}
+	wtext get_name() const override { return L"token_loop_each_set_order"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
+struct token_loop_each_key : public base_token {
+	also::t_pos pos_;
+	wtext var_name_;
+
+	token_loop_each_key(also::t_pos pos, const wtext & var_name) : pos_(pos), var_name_(var_name) {}
+	wtext get_name() const override { return L"token_loop_each_key"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
+struct token_loop_each_val : public base_token {
+	wtext var_name_;
+	bool is_by_ref_;
+
+	token_loop_each_val(const wtext & var_name, bool is_by_ref) : var_name_(var_name), is_by_ref_(is_by_ref) {}
+	wtext get_name() const override { return L"token_loop_each_val"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
+struct token_loop_each_also_block : public base_token {
+	wtext get_name() const override { return L"token_loop_each_also_block"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
+struct token_loop_each_body : public base_token {
+	bool was_also_block_;
+
+	token_loop_each_body(bool was_also_block) : was_also_block_(was_also_block) {}
+	wtext get_name() const override { return L"token_loop_each_body"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
+struct token_loop_each_body_rest : public base_token {
+	wtext get_name() const override { return L"token_loop_each_body_rest"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
 // other
 
 struct token_next_expr : public base_token {

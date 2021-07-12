@@ -13,7 +13,7 @@
 1582436279 d:\prog\dropbox\cpp\hive\ksi\src\tester.h
 	<iostream>
 
-1625966441 source:d:\prog\dropbox\cpp\hive\ksi\src\any.cpp
+1625970723 source:d:\prog\dropbox\cpp\hive\ksi\src\any.cpp
 	"any.h"
 	<errno.h>
 
@@ -80,7 +80,7 @@
 1623174680 d:\prog\dropbox\cpp\hive\ksi\src\tokens.h
 	"ksi_types.h"
 
-1624245446 d:\prog\dropbox\cpp\hive\ksi\src\tokens.inc.h
+1626082262 d:\prog\dropbox\cpp\hive\ksi\src\tokens.inc.h
 	"tokens.h"
 
 1625966648 d:\prog\dropbox\cpp\hive\ksi\src\rules.ksi.h
@@ -93,10 +93,10 @@
 1625965060 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
 	"space.h"
 
-1625064654 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
+1626077852 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
 	"space.h"
 
-1625967154 source:d:\prog\dropbox\cpp\hive\ksi\src\ast.cpp
+1626083276 source:d:\prog\dropbox\cpp\hive\ksi\src\ast.cpp
 	"ast.h"
 	"instr.h"
 

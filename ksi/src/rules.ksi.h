@@ -649,6 +649,111 @@ struct hive {
 		static bool parse(state & st, t_tokens & toks, base_log * log);
 	};
 
+	struct operation_loop_each :
+	public with_kind<rk_operand>,
+	public check_none,
+	public is_keyword<operation_loop_each>,
+	public pa_none {
+		static wtext name(state & st) { return L"t_loop_each"; }
+
+		static bool check_text(const wtext & tx, state & st, t_tokens & toks, base_log * log) {
+			return text_compare(tx, L"`each");
+		}
+
+		static bool parse(state & st, t_tokens & toks, base_log * log);
+	};
+
+	struct operation_loop_each_key_sign :
+	public with_kind<rk_none>,
+	public check_flag_is_absent<flag_was_each_order_sign>,
+	public pa_add_flag<flag_was_each_order_sign> {
+		static wtext name(state & st) { return L"t_loop_each_key_sign"; }
+
+		static bool parse(state & st, t_tokens & toks, base_log * log) {
+			bool ret = false;
+			id order;
+			if( *st.str_ == L'+' ) {
+				ret = true;
+				order = var::order_key_asc;
+			} else if( *st.str_ == L'-' ) {
+				ret = true;
+				order = var::order_key_desc;
+			}
+			if( ret ) {
+				st.next_str(st.str_ +1);
+				toks.append(new tokens::token_loop_each_order(order) );
+			}
+			return ret;
+		}
+	};
+
+	struct operation_loop_each_val_sign :
+	public with_kind<rk_none>,
+	public check_flag_is_absent<flag_was_each_order_sign>,
+	public pa_add_flag<flag_was_each_order_sign> {
+		static wtext name(state & st) { return L"t_loop_each_value_sign"; }
+
+		static bool parse(state & st, t_tokens & toks, base_log * log) {
+			bool ret = false;
+			if( *st.str_ == L'-' ) {
+				ret = true;
+				st.next_str(st.str_ +1);
+				toks.append(new tokens::token_loop_each_order(var::order_desc) );
+			}
+			return ret;
+		}
+	};
+
+	struct operation_loop_each_key :
+	public with_kind<rk_none>,
+	public check_none,
+	public is_name {
+		static wtext name(state & st) { return L"t_loop_each_key_variable"; }
+
+		static void post_action(state & st, t_tokens & toks, base_log * log) {
+			toks.append(new tokens::token_loop_each_key(st.liner_.get_pos(st.prev_str_), wtext(st.prev_str_, st.str_) ) );
+			st.next_fn_ = rule_loop_each_colon::parse;
+		}
+	};
+
+	struct operation_loop_each_val :
+	public with_kind<rk_none>,
+	public check_none {
+		static wtext name(state & st) { return L"t_loop_each_value_variable"; }
+
+		static bool parse(state & st, t_tokens & toks, base_log * log) {
+			bool ret = false;
+			state tmp_st = st;
+			if( rules::is_name::parse(tmp_st, toks, log) ) {
+				ret = true;
+				wtext var_name(tmp_st.prev_str_, tmp_st.str_);
+				bool is_by_ref = false;
+				if( *tmp_st.str_ == L'&' ) {
+					is_by_ref = true;
+					++tmp_st.str_;
+				}
+				st.next_str(tmp_st.str_);
+				toks.append(new tokens::token_loop_each_val(var_name, is_by_ref) );
+			}
+			return ret;
+		}
+
+		static void post_action(state & st, t_tokens & toks, base_log * log) {
+			st.next_fn_ = rule_loop_each_after_val::parse;
+		}
+	};
+
+	struct operation_loop_each_colon :
+	public with_kind<rk_none>,
+	public check_none,
+	public is_char<L':'> {
+		static wtext name(state & st) { return L"t_loop_each_colon"; }
+
+		static void post_action(state & st, t_tokens & toks, base_log * log) {
+			st.next_fn_ = rule_loop_each_val::parse;
+		}
+	};
+
 	struct t_operator :
 	public with_kind<rk_operator>,
 	public check_none,
@@ -834,6 +939,7 @@ struct hive {
 		end_expr,
 		separator,
 		operation_condition,
+		operation_loop_each,
 		fn_call_native,
 		fn_call_global,
 		operation_assign,
@@ -858,6 +964,25 @@ struct hive {
 
 	template <bool Is_set, bool In_assign>
 	struct rule_expr_after_dot : public rule_alt<true, true, od, typename wrap_dot<Is_set, In_assign>::operand_after_dot> {};
+
+	struct rule_loop_each_key : public rule_alt<true, true,
+		od,
+		operation_loop_each_key_sign,
+		operation_loop_each_key
+	> {};
+	struct rule_loop_each_colon : public rule_alt<true, true,
+		od,
+		operation_loop_each_colon
+	> {};
+	struct rule_loop_each_val : public rule_alt<true, true,
+		od,
+		operation_loop_each_val_sign,
+		operation_loop_each_val
+	> {};
+	struct rule_loop_each_after_val : public rule_alt<true, true,
+		od,
+		end_expr
+	> {};
 
 };
 

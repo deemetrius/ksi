@@ -60,8 +60,6 @@ struct with_lock {
 // each iterator
 
 struct ei_base : public ex::with_deleter<ei_base> {
-	enum n_order : id { order_asc, order_desc, order_key_asc, order_key_desc };
-
 	virtual ~ei_base() = default;
 	virtual bool valid() const { return false; }
 	virtual void next() {}

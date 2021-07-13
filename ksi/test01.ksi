@@ -1,3 +1,21 @@
 
+&test_each v n ~
+	['$', v #type #, ":\n"] #echo #
+	v `each +key : val ~
+		key #dump #0
+		' : ' #echo #
+		val #dump #0
+		"\n" #echo #
+	;
+;
+
 `plain -- привет
-#1 ? (2 > 1 <> #1 #as $int) #dump #0 ;
+
+[
+	#
+	10_
+	[1 2]
+	{1:%one 0:%zero}
+] => items `each k : v ~ v &test_each # ;
+items `each k : -v& \ [k] #dump #0 ~ \ v = # ;
+items #dump #0

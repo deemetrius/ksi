@@ -278,9 +278,8 @@ struct token_loop_while_body_rest : public base_token {
 
 struct token_loop_each_begin : public base_token {
 	also::t_pos pos_;
-	const ast::op_info_lite * op_;
 
-	token_loop_each_begin(also::t_pos pos, const ast::op_info_lite * op) : pos_(pos), op_(op) {}
+	token_loop_each_begin(also::t_pos pos) : pos_(pos) {}
 	wtext get_name() const override { return L"token_begin_loop_each"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };

@@ -152,4 +152,9 @@ struct run_args {
 	}
 };
 
+namespace var {
+
+enum n_each_order : id { order_asc, order_desc, order_key_asc, order_key_desc };
+
+} // ns
 } // ns

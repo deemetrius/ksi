@@ -305,7 +305,7 @@ void token_loop_while_body_rest::perform(space * spc, ast::prepare_data * pd, ba
 
 void token_loop_each_begin::perform(space * spc, ast::prepare_data * pd, base_log * log) {
 	ast::tree * tr = pd->current_tree();
-	tr->add_op(pos_, op_);
+	tr->add_op(pos_, ast::actions::op_each() );
 }
 
 void token_loop_each_order::perform(space * spc, ast::prepare_data * pd, base_log * log) {

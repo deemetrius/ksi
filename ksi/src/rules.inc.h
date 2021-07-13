@@ -32,7 +32,8 @@ enum flag : uid {
 	flag_module_has_name	= 1 << 1,
 	flag_was_colon			= 1 << 2,
 	flag_condition_else		= 1 << 3,
-	flag_second_part		= 1 << 4 // after '\'
+	flag_second_part		= 1 << 4, // after '\'
+	flag_was_each_order_sign= 1 << 5
 };
 
 enum n_rule_kind : uid {

@@ -155,10 +155,20 @@ void fn_dump_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns,
 		structured = fns->args_[2].type_->to_bool(fns->args_[2], msg);
 		if( msg )
 		log->add({ex::implode(
-			{msg, L" Inside #dump (right argument)."}), fns->mod_->path_, fns->pos_}
-		);
+			{msg, L" Inside #dump (right argument)."}), fns->mod_->path_, fns->pos_
+		});
 	}
 	fns->args_[1].type_->dump(fns->args_[1], std::wcout, structured);
+	fns->args_[0] = fns->args_[1];
+}
+
+// log
+
+void fn_log_text(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+	log->add({
+		ex::implode({L"log: ", fns->args_[1].value_.keep_->k_text()->tx_}),
+		fns->mod_->path_, fns->pos_
+	});
 	fns->args_[0] = fns->args_[1];
 }
 
@@ -187,6 +197,22 @@ void fn_count_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns
 
 void fn_type_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
 	fns->args_[0] = fns->args_[1].type_;
+}
+
+// has_key
+
+void fn_has_key_array(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+	if( fns->args_[2].type_ == &var::hcfg->t_int ) {
+		var::keep_array * ka = fns->args_[1].value_.keep_->k_array();
+		var::t_index index = ka->pos_adopt(fns->args_[2].value_.int_);
+		fns->args_[0] = index.inf_ == var::t_index::inside;
+	}
+}
+void fn_has_key_map(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+	if( fns->args_[2].type_->is_map_key_ ) {
+		var::keep_map::t_items * items = fns->args_[1].value_.keep_->k_map()->ref_.h_;
+		fns->args_[0] = static_cast<bool>( items->find_key(fns->args_[2]) );
+	}
 }
 
 // remove
@@ -369,6 +395,10 @@ native_config::native_config() {
 	// #_not
 	fun = fn_map_.obtain(L"#_not");
 	fun->over_.set_common(native::fn_bitwise_not_def);
+	// #has_key
+	fun = fn_map_.obtain(L"#has_key");
+	fun->over_.add(&var::hcfg->t_array, native::fn_has_key_array);
+	fun->over_.add(&var::hcfg->t_map, native::fn_has_key_map);
 	// #remove
 	fun = fn_map_.obtain(L"#remove");
 	fun->over_.add(&var::hcfg->t_array, native::fn_remove_array);
@@ -395,6 +425,9 @@ native_config::native_config() {
 	// #dump
 	fun = fn_map_.obtain(L"#dump");
 	fun->over_.set_common(native::fn_dump_def);
+	// #log
+	fun = fn_map_.obtain(L"#log");
+	fun->over_.add(&var::hcfg->t_text, native::fn_log_text);
 	// #sort
 	fun = fn_map_.obtain(L"#sort");
 	fun->over_.add(&var::hcfg->t_array, native::fn_sort_array);

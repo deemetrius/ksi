@@ -56,7 +56,6 @@
 		<Unit filename="../src/tokens.cpp" />
 		<Unit filename="../src/tokens.h" />
 		<Unit filename="../src/tokens.inc.h" />
-		<Unit filename="../test01.ksi" />
 		<Extensions>
 			<lib_finder disable_auto="1" />
 		</Extensions>

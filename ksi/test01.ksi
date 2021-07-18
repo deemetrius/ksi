@@ -1,21 +1,21 @@
 
-&test_each v n ~
-	['$', v #type #, ":\n"] #echo #
-	v `each +key : val ~
-		key #dump #0
-		' : ' #echo #
-		val #dump #0
-		"\n" #echo #
+-- перегрузка для типа $map
+&map_replace $map: map src ~
+	src #is $map ?
+		map `each key : val& ~
+			src #has_key key ? val = src[key] ;
+		;
 	;
+	ret = map
+;
+-- &map_replace в общем виде
+&map_replace a b ~
+	'&map_replace ~ Первый аргумент должен быть типа $map.'
+	#log #
 ;
 
 `plain -- привет
 
-[
-	#
-	10_
-	[1 2]
-	{1:%one 0:%zero}
-] => items `each k : v ~ v &test_each # ;
-items `each k : -v& \ [k] #dump #0 ~ \ v = # ;
-items #dump #0
+{%x:0 %y:0 %z:0} => map &map_replace {%z:1 %y:1 %a:1}
+map #dump #1
+# &map_replace #

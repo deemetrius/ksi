@@ -691,6 +691,10 @@ struct ref_var {
 	inline void swap(ref_var & v) {
 		ex::swap(h_, v.h_);
 	}
+	void reset() {
+		unhold();
+		h_ = new any_r{};
+	}
 };
 
 struct cmp_any {

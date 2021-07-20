@@ -1099,9 +1099,7 @@ struct number_op {
 		}
 		return n_null::val;
 	}
-	static any calc(const any & v1, const any & v2, wtext & msg1, wtext & msg2) {
-		any a1 = v1.type_->to_number(v1, msg1);
-		any a2 = v2.type_->to_number(v2, msg2);
+	static any direct_calc(const any & a1, const any & a2) {
 		if( a1.type_ == &hcfg->t_int ) {
 			id n1 = a1.value_.int_;
 			return inner_calc(n1, a2);
@@ -1110,6 +1108,11 @@ struct number_op {
 			return inner_calc(n1, a2);
 		}
 		return n_null::val;
+	}
+	static any calc(const any & v1, const any & v2, wtext & msg1, wtext & msg2) {
+		any a1 = v1.type_->to_number(v1, msg1);
+		any a2 = v2.type_->to_number(v2, msg2);
+		return direct_calc(a1, a2);
 	}
 };
 struct op_plus {
@@ -1178,6 +1181,32 @@ struct op_mod {
 	template <class T1, class T2>
 	static any calc(T1 n1, T2 n2) {
 		return std::fmod(n1, n2);
+	}
+};
+
+//
+
+struct ei_for : public ei_base {
+	id num_step_ = 0;
+	any val_;
+
+	ei_for(const any & v) : val_(v) {}
+	void advance(const any & v) {
+		val_ = number_op<op_plus>::direct_calc(val_, v);
+		++num_step_;
+	}
+	// if step is positive
+	bool check_positive(const any & v) const {
+		return val_.type_->compare(val_, v) <= 0;
+	}
+	// if step is negative
+	bool check_negative(const any & v) const {
+		return val_.type_->compare(val_, v) >= 0;
+	}
+
+	void set_vars(ref_var & key, ref_var & val) override {
+		key = num_step_;
+		val = val_;
 	}
 };
 

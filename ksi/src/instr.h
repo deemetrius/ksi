@@ -734,6 +734,153 @@ struct instructions {
 	}
 	FN_GET_INSTR_TYPE(each_vars_ref)
 
+	template <id N>
+	static inline void loop_for_check_element(
+		fn_space * fns, base_log * log, const instr_data & params,
+		var::ref_var * rv, var::any & from, var::any & to, var::any & step, id & step_sign, bool & is_bad,
+		const wtext & msg_elt_a, const wtext & msg_elt_b
+	) {
+		var::any * v = &rv[N].h_->val_;
+		bool is_number = false;
+		if( v->type_ == &var::hcfg->t_float ) {
+			is_number = true;
+			if( !std::isfinite(v->value_.float_) ) {
+				log->add({ex::implode({
+					msg_elt_a, ex::to_wtext(N), msg_elt_b}), fns->mod_->path_, params.pos_
+				});
+				is_bad = true;
+			}
+		} else if( v->type_ != &var::hcfg->t_int ) {
+			log->add({ex::implode({
+				msg_elt_a, ex::to_wtext(N), msg_elt_b}), fns->mod_->path_, params.pos_
+			});
+			is_bad = true;
+		} else {
+			is_number = true;
+		}
+		if constexpr( N == 0) from = *v;
+		else if constexpr( N == 1) to = *v;
+		else if( is_number ) {
+			step = *v;
+			step_sign = v->type_->compare(*v, 0LL);
+			if( step_sign == ex::cmp::equal ) {
+				log->add({
+					L"notice: Step is zero. (loop `for)", fns->mod_->path_, params.pos_
+				});
+				is_bad = true;
+			}
+		}
+	}
+
+	template <bool Is_step_positive>
+	static inline bool loop_for_check(var::ei_for * ei, const var::any & to) {
+		if constexpr( Is_step_positive )
+		return ei->check_positive(to);
+		else
+		return ei->check_negative(to);
+	}
+
+	template <bool Is_step_positive>
+	static inline void loop_for_body(
+		space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params,
+		const t_stack::t_state & st, var::ei_for * ei, const var::any & to, const var::any & step
+	) {
+		try {
+			id
+				side_pos = params.extra_,
+				rest_side_pos = (params.mod_ ? params.mod_ : side_pos)
+			;
+			if( params.also_ ) {
+				// loop body
+				do {
+					inner_loop_block(spc, fns, stk, log, side_pos, st); // primary side
+					side_pos = rest_side_pos;
+					inner_loop_block(spc, fns, stk, log, params.also_, st); // additional side
+					ei->advance(step);
+				} while( loop_for_check<Is_step_positive>(ei, to) );
+			} else {
+				// loop body
+				do {
+					inner_loop_block(spc, fns, stk, log, side_pos, st); // primary side
+					side_pos = rest_side_pos;
+					ei->advance(step);
+				} while( loop_for_check<Is_step_positive>(ei, to) );
+			}
+		} catch( const event_break & e ) {
+			if( e.depth_ == 1 )
+			stk->state_restore(st);
+			else
+			throw event_break{e.depth_ -1};
+		}
+	}
+
+	/* loop_for: (
+		params.extra_ ~ side pos of loop body
+		params.mod_ ~ side pos of loop body after '\' if any (0 if absent)
+		params.also_ ~ side pos of additional block after loop vars and '\' before '~' if any (0 if absent)
+	) */
+	static void do_loop_for(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		var::ei_for * ei = nullptr;
+		do {
+			var::any * conf = &stk->items_.last(0);
+			wtext msg_array_2 = L"notice: Left arg of loop `for should be an array containing at least 2 elements.";
+			if( conf->type_ != &var::hcfg->t_array ) {
+				log->add({msg_array_2, fns->mod_->path_, params.pos_});
+				break;
+			}
+			var::keep_array * ka = conf->value_.keep_->k_array();
+			if( ka->items_.count_ < 2 ) {
+				log->add({msg_array_2, fns->mod_->path_, params.pos_});
+				break;
+			}
+			id count = ka->items_.count_ < 3 ? 2 : 3;
+			id step_sign = ex::cmp::more;
+			var::any step = 1LL, to;
+			//
+			{
+				var::any from;
+				// check array elements
+				{
+					bool is_bad = false;
+					wtext
+					msg_elt_a = L"notice: Element with index ",
+					msg_elt_b = L" should be the finite number. (loop `for)";
+					var::ref_var * rv = ka->items_.items_;
+					loop_for_check_element<0>(fns, log, params, rv, from, to, step, step_sign, is_bad, msg_elt_a, msg_elt_b);
+					loop_for_check_element<1>(fns, log, params, rv, from, to, step, step_sign, is_bad, msg_elt_a, msg_elt_b);
+					if( count > 2 )
+					loop_for_check_element<2>(fns, log, params, rv, from, to, step, step_sign, is_bad, msg_elt_a, msg_elt_b);
+					//
+					if( is_bad ) break;
+				}
+				// fix sign of step
+				{
+					id sign = from.type_->compare(from, to);
+					if( sign == ex::cmp::equal ) sign = ex::cmp::more;
+					if( sign != step_sign ) {
+						step = var::number_op<var::op_mult>::direct_calc(step, -1LL);
+						step_sign = -step_sign;
+					}
+				}
+				ei = new var::ei_for(from);
+			}
+			stk->each_iter_add(ei);
+			stk->items_.remove_last_n(1);
+			t_stack::t_state st = stk->state_get();
+			if( step_sign > 0 )
+			loop_for_body<true>(spc, fns, stk, log, params, st, ei, to, step);
+			else
+			loop_for_body<false>(spc, fns, stk, log, params, st, ei, to, step);
+		} while( false );
+		if( ei ) {
+			stk->items_.append_obj(ei->num_step_ -1LL);
+			stk->each_iter_del();
+		} else {
+			stk->items_.last(0) = 0LL;
+		}
+	}
+	FN_GET_INSTR_TYPE(loop_for)
+
 	// kw_break: (params.data_ ~ loop depth)
 	static void do_kw_break(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
 		throw event_break{params.data_};

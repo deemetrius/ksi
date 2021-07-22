@@ -641,6 +641,16 @@ op_info_lite * actions::op_each() {
 	return &op;
 }
 
+// for
+op_info_lite * actions::op_for() {
+	static op_info_lite op = {
+		{do_each_assoc_left, prec_x_then, prec_then},
+		tree::add_node_assoc_left,
+		mod::instructions::get_loop_for()
+	};
+	return &op;
+}
+
 // :
 op_info_lite * actions::op_colon() {
 	static op_info_lite op = {

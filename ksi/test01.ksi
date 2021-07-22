@@ -1,4 +1,5 @@
 
+/*
 -- перегрузка для типа $map
 &map_replace $map: map src ~
 	src #is $map ?
@@ -13,9 +14,25 @@
 	'&map_replace ~ Первый аргумент должен быть типа $map.'
 	#log #
 ;
+*/
+
+&test_for range n ~
+	range #dump #0
+	" for\n" #echo #
+	range `for i : v \
+		"\n" #echo #
+	~
+		[i v] #dump #0
+	;
+;
 
 `plain -- привет
 
+[1_ 1.4 0.5] &test_for #
+[1 1.4_ 0.5] &test_for #
+
+/*
 {%x:0 %y:0 %z:0} => map &map_replace {%z:1 %y:1 %a:1}
 map #dump #1
 # &map_replace #
+*/

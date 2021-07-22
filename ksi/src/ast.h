@@ -515,6 +515,7 @@ struct actions {
 	static op_info_lite * op_bracket_set(); // []
 	static op_info_lite * op_then(); // ?
 	static op_info_lite * op_each(); // each
+	static op_info_lite * op_for(); // for
 };
 
 } // ns

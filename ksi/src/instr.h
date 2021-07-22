@@ -855,7 +855,7 @@ struct instructions {
 				}
 				// fix sign of step
 				{
-					id sign = from.type_->compare(from, to);
+					id sign = to.type_->compare(to, from);
 					if( sign == ex::cmp::equal ) sign = ex::cmp::more;
 					if( sign != step_sign ) {
 						step = var::number_op<var::op_mult>::direct_calc(step, -1LL);

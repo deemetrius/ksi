@@ -332,6 +332,44 @@ struct token_loop_each_body_rest : public base_token {
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
 
+// for
+
+struct token_loop_for_begin : public token_loop_each_begin {
+	using token_loop_each_begin::token_loop_each_begin;
+	wtext get_name() const override { return L"token_begin_loop_for"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
+struct token_loop_for_end : public token_scope_end {
+	wtext get_name() const override { return L"token_end_loop_for"; }
+};
+
+struct token_loop_for_key : public token_loop_each_key {
+	using token_loop_each_key::token_loop_each_key;
+	wtext get_name() const override { return L"token_loop_for_key"; }
+};
+
+struct token_loop_for_val : public base_token {
+	wtext var_name_;
+
+	token_loop_for_val(const wtext & var_name) : var_name_(var_name) {}
+	wtext get_name() const override { return L"token_loop_for_val"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
+struct token_loop_for_also_block : public token_loop_each_also_block {
+	wtext get_name() const override { return L"token_loop_for_also_block"; }
+};
+
+struct token_loop_for_body : public token_loop_each_body {
+	using token_loop_each_body::token_loop_each_body;
+	wtext get_name() const override { return L"token_loop_for_body"; }
+};
+
+struct token_loop_for_body_rest : public token_loop_each_body_rest {
+	wtext get_name() const override { return L"token_loop_for_body_rest"; }
+};
+
 // other
 
 struct token_next_expr : public base_token {

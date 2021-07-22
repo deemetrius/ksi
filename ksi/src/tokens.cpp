@@ -359,6 +359,20 @@ void token_loop_each_body_rest::perform(space * spc, ast::prepare_data * pd, bas
 
 //
 
+void token_loop_for_begin::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::tree * tr = pd->current_tree();
+	tr->add_op(pos_, ast::actions::op_for() );
+}
+
+void token_loop_for_val::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::tree * tr = pd->current_tree();
+	ast::node * nd_each_vars = tr->leafs_.last(0);
+	mod::fn_body * fnb = pd->body_.h_->fn_body_.h_;
+	nd_each_vars->instr_.params_.extra_ = fnb->reg_var(var_name_);
+}
+
+//
+
 void token_next_expr::perform(space * spc, ast::prepare_data * pd, base_log * log) {
 	ast::body * bd = pd->body_.h_;
 	bd->current_scope()->add_tree();

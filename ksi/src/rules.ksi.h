@@ -754,6 +754,55 @@ struct hive {
 		}
 	};
 
+	struct operation_loop_for :
+	public with_kind<rk_operand>,
+	public check_none,
+	public is_keyword<operation_loop_for>,
+	public pa_none {
+		static wtext name(state & st) { return L"t_loop_for"; }
+
+		static bool check_text(const wtext & tx, state & st, t_tokens & toks, base_log * log) {
+			return text_compare(tx, L"`for");
+		}
+
+		static bool parse(state & st, t_tokens & toks, base_log * log);
+	};
+
+	struct operation_loop_for_key :
+	public with_kind<rk_none>,
+	public check_none,
+	public is_name {
+		static wtext name(state & st) { return L"t_loop_for_key_variable"; }
+
+		static void post_action(state & st, t_tokens & toks, base_log * log) {
+			toks.append(new tokens::token_loop_for_key(st.liner_.get_pos(st.prev_str_), wtext(st.prev_str_, st.str_) ) );
+			st.next_fn_ = rule_loop_for_colon::parse;
+		}
+	};
+
+	struct operation_loop_for_val :
+	public with_kind<rk_none>,
+	public check_none,
+	public is_name {
+		static wtext name(state & st) { return L"t_loop_for_value_variable"; }
+
+		static void post_action(state & st, t_tokens & toks, base_log * log) {
+			toks.append(new tokens::token_loop_for_val(wtext(st.prev_str_, st.str_) ) );
+			st.next_fn_ = rule_loop_for_after_val::parse;
+		}
+	};
+
+	struct operation_loop_for_colon :
+	public with_kind<rk_none>,
+	public check_none,
+	public is_char<L':'> {
+		static wtext name(state & st) { return L"t_loop_for_colon"; }
+
+		static void post_action(state & st, t_tokens & toks, base_log * log) {
+			st.next_fn_ = rule_loop_for_val::parse;
+		}
+	};
+
 	struct t_operator :
 	public with_kind<rk_operator>,
 	public check_none,
@@ -939,6 +988,7 @@ struct hive {
 		end_expr,
 		separator,
 		operation_condition,
+		operation_loop_for,
 		operation_loop_each,
 		fn_call_native,
 		fn_call_global,
@@ -965,24 +1015,15 @@ struct hive {
 	template <bool Is_set, bool In_assign>
 	struct rule_expr_after_dot : public rule_alt<true, true, od, typename wrap_dot<Is_set, In_assign>::operand_after_dot> {};
 
-	struct rule_loop_each_key : public rule_alt<true, true,
-		od,
-		operation_loop_each_key_sign,
-		operation_loop_each_key
-	> {};
-	struct rule_loop_each_colon : public rule_alt<true, true,
-		od,
-		operation_loop_each_colon
-	> {};
-	struct rule_loop_each_val : public rule_alt<true, true,
-		od,
-		operation_loop_each_val_sign,
-		operation_loop_each_val
-	> {};
-	struct rule_loop_each_after_val : public rule_alt<true, true,
-		od,
-		end_expr
-	> {};
+	struct rule_loop_each_key : public rule_alt<true, true, od, operation_loop_each_key_sign, operation_loop_each_key> {};
+	struct rule_loop_each_colon : public rule_alt<true, true, od, operation_loop_each_colon> {};
+	struct rule_loop_each_val : public rule_alt<true, true, od, operation_loop_each_val_sign, operation_loop_each_val> {};
+	struct rule_loop_each_after_val : public rule_alt<true, true, od, end_expr> {};
+
+	struct rule_loop_for_key : public rule_alt<true, true, od, operation_loop_for_key> {};
+	struct rule_loop_for_colon : public rule_alt<true, true, od, operation_loop_for_colon> {};
+	struct rule_loop_for_val : public rule_alt<true, true, od, operation_loop_for_val> {};
+	struct rule_loop_for_after_val : public rule_alt<true, true, od, end_expr> {};
 
 };
 

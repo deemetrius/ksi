@@ -3,7 +3,6 @@
 
 namespace ksi {
 
-//using namespace ex;
 using ex::id;
 using ex::ref_id;
 using ex::uid;
@@ -11,7 +10,7 @@ using ex::real;
 using ex::wtext;
 using Char = wtext::Char;
 
-// array reserve and step
+// array/map ~ reserve and step
 enum def : id {
 	def_native_types_r = 20, def_native_types_s = 8,
 	def_log_r = 8, def_log_s = 4,

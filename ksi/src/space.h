@@ -69,9 +69,6 @@ struct space {
 		for( mod::module * it : mods_.arr_.get_rev_iter(1) )
 		if( !it->was_run_ ) {
 			var::any r = it->invoke(this, caller, stk, pos, log);
-			/* std::wcout << it->name_ << L" : "; //<< r;
-			r.type_->dump(r, std::wcout);
-			std::wcout << std::endl; */
 		}
 	}
 };

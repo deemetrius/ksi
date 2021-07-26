@@ -257,7 +257,7 @@ struct instructions {
 
 	template <class Op>
 	static void inner_number_op(
-		space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params /*, const wtext & op_name */
+		space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params
 	) {
 		wtext msg1, msg2;
 		stk->items_.last(1) = var::number_op<Op>::calc(stk->items_.last(1), stk->items_.last(0), msg1, msg2);
@@ -273,33 +273,18 @@ struct instructions {
 	}
 
 	// plus
-	/* static void do_plus(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
-		inner_number_op<var::op_plus>(spc, fns, stk, log, params, L"addition");
-	} */
 	FN_GET_INSTR_TYPE_2(plus, inner_number_op<var::op_plus>)
 
 	// minus
-	/* static void do_minus(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
-		inner_number_op<var::op_minus>(spc, fns, stk, log, params, L"subtraction");
-	} */
 	FN_GET_INSTR_TYPE_2(minus, inner_number_op<var::op_minus>)
 
 	// mult
-	/* static void do_mult(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
-		inner_number_op<var::op_mult>(spc, fns, stk, log, params, L"multiplication");
-	} */
 	FN_GET_INSTR_TYPE_2(mult, inner_number_op<var::op_mult>)
 
 	// div
-	/* static void do_div(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
-		inner_number_op<var::op_div>(spc, fns, stk, log, params, L"division");
-	} */
 	FN_GET_INSTR_TYPE_2(div, inner_number_op<var::op_div>)
 
 	// mod
-	/* static void do_mod(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
-		inner_number_op<var::op_mod>(spc, fns, stk, log, params, L"modulo");
-	} */
 	FN_GET_INSTR_TYPE_2(mod, inner_number_op<var::op_mod>)
 
 	struct op_bit_and	{ static id calc(id n1, id n2) { return n1 & n2; } static wtext get_name() { return L"`_and"; } };
@@ -308,7 +293,7 @@ struct instructions {
 
 	template <class Op>
 	static void inner_bit_op(
-		space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params /*, const wtext & op_name */
+		space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params
 	) {
 		wtext msg1, msg2;
 		var::any

@@ -731,7 +731,7 @@ struct keep_array : public base_keep, public with_lock {
 		items_.append_obj<const any &>(a);
 	}
 	keep_array(const keep_map * km);
-	keep_array(ref_var * link) : with_lock{1}, items_(1, 1), /* lock_(1), */ link_(link) {
+	keep_array(ref_var * link) : with_lock{1}, items_(1, 1), link_(link) {
 		items_.append_obj(link);
 	}
 

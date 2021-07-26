@@ -218,13 +218,6 @@ struct pa_next_fn {
 	}
 };
 
-/*template <hfn_get_parse Fn>
-struct pa_next_fn_get {
-	static void post_action(state & st, t_tokens & toks, base_log * log) {
-		st.next_fn_ = Fn();
-	}
-};*/
-
 //
 
 struct pa_done_good {
@@ -303,9 +296,6 @@ public pa_done_good {
 	static wtext name(state & st) { return L"t_eof"; }
 	static bool parse(state & st, t_tokens & toks, base_log * log) {
 		bool ret = *st.str_ == 0;
-		/*if( ret ) {
-			log->add({L"info: File is parsed.", st.inf_->path_, st.liner_.get_pos(st.str_) });
-		}*/
 		return ret;
 	}
 };

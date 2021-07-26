@@ -6,11 +6,11 @@ namespace ast {
 
 // precedence
 enum n_prec {
-	prec_leaf,		// (leaf)
-	prec_x_then,	//	? `each `for	(if-then, loop)
+	prec_leaf,		// (ast leaf)
+	prec_x_then,	//	_right_operand_: ? `each `for	(if-then, loop)
 	prec_member,	//	a.key a[key]
-	prec_rtx_assign,//	=> +=> -=> *=> /=> %=> %%=> `and=> `or=> `xor=> ??=> `_and=> `_or=> `_xor=>
-	prec_x_assign,	//	= += -= *= /= %= %%= `and= `or= `xor= ??= `_and= `_or= `_xor=
+	prec_xrt_assign,//	_right_operand_: => +=> -=> *=> /=> %=> %%=> `and=> `or=> `xor=> ??=> `_and=> `_or=> `_xor=>
+	prec_assign,	//	= += -= *= /= %= %%= `and= `or= `xor= ??= `_and= `_or= `_xor=
 	prec_invoke,	//	! &				(fn call, fn ref)
 	prec_mult,		//	* / `mod
 	prec_and_,		//	`_and			(bitwise)
@@ -18,18 +18,17 @@ enum n_prec {
 	prec_or_,		//	`_or
 	prec_plus,		//	+ - % %% &user_fn #native_fn
 	prec_cmp,		//	<=>
-	// prec_less,	//	< <= > >=
 	prec_eq,		//	== <> < <= > >=
 	prec_throw,		//	`throw
 	prec_and,		//	`and			(logical)
 	prec_xor,		//	`xor
 	prec_or,		//	`or
 	prec_nullc,		//	??				(null coalescing)
-	prec_assign,	//	= += -= *= /= %= %%= `and= `or= `xor= ??= `_and= `_or= `_xor=
+	prec_x_assign,	//	_right_operand_: = += -= *= /= %= %%= `and= `or= `xor= ??= `_and= `_or= `_xor=
 	prec_rt_assign,	//	=> +=> -=> *=> /=> %=> %%=> `and=> `or=> `xor=> ??=> `_and=> `_or=> `_xor=>
 	prec_then,		//	? `each `for	(if-then, loop)
 	prec_pair,		//	:				(key-value pair)
-	prec_root,		//	(top)
+	prec_root,		//	(ast top)
 };
 
 struct prepare_data;
@@ -38,7 +37,7 @@ struct node;
 
 using hfn_action = void (*)(prepare_data * pd, tree * tr, node * parent, node * nd);
 
-enum n_node_kind { nk_not_set, nk_concat, nk_pair, nk_dot, nk_bracket, nk_bracket_args, /* nk_cmp_x, */ nk_cmp };
+enum n_node_kind { nk_not_set, nk_concat, nk_pair, nk_dot, nk_bracket, nk_bracket_args, nk_cmp };
 
 struct node_info {
 	hfn_action action_;
@@ -111,11 +110,8 @@ struct tree {
 
 struct scope {
 	using t_items = ex::def_array<tree *, ex::del_pointer, def_ast_trees_r, def_ast_trees_s>;
-	//const mod::instr_type * fn_step_, * fn_last_;
 	mod::instr i_step_, i_last_;
 	t_items trees_;
-
-	//scope(const mod::instr_type * fn_step, const mod::instr_type * fn_last) : fn_step_(fn_step), fn_last_(fn_last) {}
 
 	static scope * make_function_scope();
 	static scope * make_parentheses_scope();

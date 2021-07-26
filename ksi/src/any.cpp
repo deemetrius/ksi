@@ -22,7 +22,7 @@ any::any(ref_var * link) : type_(&hcfg->t_array) {
 
 void base_type::native_set_name(const any * name, type_config * tc) {
 	name_ = name;
-	tc->map_types_.append(/*name->value_.keep_->k_text()->tx_*/type_text::get_text(name), this, ex::same_key::update);
+	tc->map_types_.append(type_text::get_text(name), this, ex::same_key::update);
 }
 
 config::config(const api * v_api) :
@@ -188,7 +188,7 @@ void type_text::out(const any & v, std::wostream & wo) const {
 	wo << v.value_.keep_->k_text()->tx_.h_->cs_;
 }
 void type_array::out(const any & v, std::wostream & wo) const {
-	wo << L"array*" << /*v.value_.keep_->k_array()->items_.count_*/value_int(v);
+	wo << L"array*" << value_int(v);
 }
 void type_map::out(const any & v, std::wostream & wo) const {
 	wo << L"map*" << value_int(v);
@@ -476,10 +476,10 @@ any type_text::to_text(const any & a, wtext & msg) const {
 	return a;
 }
 any type_array::to_text(const any & a, wtext & msg) const {
-	return ex::implode({L"array*", ex::to_wtext(/*a.value_.keep_->k_array()->items_.count_*/ value_int(a) ) });
+	return ex::implode({L"array*", ex::to_wtext(value_int(a) ) });
 }
 any type_map::to_text(const any & a, wtext & msg) const {
-	return ex::implode({L"map*", ex::to_wtext(/*a.value_.keep_->k_map()->ref_.h_->sorted_.count_*/ value_int(a) ) });
+	return ex::implode({L"map*", ex::to_wtext(value_int(a) ) });
 }
 
 // to fn

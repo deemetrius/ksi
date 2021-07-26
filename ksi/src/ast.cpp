@@ -122,29 +122,6 @@ void fn_call_places::update_instructions(space * spc, base_log * log) {
 	}
 }
 
-/* void actions::do_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
-	body * bd = pd->body_.h_;
-	mod::side * sd = pd->body_.h_->current_side();
-	// left
-	nd->lt_->info_.action_(pd, tr, nd, nd->lt_);
-	// right
-	sd = pd->body_.h_->current_side();
-	nd->rt_->info_.action_(pd, tr, nd, nd->rt_);
-	if( parent->info_.kind_ == nk_cmp_x ) {
-		{
-			mod::instr tmp = nd->instr_;
-			tmp.type_ = mod::instructions::turn_cmp_x(tmp.type_);
-			sd->add_instr(tmp);
-		}
-		mod::instr * i_cmp_x = &sd->instructions_.last(0);
-		i_cmp_x->params_.extra_ = bd->add_side_pos();
-	} else {
-		sd->add_instr(nd->instr_);
-		if( id depth = calc_cmp_x_depth(nd) )
-		bd->del_side_pos(depth);
-	}
-} */
-
 void actions::do_concat_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
 	if( parent->info_.kind_ != nk_concat ) {
 		id depth = calc_concat_depth(nd);
@@ -379,62 +356,62 @@ array_iter<op_info> actions::iter_op_assign() {
 	static op_info ops[] = {
 		{
 			{L"="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value() }
 		}, {
 			{L"+="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 0 }
 		}, {
 			{L"-="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 1 }
 		}, {
 			{L"*="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 2 }
 		}, {
 			{L"/="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 3 }
 		}, {
 			{L"`mod="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 4 }
 		}, {
 			{L"%="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 5 }
 		}, {
 			{L"%%="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 6 }
 		}, {
 			{L"`xor="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 7 }
 		}, {
 			{L"`_and="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 8 }
 		}, {
 			{L"`_or="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 9 }
 		}, {
 			{L"`_xor="}, {
-			{do_node_assoc_right, prec_assign, prec_x_assign},
+			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 10 }
 		}
@@ -446,62 +423,62 @@ array_iter<op_info> actions::iter_op_assign_rt() {
 	static op_info ops[] = {
 		{
 			{L"=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value() }
 		}, {
 			{L"+=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 0 }
 		}, {
 			{L"-=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 1 }
 		}, {
 			{L"*=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 2 }
 		}, {
 			{L"/=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 3 }
 		}, {
 			{L"`mod=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 4 }
 		}, {
 			{L"%=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 5 }
 		}, {
 			{L"%%=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 6 }
 		}, {
 			{L"`xor=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 7 }
 		}, {
 			{L"`_and=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 8 }
 		}, {
 			{L"`_or=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 9 }
 		}, {
 			{L"`_xor=>"}, {
-			{do_node_assoc_left, prec_rtx_assign, prec_rt_assign},
+			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 10 }
 		}

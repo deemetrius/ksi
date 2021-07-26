@@ -383,12 +383,7 @@ struct list {
 			DelVal<Val>::close(val_);
 		}
 	};
-	struct cnode : public pair, public node, public with_deleter<cnode> {
-		/*void (* deleter_)(cnode *) = deleter;
-		static void deleter(cnode * h) {
-			delete h;
-		}*/
-	};
+	struct cnode : public pair, public node, public with_deleter<cnode> {};
 	node zero_;
 
 	list(const list &) = delete;
@@ -715,11 +710,6 @@ struct basic_text : public base_text {
 		Char * s_;
 		id len_;
 		ref_id refs_ = 1;
-		/*void (* deleter_)(keep * h) = deleter;
-
-		static void deleter(keep * h) {
-			delete h;
-		}*/
 
 		keep() : cs_(traits::v_empty), s_(nullptr), len_(0) {}
 		keep(Char * s, id len) : cs_(s), s_(s), len_(len) {}

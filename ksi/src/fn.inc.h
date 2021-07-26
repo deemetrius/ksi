@@ -57,7 +57,7 @@ struct t_swp_map {
 // sort
 
 struct t_sort {
-	/* based on zend_sort (from php 8) */
+	// based on zend_sort (from php 8)
 
 	template <class T, class Cmp, class Swp>
 	static inline void sort_2(T * a, T * b, const Cmp & cmp, const Swp & swp) {

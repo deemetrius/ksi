@@ -219,5 +219,13 @@ bool hive::operation_loop_for::parse(state & st, t_tokens & toks, base_log * log
 	return true;
 }
 
+const mod::instr_type * hive::operand_kw_next::get_instr_type() {
+	return mod::instructions::get_kw_next();
+}
+
+const mod::instr_type * hive::operand_kw_break::get_instr_type() {
+	return mod::instructions::get_kw_break();
+}
+
 } // ns
 } // ns

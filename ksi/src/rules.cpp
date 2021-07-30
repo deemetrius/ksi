@@ -1,5 +1,4 @@
 #include "rules.ksi.h"
-#include <errno.h>
 
 namespace ksi {
 namespace rules {
@@ -118,7 +117,7 @@ bool hive::operand_map::parse(state & st, t_tokens & toks, base_log * log) {
 	return ret;
 }
 
-void hive::operand::maybe_next_expr(state & st, t_tokens & toks, base_log * log) {
+void base_operand::maybe_next_expr(state & st, t_tokens & toks, base_log * log) {
 	if( check_kind<
 		rk_operand,
 		rk_operand_can_dot_get,
@@ -199,7 +198,7 @@ bool lit_int::parse(state & st, t_tokens & toks, base_log * log) {
 	}
 	st.next_str(end);
 	errno = 0;
-	id num = wcstoll(tx.h_->cs_, nullptr, base);
+	id num = std::wcstoll(tx.h_->cs_, nullptr, base);
 	if( errno == ERANGE ) {
 		errno = 0;
 		log->add({

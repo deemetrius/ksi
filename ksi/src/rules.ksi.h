@@ -1,6 +1,7 @@
 #pragma once
 #include "rules.inc.h"
 #include "tokens.inc.h"
+#include <errno.h>
 
 namespace ksi {
 namespace rules {
@@ -387,6 +388,10 @@ public check_kind_not<rk_operator, rk_fn_call> {
 
 //
 
+struct base_operand {
+	static void maybe_next_expr(state & st, t_tokens & toks, base_log * log);
+};
+
 struct hive {
 
 	// module_info
@@ -574,13 +579,96 @@ struct hive {
 		static bool parse(state & st, t_tokens & toks, base_log * log);
 	};
 
+	// next, break
+
+	struct base_kw_loop_special :
+	public with_kind<rk_operand>,
+	public pa_none {
+		static bool check(state & st) {
+			return st.loop_depth_;
+		}
+	};
+
+	template <class T>
+	struct is_kw_loop_special :
+	public base_kw_loop_special {
+		using self_base_is_keyword = is_keyword<T>;
+
+		static bool check_text(const wtext & tx, state & st, t_tokens & toks, base_log * log) {
+			return self_base_is_keyword::text_compare(tx, T::str_keyword);
+		}
+
+		static bool parse(state & st, t_tokens & toks, base_log * log) {
+			const Char * str;
+			//
+			{
+				state tmp_st = st;
+				if( !self_base_is_keyword::parse(tmp_st, toks, log) ) return false;
+				str = tmp_st.str_;
+			}
+			id depth = 1;
+			if( *str == L'=' ) {
+				++str;
+				const Char * end;
+				for( end = str; std::iswdigit(*end); ++end );
+				if( str == end ) {
+					log->add({ ex::implode({
+						L"parse error: Expected depth after ", T::str_keyword, L"="}),
+						st.inf_->path_,
+						st.liner_.get_pos(str)
+					});
+					st.done_ = true;
+					return false;
+				}
+				wtext tx_depth(str, end);
+				errno = 0;
+				depth = std::wcstoll(tx_depth.h_->cs_, nullptr, 10);
+				if( errno == ERANGE || depth < 1 || depth > st.loop_depth_ ) {
+					errno = 0;
+					log->add({
+						ex::implode({
+							L"parse error: Keyword ", T::str_keyword, L"=depth (depth should be in range from 1 to ",
+							ex::to_wtext(st.loop_depth_), L")"
+						}),
+						st.inf_->path_,
+						st.liner_.get_pos(str)
+					});
+					st.done_ = true;
+					return false;
+				}
+				str = end;
+			}
+			st.next_str(str);
+			base_operand::maybe_next_expr(st, toks, log);
+			toks.append(new typename T::t_token(T::get_instr_type(), st.liner_.get_pos(st.prev_str_), depth) );
+			return true;
+		}
+	};
+
+	struct operand_kw_next :
+	public is_kw_loop_special<operand_kw_next> {
+		using t_token = tokens::token_kw_next;
+		static wtext name(state & st) { return L"t_kw_next"; }
+		static constexpr const Char str_keyword[] = L"`next";
+		static const mod::instr_type * get_instr_type();
+	};
+
+	struct operand_kw_break :
+	public is_kw_loop_special<operand_kw_break> {
+		using t_token = tokens::token_kw_break;
+		static wtext name(state & st) { return L"t_kw_break"; }
+		static constexpr const Char str_keyword[] = L"`break";
+		static const mod::instr_type * get_instr_type();
+	};
+
+	//
+
 	struct operand :
 	public with_kind<rk_keep>,
 	public check_none,
-	public rule_alt<true, false, operand_normal, variable_source, operand_loop_while> {
+	public base_operand,
+	public rule_alt<true, false, operand_normal, variable_source, operand_loop_while, operand_kw_next, operand_kw_break> {
 		static wtext name(state & st) { return L"t_operand"; }
-
-		static void maybe_next_expr(state & st, t_tokens & toks, base_log * log);
 
 		static void post_action(state & st, t_tokens & toks, base_log * log) {
 			st.next_fn_ = rule_expr_after_operand::parse;

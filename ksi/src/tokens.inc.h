@@ -370,6 +370,29 @@ struct token_loop_for_body_rest : public token_loop_each_body_rest {
 	wtext get_name() const override { return L"token_loop_for_body_rest"; }
 };
 
+// keywords allowed inside loop body
+
+struct token_kw_next_or_break : public base_token {
+	const mod::instr_type * i_type_;
+	also::t_pos pos_;
+	id depth_;
+
+	token_kw_next_or_break(
+		const mod::instr_type * i_type, const also::t_pos & pos, id depth
+	) : i_type_(i_type), pos_(pos), depth_(depth) {}
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
+struct token_kw_next : public token_kw_next_or_break {
+	using token_kw_next_or_break::token_kw_next_or_break;
+	wtext get_name() const override { return L"token_kw_next"; }
+};
+
+struct token_kw_break : public token_kw_next_or_break {
+	using token_kw_next_or_break::token_kw_next_or_break;
+	wtext get_name() const override { return L"token_kw_break"; }
+};
+
 // other
 
 struct token_next_expr : public base_token {

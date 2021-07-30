@@ -4,7 +4,7 @@
 	<clocale>
 	<new>
 
-1627309021 d:\prog\dropbox\cpp\hive\ksi\src\extra.h
+1627645076 d:\prog\dropbox\cpp\hive\ksi\src\extra.h
 	<initializer_list>
 	<cstring>
 	<cwchar>
@@ -66,9 +66,8 @@
 1626588546 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
 	"fn.inc.h"
 
-1623455757 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
+1627647809 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
 	"rules.ksi.h"
-	<errno.h>
 
 1627309419 d:\prog\dropbox\cpp\hive\ksi\src\rules.inc.h
 	"rules.h"
@@ -80,12 +79,13 @@
 1623174680 d:\prog\dropbox\cpp\hive\ksi\src\tokens.h
 	"ksi_types.h"
 
-1626925489 d:\prog\dropbox\cpp\hive\ksi\src\tokens.inc.h
+1627641072 d:\prog\dropbox\cpp\hive\ksi\src\tokens.inc.h
 	"tokens.h"
 
-1626924808 d:\prog\dropbox\cpp\hive\ksi\src\rules.ksi.h
+1627650149 d:\prog\dropbox\cpp\hive\ksi\src\rules.ksi.h
 	"rules.inc.h"
 	"tokens.inc.h"
+	<errno.h>
 
 1627309078 d:\prog\dropbox\cpp\hive\ksi\src\fn.inc.h
 	"space.h"
@@ -100,7 +100,7 @@
 	"ast.h"
 	"instr.h"
 
-1626925408 source:d:\prog\dropbox\cpp\hive\ksi\src\tokens.cpp
+1627640984 source:d:\prog\dropbox\cpp\hive\ksi\src\tokens.cpp
 	"tokens.inc.h"
 	"ast.h"
 	"instr.h"
@@ -111,7 +111,7 @@
 
 1610605737 source:d:\prog\dropbox\cpp\hive\ksi\res\res.rc
 
-1626924475 source:d:\prog\dropbox\cpp\hive\ksi\src\rules_instr.cpp
+1627647361 source:d:\prog\dropbox\cpp\hive\ksi\src\rules_instr.cpp
 	"rules.ksi.h"
 	"instr.h"
 

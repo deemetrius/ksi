@@ -373,6 +373,16 @@ void token_loop_for_val::perform(space * spc, ast::prepare_data * pd, base_log *
 
 //
 
+void token_kw_next_or_break::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::tree * tr = pd->current_tree();
+	ast::tree::add_leaf(tr, new ast::node{
+		ast::actions::info_leaf(),
+		{i_type_, {pos_, depth_} }
+	});
+}
+
+//
+
 void token_next_expr::perform(space * spc, ast::prepare_data * pd, base_log * log) {
 	ast::body * bd = pd->body_.h_;
 	bd->current_scope()->add_tree();

@@ -212,7 +212,7 @@ struct token_bracket_begin : public base_token {
 	const ast::op_info_lite * op_;
 
 	token_bracket_begin(also::t_pos pos, const ast::op_info_lite * op) : pos_(pos), op_(op) {}
-	wtext get_name() const override { return L"token_bracket_begin"; }
+	wtext get_name() const override { return L"token_begin_bracket"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
 
@@ -372,24 +372,20 @@ struct token_loop_for_body_rest : public token_loop_each_body_rest {
 
 // keywords allowed inside loop body
 
-struct token_kw_next_or_break : public base_token {
+struct token_kw_next : public base_token {
 	const mod::instr_type * i_type_;
 	also::t_pos pos_;
 	id depth_;
 
-	token_kw_next_or_break(
+	token_kw_next(
 		const mod::instr_type * i_type, const also::t_pos & pos, id depth
 	) : i_type_(i_type), pos_(pos), depth_(depth) {}
+	wtext get_name() const override { return L"token_kw_next"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
 
-struct token_kw_next : public token_kw_next_or_break {
-	using token_kw_next_or_break::token_kw_next_or_break;
-	wtext get_name() const override { return L"token_kw_next"; }
-};
-
-struct token_kw_break : public token_kw_next_or_break {
-	using token_kw_next_or_break::token_kw_next_or_break;
+struct token_kw_break : public token_kw_next {
+	using token_kw_next::token_kw_next;
 	wtext get_name() const override { return L"token_kw_break"; }
 };
 
@@ -405,7 +401,7 @@ struct token_add_op : public base_token {
 	also::t_pos pos_;
 	const ast::op_info_lite * op_;
 
-	token_add_op(also::t_pos pos, const ast::op_info_lite * op) : pos_(pos), op_(op) {}
+	token_add_op(const also::t_pos & pos, const ast::op_info_lite * op) : pos_(pos), op_(op) {}
 	wtext get_name() const override { return L"token_add_operator"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
@@ -415,17 +411,22 @@ struct token_add_fn_native : public base_token {
 	wtext fn_name_;
 	bool is_bk_;
 
-	token_add_fn_native(also::t_pos pos, const wtext & fn_name, bool is_bk) : pos_(pos), fn_name_(fn_name), is_bk_(is_bk) {}
+	token_add_fn_native(
+		const also::t_pos & pos, const wtext & fn_name, bool is_bk
+	) : pos_(pos), fn_name_(fn_name), is_bk_(is_bk) {}
 	wtext get_name() const override { return L"token_add_native_fn"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
 
-struct token_add_fn_global : public base_token {
+struct token_add_fn_global : public token_add_fn_native {
+	/*
 	also::t_pos pos_;
 	wtext fn_name_;
 	bool is_bk_;
 
-	token_add_fn_global(also::t_pos pos, const wtext & fn_name, bool is_bk) : pos_(pos), fn_name_(fn_name), is_bk_(is_bk) {}
+	token_add_fn_global(const also::t_pos & pos, const wtext & fn_name, bool is_bk) : pos_(pos), fn_name_(fn_name), is_bk_(is_bk) {}
+	*/
+	using token_add_fn_native::token_add_fn_native;
 	wtext get_name() const override { return L"token_add_global_fn"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };

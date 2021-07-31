@@ -373,7 +373,7 @@ void token_loop_for_val::perform(space * spc, ast::prepare_data * pd, base_log *
 
 //
 
-void token_kw_next_or_break::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+void token_kw_next::perform(space * spc, ast::prepare_data * pd, base_log * log) {
 	ast::tree * tr = pd->current_tree();
 	ast::tree::add_leaf(tr, new ast::node{
 		ast::actions::info_leaf(),

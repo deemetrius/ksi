@@ -1,10 +1,17 @@
 
-&test_for range n ~
+&test_for $array: range n ~
 	range #dump #0
 	" for\n" #echo #
 	`while: #1 ~
 		range `for i : v \
-			i ? `break=2 ;
+			i ?(
+				range.1 < 0 ?
+					"return\n" #echo #
+					`return
+				;
+				"break\n" #echo #
+				`break=2
+			);
 		~
 			i == 0 ?
 				[i " skip\n"] #echo #
@@ -14,6 +21,7 @@
 			"\n" #echo #
 		;
 	;
+	"done\n" #echo #
 ;
 
 `plain -- привет

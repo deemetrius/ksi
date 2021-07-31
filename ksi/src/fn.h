@@ -194,6 +194,8 @@ struct side {
 
 //
 
+enum class n_return { val };
+
 struct fn_body : ex::with_deleter<fn_body> {
 	using t_var_names = ex::def_map<
 		wtext, id, ex::map_del_object, ex::map_del_plain, ex::cmp_std_plain,
@@ -220,8 +222,13 @@ struct fn_body : ex::with_deleter<fn_body> {
 		fns->fn_body_ = this;
 		// instructions
 		side * v_side = *sides_.items_;
-		for( const instr & it : v_side->instructions_ )
-		it.type_->perform_(spc, fns, stk, log, it.params_);
+		t_stack::t_state st = stk->state_get();
+		try {
+			for( const instr & it : v_side->instructions_ )
+			it.type_->perform_(spc, fns, stk, log, it.params_);
+		} catch( n_return ) {
+			stk->state_restore(st);
+		}
 	}
 };
 

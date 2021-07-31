@@ -28,7 +28,7 @@ const api * get_api() {
 		ret.fn_call_func_from_native_	= mod::call_func_from_native;
 		ret.fn_run_script_				= run_script;
 		ret.fn_get_config_				= var::get_config;
-		ret.fn_get_wc					= get_wc;
+		ret.fn_get_wc_					= get_wc;
 		ksi::init(&ret);
 	}
 	return &ret;

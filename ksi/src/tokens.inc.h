@@ -389,6 +389,16 @@ struct token_kw_break : public token_kw_next {
 	wtext get_name() const override { return L"token_kw_break"; }
 };
 
+// keyword `return
+
+struct token_kw_return : public base_token {
+	also::t_pos pos_;
+
+	token_kw_return(const also::t_pos & pos) : pos_(pos) {}
+	wtext get_name() const override { return L"token_kw_return"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
 // other
 
 struct token_next_expr : public base_token {

@@ -663,11 +663,31 @@ struct hive {
 
 	//
 
+	struct operand_kw_return :
+	public with_kind<rk_operand>,
+	public check_none,
+	public is_keyword<operand_kw_return> {
+		static wtext name(state & st) { return L"t_kw_return"; }
+
+		static bool check_text(const wtext & tx, state & st, t_tokens & toks, base_log * log) {
+			return text_compare(tx, L"`return");
+		}
+
+		static void post_action(state & st, t_tokens & toks, base_log * log) {
+			base_operand::maybe_next_expr(st, toks, log);
+			toks.append(new tokens::token_kw_return(st.liner_.get_pos(st.prev_str_) ) );
+		}
+	};
+
+	//
+
 	struct operand :
 	public with_kind<rk_keep>,
 	public check_none,
 	public base_operand,
-	public rule_alt<true, false, operand_normal, variable_source, operand_loop_while, operand_kw_next, operand_kw_break> {
+	public rule_alt<true, false,
+		operand_normal, variable_source, operand_loop_while, operand_kw_next, operand_kw_break, operand_kw_return
+	> {
 		static wtext name(state & st) { return L"t_operand"; }
 
 		static void post_action(state & st, t_tokens & toks, base_log * log) {

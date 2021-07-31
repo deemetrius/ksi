@@ -877,6 +877,12 @@ struct instructions {
 		throw event_next{params.data_};
 	}
 	FN_GET_INSTR_TYPE(kw_next)
+
+	// kw_return
+	static void do_kw_return(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		throw n_return::val;
+	}
+	FN_GET_INSTR_TYPE(kw_return)
 };
 
 } // ns

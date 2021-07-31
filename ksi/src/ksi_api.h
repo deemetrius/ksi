@@ -54,7 +54,7 @@ struct api {
 	mod::fn_call_func_from_native	fn_call_func_from_native_;
 	fn_run_script					fn_run_script_;
 	var::fn_get_config				fn_get_config_;
-	fn_get_wc						fn_get_wc;
+	fn_get_wc						fn_get_wc_;
 };
 
 using fn_get_api = const ksi::api * __cdecl (*)();

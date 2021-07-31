@@ -381,6 +381,14 @@ void token_kw_next::perform(space * spc, ast::prepare_data * pd, base_log * log)
 	});
 }
 
+void token_kw_return::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::tree * tr = pd->current_tree();
+	ast::tree::add_leaf(tr, new ast::node{
+		ast::actions::info_leaf(),
+		{mod::instructions::get_kw_return(), {pos_} }
+	});
+}
+
 //
 
 void token_next_expr::perform(space * spc, ast::prepare_data * pd, base_log * log) {

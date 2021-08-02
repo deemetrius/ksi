@@ -118,6 +118,7 @@ bool hive::operand_map::parse(state & st, t_tokens & toks, base_log * log) {
 }
 
 void base_operand::maybe_next_expr(state & st, t_tokens & toks, base_log * log) {
+	++st.expressions_count_;
 	if( check_kind<
 		rk_operand,
 		rk_operand_can_dot_get,

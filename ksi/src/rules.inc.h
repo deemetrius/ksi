@@ -7,6 +7,7 @@ namespace rules {
 
 struct state;
 
+using hfn_check = bool (*)(state & st);
 using hfn_parse = bool (*)(state & st, t_tokens & toks, base_log * log);
 using hfn_get_parse = hfn_parse (*)();
 using hfn_post_action = void (*)(state & st, t_tokens & toks, base_log * log);
@@ -33,7 +34,8 @@ enum flag : uid {
 	flag_was_colon			= 1 << 2,
 	flag_condition_else		= 1 << 3,
 	flag_second_part		= 1 << 4, // after '\'
-	flag_was_each_order_sign= 1 << 5
+	flag_was_each_order_sign= 1 << 5,
+	flag_was_prefix_operator= 1 << 6
 };
 
 enum n_rule_kind : uid {
@@ -44,6 +46,7 @@ enum n_rule_kind : uid {
 	rk_operand_can_dot_get,
 	rk_operand_can_dot_set,
 	rk_operator,
+	rk_prefix_operator,
 	rk_fn_call,
 	rk_separator
 };
@@ -80,6 +83,7 @@ struct state {
 	n_expr_nest nest_ = nest_plain;
 	uid flags_ = 0;
 	n_rule_kind prev_rule_ = rk_none;
+	id expressions_count_ = 0;
 	bool was_od_ = false;
 	bool done_ = false;
 

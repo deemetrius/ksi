@@ -416,6 +416,12 @@ struct token_add_op : public base_token {
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
 
+struct token_set_prefix_operator : token_add_op {
+	using token_add_op::token_add_op;
+	wtext get_name() const override { return L"token_set_prefix_operator"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
 struct token_add_fn_native : public base_token {
 	also::t_pos pos_;
 	wtext fn_name_;

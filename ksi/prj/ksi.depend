@@ -66,10 +66,10 @@
 1626588546 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
 	"fn.inc.h"
 
-1627647809 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
+1627800191 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
 	"rules.ksi.h"
 
-1627309419 d:\prog\dropbox\cpp\hive\ksi\src\rules.inc.h
+1627800525 d:\prog\dropbox\cpp\hive\ksi\src\rules.inc.h
 	"rules.h"
 	<cwctype>
 
@@ -79,10 +79,10 @@
 1623174680 d:\prog\dropbox\cpp\hive\ksi\src\tokens.h
 	"ksi_types.h"
 
-1627723861 d:\prog\dropbox\cpp\hive\ksi\src\tokens.inc.h
+1627863710 d:\prog\dropbox\cpp\hive\ksi\src\tokens.inc.h
 	"tokens.h"
 
-1627724334 d:\prog\dropbox\cpp\hive\ksi\src\rules.ksi.h
+1627861733 d:\prog\dropbox\cpp\hive\ksi\src\rules.ksi.h
 	"rules.inc.h"
 	"tokens.inc.h"
 	<errno.h>
@@ -90,22 +90,22 @@
 1627309078 d:\prog\dropbox\cpp\hive\ksi\src\fn.inc.h
 	"space.h"
 
-1627723562 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
+1627862607 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
 	"space.h"
 
-1627310818 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
+1627860298 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
 	"space.h"
 
-1627308927 source:d:\prog\dropbox\cpp\hive\ksi\src\ast.cpp
+1627860828 source:d:\prog\dropbox\cpp\hive\ksi\src\ast.cpp
 	"ast.h"
 	"instr.h"
 
-1627723817 source:d:\prog\dropbox\cpp\hive\ksi\src\tokens.cpp
+1627808881 source:d:\prog\dropbox\cpp\hive\ksi\src\tokens.cpp
 	"tokens.inc.h"
 	"ast.h"
 	"instr.h"
 
-1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\rules_ast.cpp
+1627861544 source:d:\prog\dropbox\cpp\hive\ksi\src\rules_ast.cpp
 	"rules.ksi.h"
 	"ast.h"
 
@@ -119,6 +119,6 @@
 	"extra.h"
 	<exception>
 
-1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_api.cpp
+1627728793 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_api.cpp
 	"ksi_api.h"
 

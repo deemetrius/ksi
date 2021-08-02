@@ -5,13 +5,14 @@ namespace ksi {
 namespace rules {
 
 struct helper_operator {
+	template <class Token = tokens::token_add_op>
 	static bool op_iter_parse(const ast::array_iter<ast::op_info> & iter, state & st, t_tokens & toks, base_log * log) {
 		bool ret = false;
 		id len;
 		for( const ast::op_info & it : iter )
 		if( !std::wcsncmp(st.str_, it.str_.h_->cs_, len = it.str_.h_->len_) ) {
 			ret = true;
-			toks.append(new tokens::token_add_op(st.liner_.get_pos(st.str_), &it) );
+			toks.append(new Token(st.liner_.get_pos(st.str_), &it) );
 			st.next_str(st.str_ + len);
 			break;
 		}
@@ -23,11 +24,24 @@ bool t_operator_std::parse(state & st, t_tokens & toks, base_log * log) {
 	return helper_operator::op_iter_parse(ast::actions::iter_op(), st, toks, log);
 }
 
+bool t_prefix_operator_std::parse(state & st, t_tokens & toks, base_log * log) {
+	return helper_operator::op_iter_parse<tokens::token_set_prefix_operator>(ast::actions::iter_prefix_op(), st, toks, log);
+}
+
 bool t_operator_named::check_text(const wtext & tx, state & st, t_tokens & toks, base_log * log) {
 	bool ret = false;
 	if( ast::actions::t_map_named_ops::t_res_node res = ast::actions::map_named_ops().find_node(tx) ) {
 		ret = true;
 		toks.append(new tokens::token_add_op(st.liner_.get_pos(st.str_), &res.pos_->val_) );
+	}
+	return ret;
+}
+
+bool t_prefix_operator_named::check_text(const wtext & tx, state & st, t_tokens & toks, base_log * log) {
+	bool ret = false;
+	if( ast::actions::t_map_named_ops::t_res_node res = ast::actions::map_prefix_named_ops().find_node(tx) ) {
+		ret = true;
+		toks.append(new tokens::token_set_prefix_operator(st.liner_.get_pos(st.str_), &res.pos_->val_) );
 	}
 	return ret;
 }

@@ -400,6 +400,16 @@ void token_add_op::perform(space * spc, ast::prepare_data * pd, base_log * log) 
 	pd->current_tree()->add_op(pos_, op_);
 }
 
+void token_set_prefix_operator::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::body * bd = pd->body_.h_;
+	ast::scope * sc = bd->scopes_.last(1);
+	ast::node * leaf = sc->last_tree()->leafs_.last(0);
+	leaf->info_.action_ = op_->info_.action_;
+	leaf->info_.kind_ = op_->info_.kind_;
+	leaf->instr_.type_ = op_->type_;
+	leaf->instr_.params_.data_ = op_->data_;
+}
+
 void token_add_fn_native::perform(space * spc, ast::prepare_data * pd, base_log * log) {
 	id num = 0;
 	if( ex::id_search_res res = ksi::var::hcfg->native_->fn_map_.find_pos(fn_name_) )

@@ -323,7 +323,6 @@ struct instructions {
 	// bit_xor
 	FN_GET_INSTR_TYPE_2(bit_xor, inner_bit_op<op_bit_xor>)
 
-	// concat
 	template <bool IsBack>
 	static void do_concat(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
 		var::any * h1 = &stk->items_.last(1), * h2 = &stk->items_.last(0);
@@ -341,14 +340,12 @@ struct instructions {
 		if( msg2 )
 		log->add({ex::implode({msg2, L" When doing text concatenation (right operand)."}), fns->mod_->path_, params.pos_});
 	}
-	static const instr_type * get_concat() {
-		static const instr_type ret = {L"concat", do_concat<false>};
-		return &ret;
-	}
-	static const instr_type * get_concat_back() {
-		static const instr_type ret = {L"concat_back", do_concat<true>};
-		return &ret;
-	}
+
+	// concat
+	FN_GET_INSTR_TYPE_2(concat, do_concat<false>)
+
+	// concat_back
+	FN_GET_INSTR_TYPE_2(concat_back, do_concat<true>)
 
 	// for_implode_make: (params.data_ ~ array reserve)
 	static void do_for_implode_make(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {

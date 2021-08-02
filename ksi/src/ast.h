@@ -110,7 +110,7 @@ struct tree {
 
 struct scope {
 	using t_items = ex::def_array<tree *, ex::del_pointer, def_ast_trees_r, def_ast_trees_s>;
-	mod::instr i_step_, i_last_;
+	mod::instr i_first_, i_step_, i_last_;
 	t_items trees_;
 
 	static scope * make_function_scope();
@@ -393,13 +393,10 @@ struct actions {
 		body * bd = pd->body_.h_;
 		mod::side * sd = bd->current_side();
 		if( parent->info_.kind_ == Kind ) {
-			{
-				mod::instr tmp = nd->instr_;
-				tmp.type_ = Instructions::turn_cmp_x(tmp.type_);
-				sd->add_instr(tmp);
-			}
-			mod::instr * i_cmp_x = &sd->instructions_.last(0);
-			i_cmp_x->params_.extra_ = bd->add_side_pos();
+			mod::instr tmp = nd->instr_;
+			tmp.type_ = Instructions::turn_cmp_x(tmp.type_);
+			tmp.params_.extra_ = bd->add_side_pos();
+			sd->add_instr(tmp);
 		} else {
 			sd->add_instr(nd->instr_);
 			if( id depth = calc_cmp_x_depth<Kind>(nd) )
@@ -479,8 +476,9 @@ struct actions {
 	}
 	// []
 	static void do_leaf_array(prepare_data * pd, tree * tr, node * parent, node * nd) {
-		body * bd = pd->body_.h_;
-		scope * sc = bd->scopes_.items_[nd->info_.data_];
+		/*body * bd = pd->body_.h_;
+		scope * sc = bd->scopes_.items_[nd->info_.data_];*/
+		scope * sc = pd->get_scopes()[nd->info_.data_];
 		id count = sc->trees_.count_;
 		nd->instr_.params_.data_ = count;
 		node_add_instr(pd, nd);
@@ -495,15 +493,25 @@ struct actions {
 
 	static void do_leaf_while(prepare_data * pd, tree * tr, node * parent, node * nd);
 
+	struct prefix_operator {
+		static void do_leaf_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd);
+		static void do_leaf_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd);
+		static void do_leaf_concat_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd);
+		static void do_leaf_concat_assoc_right(prepare_data * pd, tree * tr, node * parent, node * nd);
+		static void do_leaf_lazy_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd);
+	};
+
 	static node_info info_leaf(hfn_action action = do_leaf, n_node_kind kind = nk_not_set) {
 		return {action, prec_leaf, prec_leaf, kind};
 	}
 
+	using t_map_named_ops = ex::map<wtext, op_info_lite, ex::map_del_object, ex::map_del_object, ex::cmp_std_plain>;
 	static array_iter<op_info> iter_op_assign();
 	static array_iter<op_info> iter_op_assign_rt();
 	static array_iter<op_info> iter_op();
-	using t_map_named_ops = ex::map<wtext, op_info_lite, ex::map_del_object, ex::map_del_object, ex::cmp_std_plain>;
+	static array_iter<op_info> iter_prefix_op();
 	static t_map_named_ops & map_named_ops();
+	static t_map_named_ops & map_prefix_named_ops();
 	static op_info_lite * op_colon(); // :
 	static op_info_lite * op_dot_get(); // .
 	static op_info_lite * op_dot_set(); // .

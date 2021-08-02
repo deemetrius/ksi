@@ -1,4 +1,4 @@
-
+/*
 &test_for $array: range n ~
 	range #dump #0
 	" for\n" #echo #
@@ -28,3 +28,6 @@
 
 [1_ 1.4 0.5] &test_for #
 [1 1.4_ 0.5] &test_for #
+*/
+`plain
+(`or 0, #, pt.0.x, #0, 'hello', 'wtf') #dump #0

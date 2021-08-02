@@ -10,14 +10,19 @@ tree::tree() {
 
 void scope::perform(prepare_data * pd) {
 	if( trees_.count_ ) {
-		tree * last = trees_.last(0);
+		tree
+			* first = *trees_.items_,
+			* last = trees_.last(0)
+		;
 		node * root;
 		body * bd = pd->body_.h_;
 		mod::instr * i_type, i_tmp;
 		for( tree * it : trees_ ) {
 			root = *it->nodes_.items_;
 			root->info_.action_(pd, it, root, root);
-			i_type = (it == last ? &i_last_ : &i_step_ );
+			i_type = (it == last ? &i_last_ :
+				(it == first ? &i_first_ : &i_step_)
+			);
 			if( it->leafs_.count_ )
 			i_type->params_.pos_ = it->leafs_.items_[0]->instr_.params_.pos_;
 
@@ -35,11 +40,13 @@ void scope::perform(prepare_data * pd) {
 scope * scope::make_function_scope() {
 	return new scope{
 		{ mod::instructions::get_next_expr(),	{{0, 0}} },
+		{ mod::instructions::get_next_expr(),	{{0, 0}} },
 		{ mod::instructions::get_next_expr(),	{{0, 0}} }
 	};
 }
 scope * scope::make_parentheses_scope() {
 	return new scope{
+		{ mod::instructions::get_next_expr(),	{{0, 0}} },
 		{ mod::instructions::get_next_expr(),	{{0, 0}} },
 		{ mod::instructions::get_nothing(),		{{0, 0}} }
 	};
@@ -47,17 +54,20 @@ scope * scope::make_parentheses_scope() {
 scope * scope::make_array_scope() {
 	return new scope{
 		{ mod::instructions::get_array_append(), {{0, 0}} },
+		{ mod::instructions::get_array_append(), {{0, 0}} },
 		{ mod::instructions::get_array_append(), {{0, 0}} }
 	};
 }
 scope * scope::make_map_scope() {
 	return new scope{
 		{ mod::instructions::get_map_append_1(), {{0, 0}} },
+		{ mod::instructions::get_map_append_1(), {{0, 0}} },
 		{ mod::instructions::get_map_append_1(), {{0, 0}} }
 	};
 }
 scope * scope::make_bracket_scope() {
 	return new scope{
+		{ mod::instructions::get_array_append(),	{{0, 0}} },
 		{ mod::instructions::get_array_append(),	{{0, 0}} },
 		{ mod::instructions::get_nothing(),			{{0, 0}} }
 	};
@@ -287,6 +297,135 @@ void actions::do_leaf_while(prepare_data * pd, tree * tr, node * parent, node * 
 	nd->instr_.params_.also_ = action_condition::scope_to_side<false>(pd, bd, nd, nd->info_.also_);
 	// current
 	node_add_instr(pd, nd);
+}
+
+void actions::prefix_operator::do_leaf_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
+	body * bd = pd->body_.h_;
+	scope * sc = bd->scopes_.items_[nd->info_.data_];
+	sc->i_first_.type_ = mod::instructions::get_nothing();
+	sc->i_step_ = nd->instr_;
+	sc->i_last_ = nd->instr_;
+	sc->perform(pd);
+}
+
+void actions::prefix_operator::do_leaf_cmp_x_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
+	body * bd = pd->body_.h_;
+	scope * sc = bd->scopes_.items_[nd->info_.data_];
+	tree
+		* first = *sc->trees_.items_,
+		* last = sc->trees_.last(0)
+	;
+	node * root;
+	id depth = sc->trees_.count_ -2;
+	for( tree * it : sc->trees_ ) {
+		root = *it->nodes_.items_;
+		root->info_.action_(pd, it, root, root);
+		if( it == last ) {
+			node_add_instr(pd, nd);
+			if( depth )
+			bd->del_side_pos(depth);
+		} else if( it != first ) {
+			mod::side * sd = bd->current_side();
+			mod::instr tmp = nd->instr_;
+			tmp.type_ = mod::instructions::turn_cmp_x(tmp.type_);
+			tmp.params_.extra_ = bd->add_side_pos();
+			sd->add_instr(tmp);
+		}
+	}
+}
+
+void actions::prefix_operator::do_leaf_concat_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
+	body * bd = pd->body_.h_;
+	scope * sc = bd->scopes_.items_[nd->info_.data_];
+	id count = sc->trees_.count_;
+	if( count > 2 ) {
+		mod::side * sd = bd->current_side();
+		sd->add_instr({
+			mod::instructions::get_for_implode_make(),
+			{nd->instr_.params_.pos_, count}
+		});
+		//
+		{
+			tree * first = *sc->trees_.items_;
+			node * root;
+			for( tree * it : sc->trees_ ) {
+				root = *it->nodes_.items_;
+				root->info_.action_(pd, it, root, root);
+				also::t_pos pos = it->leafs_.count_ ? it->leafs_.items_[0]->instr_.params_.pos_ : nd->instr_.params_.pos_;
+				sd->add_instr({
+					mod::instructions::get_for_implode_add(),
+					{pos, (it == first ? 1 : 2)}
+				});
+			}
+		}
+		sd->add_instr({
+			mod::instructions::get_for_implode_go(),
+			{nd->instr_.params_.pos_}
+		});
+	} else {
+		node * root;
+		for( tree * it : sc->trees_ ) {
+			root = *it->nodes_.items_;
+			root->info_.action_(pd, it, root, root);
+		}
+		node_add_instr(pd, nd);
+	}
+}
+
+void actions::prefix_operator::do_leaf_concat_assoc_right(prepare_data * pd, tree * tr, node * parent, node * nd) {
+	body * bd = pd->body_.h_;
+	scope * sc = bd->scopes_.items_[nd->info_.data_];
+	id count = sc->trees_.count_;
+	if( count > 2 ) {
+		mod::side * sd = bd->current_side();
+		sd->add_instr({
+			mod::instructions::get_for_implode_make(),
+			{nd->instr_.params_.pos_, count}
+		});
+		//
+		{
+			tree * first = *sc->trees_.items_;
+			node * root;
+			for( tree * it : sc->trees_.get_rev_iter() ) {
+				root = *it->nodes_.items_;
+				root->info_.action_(pd, it, root, root);
+				also::t_pos pos = it->leafs_.count_ ? it->leafs_.items_[0]->instr_.params_.pos_ : nd->instr_.params_.pos_;
+				sd->add_instr({
+					mod::instructions::get_for_implode_add(),
+					{pos, (it == first ? 1 : 2)}
+				});
+			}
+		}
+		sd->add_instr({
+			mod::instructions::get_for_implode_go(),
+			{nd->instr_.params_.pos_}
+		});
+	} else {
+		node * root;
+		for( tree * it : sc->trees_.get_rev_iter() ) {
+			root = *it->nodes_.items_;
+			root->info_.action_(pd, it, root, root);
+		}
+		node_add_instr(pd, nd);
+	}
+}
+
+void actions::prefix_operator::do_leaf_lazy_assoc_left(prepare_data * pd, tree * tr, node * parent, node * nd) {
+	body * bd = pd->body_.h_;
+	scope * sc = bd->scopes_.items_[nd->info_.data_];
+	id depth = sc->trees_.count_ -1;
+	tree * last = sc->trees_.last(0);
+	node * root;
+	for( tree * it : sc->trees_ ) {
+		root = *it->nodes_.items_;
+		root->info_.action_(pd, it, root, root);
+		if( it != last ) {
+			mod::side * sd = bd->current_side();
+			nd->instr_.params_.extra_ = bd->add_side_pos();
+			sd->add_instr(nd->instr_);
+		}
+	}
+	bd->del_side_pos(depth);
 }
 
 template <bool Is_set>
@@ -563,6 +702,83 @@ array_iter<op_info> actions::iter_op() {
 	return ops;
 }
 
+array_iter<op_info> actions::iter_prefix_op() {
+	static op_info ops[] = {
+		{
+			{L"+"}, {
+			{prefix_operator::do_leaf_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_plus() }
+		}, {
+			{L"-"}, {
+			{prefix_operator::do_leaf_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_minus() }
+		}, {
+			{L"*"}, {
+			{prefix_operator::do_leaf_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_mult() }
+		}, {
+			{L"/"}, {
+			{prefix_operator::do_leaf_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_div() }
+		}, {
+			{L"<=>"}, {
+			{prefix_operator::do_leaf_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_cmp() }
+		}, {
+			{L"=="}, {
+			{prefix_operator::do_leaf_cmp_x_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_cmp_is(), ex::cmp::equal }
+		}, {
+			{L"<>"}, {
+			{prefix_operator::do_leaf_cmp_x_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_cmp_is_not(), ex::cmp::equal }
+		}, {
+			{L"<="}, {
+			{prefix_operator::do_leaf_cmp_x_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_cmp_is_not(), ex::cmp::more }
+		}, {
+			{L">="}, {
+			{prefix_operator::do_leaf_cmp_x_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_cmp_is_not(), ex::cmp::less }
+		}, {
+			{L"<"}, {
+			{prefix_operator::do_leaf_cmp_x_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_cmp_is(), ex::cmp::less }
+		}, {
+			{L">"}, {
+			{prefix_operator::do_leaf_cmp_x_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_cmp_is(), ex::cmp::more }
+		}, {
+			{L"%%"}, {
+			{prefix_operator::do_leaf_concat_assoc_right, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_concat() }
+		}, {
+			{L"%"}, {
+			{prefix_operator::do_leaf_concat_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_concat() }
+		}, {
+			{L"??"}, {
+			{prefix_operator::do_leaf_lazy_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_null_coalesce() }
+		}
+	};
+	return ops;
+}
+
 actions::t_map_named_ops & actions::map_named_ops() {
 	static t_map_named_ops ops(1, ex::same_key::update, {
 		{L"`mod", {
@@ -592,6 +808,41 @@ actions::t_map_named_ops & actions::map_named_ops() {
 		}}, {L"`_xor", {
 			{do_node_assoc_left, prec_xor_, prec_xor_},
 			tree::add_node_assoc_left,
+			mod::instructions::get_bit_xor()
+		}}
+	});
+	return ops;
+}
+
+actions::t_map_named_ops & actions::map_prefix_named_ops() {
+	static t_map_named_ops ops(1, ex::same_key::update, {
+		{L"`mod", {
+			{prefix_operator::do_leaf_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_mod()
+		}}, {L"`and", {
+			{prefix_operator::do_leaf_lazy_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_and()
+		}}, {L"`or", {
+			{prefix_operator::do_leaf_lazy_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_or()
+		}}, {L"`xor", {
+			{prefix_operator::do_leaf_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_xor()
+		}}, {L"`_and", {
+			{prefix_operator::do_leaf_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_bit_and()
+		}}, {L"`_or", {
+			{prefix_operator::do_leaf_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
+			mod::instructions::get_bit_or()
+		}}, {L"`_xor", {
+			{prefix_operator::do_leaf_assoc_left, prec_leaf, prec_leaf},
+			tree::add_leaf,
 			mod::instructions::get_bit_xor()
 		}}
 	});

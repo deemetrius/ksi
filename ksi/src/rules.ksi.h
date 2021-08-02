@@ -207,11 +207,28 @@ public pa_none {
 	static bool parse(state & st, t_tokens & toks, base_log * log);
 };
 
+struct t_prefix_operator_std :
+public check_none,
+public pa_none {
+	static wtext name(state & st) { return L"t_prefix_operator_std"; }
+
+	static bool parse(state & st, t_tokens & toks, base_log * log);
+};
+
 struct t_operator_named :
 public is_keyword<t_operator_named>,
 public check_none,
 public pa_none {
 	static wtext name(state & st) { return L"t_operator_named"; }
+
+	static bool check_text(const wtext & tx, state & st, t_tokens & toks, base_log * log);
+};
+
+struct t_prefix_operator_named :
+public is_keyword<t_prefix_operator_named>,
+public check_none,
+public pa_none {
+	static wtext name(state & st) { return L"t_prefix_operator_named"; }
 
 	static bool check_text(const wtext & tx, state & st, t_tokens & toks, base_log * log);
 };
@@ -236,6 +253,7 @@ public end_file {
 
 struct end_fn :
 public with_kind<rk_none>,
+public check_none,
 public is_char<L';'>,
 public pa_done_good {
 	static wtext name(state & st) { return L"t_end_fn"; }
@@ -245,11 +263,16 @@ struct end_scope :
 public with_kind<rk_operand>,
 public is_char<L')'>,
 public pa_done_good {
+	static bool check(state & st) {
+		return check_flag_is_absent<flag_was_prefix_operator>::check(st) || st.expressions_count_ > 1;
+	}
+
 	static wtext name(state & st) { return L"t_end_scope"; }
 };
 
 struct end_array :
 public with_kind<rk_operand>,
+public check_none,
 public is_char<L']'>,
 public pa_done_good {
 	static wtext name(state & st) { return L"t_end_array"; }
@@ -257,6 +280,7 @@ public pa_done_good {
 
 struct end_map :
 public with_kind<rk_operand>,
+public check_none,
 public is_char<L'}'>,
 public pa_done_good {
 	static wtext name(state & st) { return L"t_end_map"; }
@@ -264,6 +288,7 @@ public pa_done_good {
 
 struct end_bracket :
 public with_kind<rk_operand>,
+public check_none,
 public is_char<L']'>,
 public pa_done_good {
 	static wtext name(state & st) { return L"t_end_bracket"; }
@@ -271,6 +296,7 @@ public pa_done_good {
 
 struct end_condition :
 public with_kind<rk_operand>,
+public check_none,
 public pa_done_good {
 	static wtext name(state & st) {
 		if( check_flag_is_absent<flag_condition_else>::check(st) ) {
@@ -300,6 +326,7 @@ public pa_done_good {
 
 struct end_while_condition :
 public with_kind<rk_operand>,
+public check_none,
 public pa_done_good {
 	static wtext name(state & st) {
 		if( check_flag_is_absent<flag_second_part>::check(st) ) {
@@ -323,6 +350,7 @@ public pa_done_good {
 
 struct end_loop_body :
 public with_kind<rk_operand>,
+public check_none,
 public pa_done_good {
 	static wtext name(state & st) {
 		if( check_flag_is_absent<flag_second_part>::check(st) ) {
@@ -345,8 +373,17 @@ public pa_done_good {
 };
 
 struct end_expr :
-public with_kind<rk_keep>,
-public check_kind_not<rk_operator, rk_fn_call> {
+public with_kind<rk_keep> {
+	static bool check(state & st) {
+		static constexpr hfn_check items[] = {
+			end_plain::check, end_fn::check,
+			end_scope::check, end_array::check, end_map::check,
+			end_bracket::check, end_condition::check,
+			end_while_condition::check, end_loop_body::check
+		};
+		return check_kind_not<rk_operator, rk_fn_call>::check(st) && items[st.nest_](st);
+	}
+
 	static wtext name(state & st) {
 		static constexpr hfn_name items[] = {
 			end_plain::name, end_fn::name,
@@ -832,7 +869,7 @@ struct hive {
 		static bool parse(state & st, t_tokens & toks, base_log * log) {
 			bool ret = false;
 			state tmp_st = st;
-			if( rules::is_name::parse(tmp_st, toks, log) ) {
+			if( is_name::parse(tmp_st, toks, log) ) {
 				ret = true;
 				wtext var_name(tmp_st.prev_str_, tmp_st.str_);
 				bool is_by_ref = false;
@@ -919,6 +956,21 @@ struct hive {
 
 		static void post_action(state & st, t_tokens & toks, base_log * log) {
 			st.next_fn_ = rule_expr::parse;
+		}
+	};
+
+	struct t_prefix_operator :
+	public with_kind<rk_prefix_operator>,
+	public rule_alt<false, false, t_prefix_operator_named, t_prefix_operator_std>,
+	public pa_add_flag<flag_was_prefix_operator> {
+		static wtext name(state & st) { return L"t_prefix_operator"; }
+
+		static bool check(state & st) {
+			return
+				st.nest_ == nest_parentheses &&
+				!st.expressions_count_ &&
+				check_flag_is_absent<flag_was_prefix_operator>::check(st)
+			;
 		}
 	};
 
@@ -1090,12 +1142,11 @@ struct hive {
 	struct rule_fn_arg : public rule_alt<true, true, od, fn_def_arg<Is_first> > {};
 	struct rule_fn_body : public rule_alt<true, true, od, fn_def_body> {};
 
-	struct rule_expr : public rule_alt<true, true, od, end_expr, operation_assign, operand> {};
+	struct rule_expr : public rule_alt<true, true, od, end_expr, operation_assign, operand, t_prefix_operator> {};
 	struct rule_expr_after_operand : public rule_alt<true, true,
 		od,
 		end_expr,
 		separator,
-		operation_condition,
 		operation_loop_for,
 		operation_loop_each,
 		fn_call_native,
@@ -1108,7 +1159,8 @@ struct hive {
 		wrap_dot<true, false>::t_operator_dot,
 		t_operator_pair,
 		t_operator_assign_rt,
-		t_operator
+		t_operator,
+		operation_condition
 	> {};
 	struct rule_expr_after_assign_rt : public rule_alt<true, true, od, operand_target<false> > {};
 

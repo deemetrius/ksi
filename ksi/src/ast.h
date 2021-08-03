@@ -462,6 +462,19 @@ struct actions {
 		node_add_instr(pd, nd);
 	}
 
+	static void do_lazy_assoc_right(prepare_data * pd, tree * tr, node * parent, node * nd) {
+		// right child
+		nd->rt_->info_.action_(pd, tr, nd, nd->rt_);
+		// prepare left
+		body * bd = pd->body_.h_;
+		nd->instr_.params_.extra_ = bd->add_side_pos();
+		// left child
+		nd->lt_->info_.action_(pd, tr, nd, nd->lt_);
+		bd->del_side_pos();
+		// current
+		node_add_instr(pd, nd);
+	}
+
 	static void do_leaf(prepare_data * pd, tree * tr, node * parent, node * nd) {
 		node_add_instr(pd, nd);
 	}

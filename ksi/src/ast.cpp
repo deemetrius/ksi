@@ -553,6 +553,11 @@ array_iter<op_info> actions::iter_op_assign() {
 			{do_node_assoc_right, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_assign_value_with_op(), 10 }
+		}, {
+			{L"?\?="}, {
+			{do_lazy_assoc_left, prec_x_assign, prec_assign},
+			tree::add_node_assoc_right,
+			mod::instructions::get_lazy_assign_nullc() }
 		}
 	};
 	return ops;
@@ -620,6 +625,11 @@ array_iter<op_info> actions::iter_op_assign_rt() {
 			{do_node_assoc_left, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_assign_value_with_op(), 10 }
+		}, {
+			{L"?\?=>"}, {
+			{do_lazy_assoc_right, prec_xrt_assign, prec_rt_assign},
+			tree::add_node_assoc_left,
+			mod::instructions::get_lazy_assign_nullc() }
 		}
 	};
 	return ops;

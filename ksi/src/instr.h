@@ -78,6 +78,11 @@ struct instructions {
 		if( var::keep_array * ka = var::keep_array::any_link_check(*target) ) {
 			var::ref_var * link = ka->any_link_get();
 			*link = stk->items_.last(1);
+		} else {
+			log->add({
+				L"runtime: Target of assignment is not of link type.",
+				fns->mod_->path_, params.pos_
+			});
 		}
 		stk->items_.remove_last_n(1);
 	}
@@ -85,33 +90,75 @@ struct instructions {
 
 	// assign_value_with_op: (params.data_ ~ position of op)
 	static void do_assign_value_with_op(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		static const instr_type * ops[] = {
+			get_plus(),			// 0: +
+			get_minus(),		// 1: -
+			get_mult(),			// 2: *
+			get_div(),			// 3: /
+			get_mod(),			// 4: `mod
+			get_concat(),		// 5: %
+			get_concat_back(),	// 6: %%
+			get_xor(),			// 7: `xor
+			get_bit_and(),		// 8: `_and
+			get_bit_or(),		// 9: `_or
+			get_bit_xor()		//10: `_xor
+		};
 		var::any * target = &stk->items_.last(0);
 		if( var::keep_array * ka = var::keep_array::any_link_check(*target) ) {
 			var::ref_var * link = ka->any_link_get();
 			stk->items_.append(link->h_->val_);
 			stk->items_.append(stk->items_.last(2) );
-			static const instr_type * ops[] = {
-				get_plus(),			// 0: +
-				get_minus(),		// 1: -
-				get_mult(),			// 2: *
-				get_div(),			// 3: /
-				get_mod(),			// 4: `mod
-				get_concat(),		// 5: %
-				get_concat_back(),	// 6: %%
-				get_xor(),			// 7: `xor
-				get_bit_and(),		// 8: `_and
-				get_bit_or(),		// 9: `_or
-				get_bit_xor()		//10: `_xor
-			};
 			ops[params.data_]->perform_(spc, fns, stk, log, {params.pos_});
 			var::any * result = &stk->items_.last(0);
 			*link = *result;
 			stk->items_.last(2) = *result;
 			stk->items_.remove_last_n(2);
-		} else
-		stk->items_.remove_last_n(1);
+		} else {
+			log->add({ex::implode({
+				L"runtime: Target of compound assignment with ", ops[params.data_]->name_, L" operator is not of link type."
+			}), fns->mod_->path_, params.pos_});
+			stk->items_.remove_last_n(1);
+		}
 	}
 	FN_GET_INSTR_TYPE(assign_value_with_op)
+
+	// null coalescing
+	struct checker_nullc {
+		static wtext get_name() { return L"null coalescing"; }
+		static bool check(const var::any & v, wtext & msg) { return v.type_ == &var::hcfg->t_null; }
+	};
+
+	// lazy assignment with Checker: (params.extra_ ~ pos of side)
+	template <class Checker>
+	static void inner_assign_lazy(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		var::any * target = &stk->items_.last(0);
+		if( var::keep_array * ka = var::keep_array::any_link_check(*target) ) {
+			var::ref_var * link = ka->any_link_get();
+			wtext msg;
+			bool need = Checker::check(link->h_->val_, msg);
+			if( msg ) {
+				log->add({ex::implode({
+					msg, L" When checking target of lazy assignment with ", Checker::get_name(), L" operator."
+				}), fns->mod_->path_, params.pos_});
+			}
+			if( need ) {
+				fns->fn_body_->sides_.items_[params.extra_]->call(spc, fns, stk, log);
+				*link = stk->items_.last(0);
+				stk->items_.remove(stk->items_.count_ -2);
+			} else {
+				var::any v_target = link->h_->val_;
+				stk->items_.last(0) = v_target;
+			}
+		} else {
+			log->add({ex::implode({
+				L"runtime: Target of lazy assignment with ", Checker::get_name(), L" operator is not of link type."
+			}), fns->mod_->path_, params.pos_});
+			stk->items_.last(0) = var::n_null::val;
+		}
+	}
+
+	// lazy_assign_nullc
+	FN_GET_INSTR_TYPE_2(lazy_assign_nullc, inner_assign_lazy<checker_nullc>)
 
 	// array_put: (params.data_ ~ array reserve)
 	static void do_array_put(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
@@ -324,7 +371,7 @@ struct instructions {
 	FN_GET_INSTR_TYPE_2(bit_xor, inner_bit_op<op_bit_xor>)
 
 	template <bool IsBack>
-	static void do_concat(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+	static void inner_concat(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
 		var::any * h1 = &stk->items_.last(1), * h2 = &stk->items_.last(0);
 		wtext msg1, msg2;
 		wtext t1 = var::type_text::get_text(h1->type_->to_text(*h1, msg1) );
@@ -342,10 +389,10 @@ struct instructions {
 	}
 
 	// concat
-	FN_GET_INSTR_TYPE_2(concat, do_concat<false>)
+	FN_GET_INSTR_TYPE_2(concat, inner_concat<false>)
 
 	// concat_back
-	FN_GET_INSTR_TYPE_2(concat_back, do_concat<true>)
+	FN_GET_INSTR_TYPE_2(concat_back, inner_concat<true>)
 
 	// for_implode_make: (params.data_ ~ array reserve)
 	static void do_for_implode_make(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {

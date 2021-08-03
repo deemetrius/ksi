@@ -66,7 +66,7 @@
 1626588546 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
 	"fn.inc.h"
 
-1627800191 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
+1627971559 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
 	"rules.ksi.h"
 
 1627800525 d:\prog\dropbox\cpp\hive\ksi\src\rules.inc.h
@@ -90,10 +90,10 @@
 1627309078 d:\prog\dropbox\cpp\hive\ksi\src\fn.inc.h
 	"space.h"
 
-1627862607 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
+1627975383 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
 	"space.h"
 
-1627860298 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
+1627975713 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
 	"space.h"
 
 1627860828 source:d:\prog\dropbox\cpp\hive\ksi\src\ast.cpp

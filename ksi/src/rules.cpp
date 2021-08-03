@@ -118,15 +118,20 @@ bool hive::operand_map::parse(state & st, t_tokens & toks, base_log * log) {
 }
 
 void base_operand::maybe_next_expr(state & st, t_tokens & toks, base_log * log) {
-	++st.expressions_count_;
 	if( check_kind<
 		rk_operand,
 		rk_operand_can_dot_get,
 		rk_operand_can_dot_set,
 		rk_separator
 	>::check(st) ) {
+		++st.expressions_count_;
 		toks.append(new tokens::token_next_expr() );
 		pa_del_flag<flag_was_colon>::post_action(st, toks, log);
+	} else if( check_kind<
+		rk_none,
+		rk_prefix_operator
+	>::check(st) ) {
+		++st.expressions_count_;
 	}
 }
 

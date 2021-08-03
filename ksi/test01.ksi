@@ -29,7 +29,18 @@
 [1_ 1.4 0.5] &test_for #
 [1 1.4_ 0.5] &test_for #
 */
+&show vars n ~
+	vars `each name : val ~
+		["\n" name " = "] #echo #
+		val #dump #0
+	;
+;
 `plain
 a ??= ('hello' #echo #, 1) ??=> b
 a ??= (' dear' #echo #, 2) ??=> c
-["\na = " a "\nb = " b "\nc = " c] #echo #
+{%a:a %b:b %c:c} &show #
+t1 = #1
+t1 `and= #
+{%t1:t1} &show #
+10 `or=> t1
+{%t1:t1} &show #

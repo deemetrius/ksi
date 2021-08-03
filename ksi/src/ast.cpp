@@ -558,6 +558,16 @@ array_iter<op_info> actions::iter_op_assign() {
 			{do_lazy_assoc_left, prec_x_assign, prec_assign},
 			tree::add_node_assoc_right,
 			mod::instructions::get_lazy_assign_nullc() }
+		}, {
+			{L"`and="}, {
+			{do_lazy_assoc_left, prec_x_assign, prec_assign},
+			tree::add_node_assoc_right,
+			mod::instructions::get_lazy_assign_bool_and() }
+		}, {
+			{L"`or="}, {
+			{do_lazy_assoc_left, prec_x_assign, prec_assign},
+			tree::add_node_assoc_right,
+			mod::instructions::get_lazy_assign_bool_or() }
 		}
 	};
 	return ops;
@@ -630,6 +640,16 @@ array_iter<op_info> actions::iter_op_assign_rt() {
 			{do_lazy_assoc_right, prec_xrt_assign, prec_rt_assign},
 			tree::add_node_assoc_left,
 			mod::instructions::get_lazy_assign_nullc() }
+		}, {
+			{L"`and=>"}, {
+			{do_lazy_assoc_right, prec_xrt_assign, prec_rt_assign},
+			tree::add_node_assoc_left,
+			mod::instructions::get_lazy_assign_bool_and() }
+		}, {
+			{L"`or=>"}, {
+			{do_lazy_assoc_right, prec_xrt_assign, prec_rt_assign},
+			tree::add_node_assoc_left,
+			mod::instructions::get_lazy_assign_bool_or() }
 		}
 	};
 	return ops;

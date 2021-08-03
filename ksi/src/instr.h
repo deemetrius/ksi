@@ -128,6 +128,18 @@ struct instructions {
 		static bool check(const var::any & v, wtext & msg) { return v.type_ == &var::hcfg->t_null; }
 	};
 
+	// bool and
+	struct checker_bool_and {
+		static wtext get_name() { return L"bool `and"; }
+		static bool check(const var::any & v, wtext & msg) { return v.type_->to_bool(v, msg); }
+	};
+
+	// bool or
+	struct checker_bool_or {
+		static wtext get_name() { return L"bool `and"; }
+		static bool check(const var::any & v, wtext & msg) { return !v.type_->to_bool(v, msg); }
+	};
+
 	// lazy assignment with Checker: (params.extra_ ~ pos of side)
 	template <class Checker>
 	static void inner_assign_lazy(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
@@ -159,6 +171,12 @@ struct instructions {
 
 	// lazy_assign_nullc
 	FN_GET_INSTR_TYPE_2(lazy_assign_nullc, inner_assign_lazy<checker_nullc>)
+
+	// lazy_assign_bool_and
+	FN_GET_INSTR_TYPE_2(lazy_assign_bool_and, inner_assign_lazy<checker_bool_and>)
+
+	// lazy_assign_bool_or
+	FN_GET_INSTR_TYPE_2(lazy_assign_bool_or, inner_assign_lazy<checker_bool_or>)
 
 	// array_put: (params.data_ ~ array reserve)
 	static void do_array_put(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {

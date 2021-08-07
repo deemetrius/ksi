@@ -1,41 +1,14 @@
-/*
-&test_for $array: range n ~
-	range #dump #0
-	" for\n" #echo #
-	`while: #1 ~
-		range `for i : v \
-			i ?(
-				range.1 < 0 ?
-					"return\n" #echo #
-					`return
-				;
-				"break\n" #echo #
-				`break=2
-			);
-		~
-			i == 0 ?
-				[i " skip\n"] #echo #
-				`next
-			;
-			{%index: i, %value: v} #echo [', ' ": "]
-			"\n" #echo #
-		;
-	;
-	"done\n" #echo #
-;
 
-`plain -- привет
-
-[1_ 1.4 0.5] &test_for #
-[1 1.4_ 0.5] &test_for #
-*/
 &show vars n ~
 	vars `each name : val ~
 		["\n" name " = "] #echo #
 		val #dump #0
+		-- vars.0 = #1
 	;
 ;
+
 `plain
+
 a ??= ('hello' #echo #, 1) ??=> b
 a ??= (' dear' #echo #, 2) ??=> c
 {%a:a %b:b %c:c} &show #

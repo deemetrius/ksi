@@ -19,6 +19,13 @@ std::exception_ptr call_func_from_native(
 
 } // ns
 
+namespace also {
+
+ex::wtext decode(const char * str, ex::id src_len);
+ex::text encode(const wchar_t * str, ex::id src_len);
+
+} // ns
+
 const api * get_api() {
 	static ksi::api ret;
 	static bool need_init = true;
@@ -29,6 +36,8 @@ const api * get_api() {
 		ret.fn_run_script_				= run_script;
 		ret.fn_get_config_				= var::get_config;
 		ret.fn_get_wc_					= get_wc;
+		ret.fn_decode_					= also::decode;
+		ret.fn_encode_					= also::encode;
 		ksi::init(&ret);
 	}
 	return &ret;

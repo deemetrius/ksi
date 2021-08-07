@@ -21,10 +21,20 @@ namespace also {
 
 ex::wtext decode(const char * str, id src_len) {
 	ex::wtext ret;
-	int len = MultiByteToWideChar(CP_UTF8, 0, str, src_len, nullptr, 0);
-	if( len ) {
+	if( int len = MultiByteToWideChar(CP_UTF8, 0, str, src_len, nullptr, 0) ) {
 		ret = ex::wtext(new wtext::Char[len +1], len);
 		len = MultiByteToWideChar(CP_UTF8, 0, str, src_len, ret.h_->s_, len);
+		ret.h_->s_[len] = 0;
+		ret.h_->calc_len();
+	}
+	return ret;
+}
+
+ex::text encode(const wchar_t * str, id src_len) {
+	ex::text ret;
+	if( int len = WideCharToMultiByte(CP_UTF8, 0, str, src_len, NULL, 0, NULL, NULL) ) {
+		ret = ex::text(new ex::text::Char[len +1], len);
+		len = WideCharToMultiByte(CP_UTF8, 0, str, src_len, ret.h_->s_, len, NULL, NULL);
 		ret.h_->s_[len] = 0;
 		ret.h_->calc_len();
 	}

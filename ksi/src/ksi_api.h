@@ -46,6 +46,8 @@ using fn_call_func_from_native = std::exception_ptr (*)(
 
 using fn_run_script = bool (*)(const ex::wtext & path, const run_args & ra, base_log * log);
 using fn_get_wc = std::wostream * (*)();
+using fn_decode = ex::wtext (*)(const char * str, ex::id src_len);
+using fn_encode = ex::text (*)(const wchar_t * str, ex::id src_len);
 
 // api
 
@@ -55,6 +57,8 @@ struct api {
 	fn_run_script					fn_run_script_;
 	var::fn_get_config				fn_get_config_;
 	fn_get_wc						fn_get_wc_;
+	fn_decode						fn_decode_;
+	fn_encode						fn_encode_;
 };
 
 using fn_get_api = const ksi::api * __cdecl (*)();

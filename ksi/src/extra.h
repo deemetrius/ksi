@@ -1052,4 +1052,43 @@ inline bool operator == (const basic_text<T, Traits> & t1, const basic_text<T, T
 	return ( t1.h_->len_ == t2.h_->len_ ) ? !Traits<T>::compare(t1.h_->cs_, t2.h_->cs_) : false;
 }
 
+// hive
+
+template <class T, template <class Item> class Closer, id Reserve, id Step>
+struct hive {
+	using t_arr = def_array<T, Closer, Reserve, Step>;
+	using t_map = def_map<
+		wtext, id, map_del_object, map_del_plain, cmp_std_plain,
+		Reserve, Step
+	>;
+	using pass = typename t_arr::pass;
+	using t_res = search_res<T>;
+	t_arr arr_;
+	t_map map_;
+
+	id inner_add(const wtext & name, pass item, id_search_res res) {
+		if( res )
+		return map_.sorted_.items_[res.pos_]->val_;
+		id ret = arr_.count_;
+		arr_.append(item);
+		map_.inner_insert_after(name, ret, same_key::ignore, map_.in_end(), res);
+		return ret;
+	}
+	inline id add(const wtext & name, pass item) {
+		return inner_add(name, item, map_.find_key(name));
+	}
+	id_search_res find_pos(const wtext & name) {
+		if( id_search_res res = map_.find_key(name) )
+		return {true, map_.sorted_.items_[res.pos_]->val_};
+		else
+		return {false};
+	}
+	t_res find_item(const wtext & name) {
+		if( id_search_res res = find_pos(name) )
+		return {true, arr_.items_[res.pos_]};
+		else
+		return {false};
+	}
+};
+
 } // ns

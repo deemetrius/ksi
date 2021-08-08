@@ -21,6 +21,6 @@ struct base_token {
 
 } // ns
 
-using t_tokens = ex::def_array<tokens::base_token *, ex::del_pointer, def_tokens_r, def_tokens_s>;
+using t_tokens = ex::def_array<tokens::base_token *, ex::del_pointer, def::tokens_r, def::tokens_s>;
 
 } // ns

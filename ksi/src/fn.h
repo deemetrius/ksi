@@ -13,7 +13,7 @@ template <class T, template <class> class Closer = ex::map_del_plain>
 struct over {
 	using t_map = ex::def_map<
 		var::var_type, T, ex::map_del_plain, Closer, var::cmp_any,
-		def_over_r, def_over_s
+		def::over_r, def::over_s
 	>;
 	using pass = typename t_map::pass_val;
 	using t_res = ex::search_res<T>;
@@ -84,9 +84,9 @@ struct t_stack {
 	struct for_implode : public ex::with_deleter<for_implode>, public ex::wtext_array {
 		using ex::wtext_array::wtext_array;
 	};
-	using t_for_implode = ex::def_array<for_implode *, ex::del_ex_pointer, def_for_implode_r, def_for_implode_s>;
-	using t_items = ex::def_array<var::any, ex::del_object, def_stack_r, def_stack_s>;
-	using t_each_iterators = ex::def_array<var::ei_base *, ex::del_ex_pointer, def_each_iterators_r, def_each_iterators_s>;
+	using t_for_implode = ex::def_array<for_implode *, ex::del_ex_pointer, def::for_implode_r, def::for_implode_s>;
+	using t_items = ex::def_array<var::any, ex::del_object, def::stack_r, def::stack_s>;
+	using t_each_iterators = ex::def_array<var::ei_base *, ex::del_ex_pointer, def::each_iterators_r, def::each_iterators_s>;
 
 	t_items items_;
 	t_for_implode for_implode_;
@@ -178,7 +178,7 @@ inline std::wostream & operator << (std::wostream & wo, const instr & ins) {
 
 // side
 struct side {
-	using t_items = ex::def_array<instr, ex::del_plain_struct, def_instr_r, def_instr_s>;
+	using t_items = ex::def_array<instr, ex::del_plain_struct, def::instr_r, def::instr_s>;
 	t_items instructions_;
 
 	void add_instr(const instr & ins) {
@@ -199,9 +199,9 @@ enum class n_return { val };
 struct fn_body : ex::with_deleter<fn_body> {
 	using t_var_names = ex::def_map<
 		wtext, id, ex::map_del_object, ex::map_del_plain, ex::cmp_std_plain,
-		def_var_names_r, def_var_names_s
+		def::var_names_r, def::var_names_s
 	>;
-	using t_sides = ex::def_array<side *, ex::del_pointer, def_sides_r, def_sides_s>;
+	using t_sides = ex::def_array<side *, ex::del_pointer, def::sides_r, def::sides_s>;
 
 	also::t_pos pos_;
 	module * mod_;
@@ -428,7 +428,7 @@ struct base_with_mod {
 template <class T>
 struct fn_map
 : public std::conditional_t<std::is_same_v<T, func_mod>, base_with_mod, base_none>
-, public also::hive<T *, ex::del_ex_pointer, def_funcs_r, def_funcs_s>
+, public ex::hive<T *, ex::del_ex_pointer, def::funcs_r, def::funcs_s>
 {
 	T * obtain(const wtext & name, fn_map<func> * global = nullptr) {
 		ex::id_search_res res = this->map_.find_key(name);

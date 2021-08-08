@@ -1,4 +1,4 @@
-/* Include the required headers from httpd */
+// Include the required headers from httpd
 #include "../src_apache/httpd.h"
 #include "../src_apache/http_core.h"
 #include "../src_apache/http_log.h"
@@ -12,30 +12,6 @@
 #include <new>
 
 #define KSI_LOG_MARK __FILE__,__LINE__,ksi_module.module_index
-
-struct ksi_keep {
-	static const ksi::api * api;
-};
-const ksi::api * ksi_keep::api = nullptr;
-
-struct custom_streambuf : public std::wstreambuf {
-	request_rec * r_;
-
-	custom_streambuf(request_rec * r) : r_(r) {}
-	std::streamsize xsputn(const char_type * str, std::streamsize count) override {
-		if( ex::text tx = ksi_keep::api->fn_encode_(str, count) ) {
-			ap_rputs(tx.h_->cs_, r_);
-		}
-		return count;
-	}
-};
-
-template <std::size_t N>
-bool is_ends_with(const char * str, const char (&end)[N]) {
-	std::size_t len = std::strlen(str);
-	if( len < N -1 ) return false;
-	return !std::strncmp(str + len - N +1, end, N -1);
-}
 
 extern "C" {
 // Define prototypes of our functions in this module
@@ -53,7 +29,55 @@ module AP_MODULE_DECLARE_DATA ksi_module = {
 	NULL,            // Any directives we may have for httpd
 	register_hooks   // Our hook registering function
 };
+} // extern
+
+struct ksi_keep {
+	static const ksi::api * api;
+};
+const ksi::api * ksi_keep::api = nullptr;
+
+struct custom_streambuf : public std::wstreambuf {
+	request_rec * r_;
+
+	custom_streambuf(request_rec * r) : r_(r) {}
+
+	std::streamsize xsputn(const char_type * str, std::streamsize count) override {
+		if( ex::text tx = ksi_keep::api->fn_encode_(str, count) ) {
+			ap_rputs(tx.h_->cs_, r_);
+		}
+		return count;
+	}
+};
+
+struct log_custom : public ksi::base_log {
+	request_rec * r_;
+
+	log_custom(request_rec * r) : r_(r) {}
+
+	void add(const ksi::also::message & msg) {
+		ex::wtext wtx = ex::implode({
+			L"\"", msg.file_, L"\" [", ex::to_wtext(msg.pos_.line_), L", ", ex::to_wtext(msg.pos_.col_), L"] ", msg.msg_
+		});
+		ex::text tx = ksi_keep::api->fn_encode_(wtx.h_->cs_, wtx.h_->len_);
+		ap_log_rerror(KSI_LOG_MARK, APLOG_WARNING, 0, r_, tx.h_->cs_);
+	}
+};
+
+template <std::size_t N>
+bool is_ends_with(const char * str, const char (&end)[N]) {
+	std::size_t len = std::strlen(str);
+	if( len < N -1 ) return false;
+	return !std::strncmp(str + len - N +1, end, N -1);
 }
+
+template <class T>
+struct later {
+	T * fn_;
+
+	~later() {
+		(*fn_)();
+	}
+};
 
 // register_hooks: Adds a hook to the httpd process
 static void register_hooks(apr_pool_t * pool) {
@@ -66,12 +90,13 @@ static void register_hooks(apr_pool_t * pool) {
 }
 
 int handler_ksi_bad(request_rec * r) {
+	if( !is_ends_with(r->path_info, ".ksi") ) return (DECLINED);
 	static bool first_run = true;
 	if( first_run ) {
 		first_run = false;
 		ap_log_rerror(KSI_LOG_MARK, APLOG_ERR, 0, r, "Unable to load ksi library.");
 	}
-	return (DECLINED);
+	return HTTP_INTERNAL_SERVER_ERROR;
 }
 
 // The handler function for our module.
@@ -81,7 +106,6 @@ static int handler_ksi(request_rec * r) {
 	 * and Apache will try somewhere else.
 	 */
 	//if (!r->handler || strcmp(r->handler, "ksi-script")) return (DECLINED);
-	//if( r->handler ) ap_rputs(r->handler, r);
 	if( !is_ends_with(r->path_info, ".ksi") ) return (DECLINED);
 	//
 	{
@@ -97,10 +121,13 @@ static int handler_ksi(request_rec * r) {
 		std::wostream * wo = ksi_keep::api->fn_get_wc_();
 		std::wstreambuf * buf_orig = wo->rdbuf();
 		custom_streambuf buf_custom(r);
+		auto lambda = [wo, buf_orig](){ try { wo->rdbuf(buf_orig); } catch( ... ) {} };
+		later<decltype(lambda)> guard{&lambda};
 		wo->rdbuf(&buf_custom);
+		//
 		ap_set_content_type(r, "text/html");
 		ksi::run_args ra;
-		ksi::log_last_only log;
+		log_custom log(r);
 		ex::wtext path = ksi_keep::api->fn_decode_(r->path_info, std::strlen(r->path_info) );
 		ksi_keep::api->fn_run_script_(path, ra, &log);
 		/*
@@ -111,7 +138,7 @@ static int handler_ksi(request_rec * r) {
 		ap_rputs(r->hostname, r); ap_rputs("\n", r);
 		ap_rputs(r->path_info, r); ap_rputs("\n", r);
 		*/
-		wo->rdbuf(buf_orig);
+		//wo->rdbuf(buf_orig);
 	} catch( const std::bad_alloc & e ) {
 		ap_log_rerror(KSI_LOG_MARK, APLOG_ERR, 0, r, "Memory allocation exception was thrown.");
 	} catch( ... ) {

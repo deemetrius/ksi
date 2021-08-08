@@ -502,7 +502,7 @@ any type_null::to_array(const any & a, wtext & msg) const {
 any type_array::to_array(const any & a, wtext & msg) const {
 	return a;
 }
-keep_array::keep_array(const keep_map * km) : items_(km->ref_.h_->sorted_.count_ + def_array_s, def_array_s) {
+keep_array::keep_array(const keep_map * km) : items_(km->ref_.h_->sorted_.count_ + def::array_s, def::array_s) {
 	for( const keep_map::t_items::cnode * it : km->ref_.h_->items_ )
 	items_.append_obj<const any &>(it->val_.h_->val_);
 }

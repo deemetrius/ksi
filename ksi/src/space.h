@@ -5,7 +5,7 @@ namespace ksi {
 namespace mod {
 
 struct module : ex::with_deleter<module> {
-	using t_literals = ex::def_array<var::any, ex::del_object, def_literals_r, def_literals_s>;
+	using t_literals = ex::def_array<var::any, ex::del_object, def::literals_r, def::literals_s>;
 	var::any name_;
 	wtext path_;
 	id id_;
@@ -42,8 +42,8 @@ struct space {
 		wtext, file_status, ex::map_del_object, ex::map_del_plain, ex::cmp_std_plain,
 		def_modules_r, def_modules_s
 	>; */
-	using t_modules = also::hive<mod::module *, ex::del_ex_pointer, def_modules_r, def_modules_s>;
-	using t_types = also::hive<var::var_type, var::del_custom_type, def_types_r, def_types_s>;
+	using t_modules = ex::hive<mod::module *, ex::del_ex_pointer, def::modules_r, def::modules_s>;
+	using t_types = ex::hive<var::var_type, var::del_custom_type, def::types_r, def::types_s>;
 	// t_files_map				files_;
 	t_types					types_;
 	t_modules				mods_;

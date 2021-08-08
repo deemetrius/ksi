@@ -71,7 +71,7 @@ struct op_info : public op_info_str, public op_info_lite {};
 //
 
 struct tree {
-	using t_items = ex::def_array<node *, ex::del_pointer, def_ast_nodes_r, def_ast_nodes_s>;
+	using t_items = ex::def_array<node *, ex::del_pointer, def::ast_nodes_r, def::ast_nodes_s>;
 	t_items leafs_, nodes_;
 
 	tree();
@@ -109,7 +109,7 @@ struct tree {
 };
 
 struct scope {
-	using t_items = ex::def_array<tree *, ex::del_pointer, def_ast_trees_r, def_ast_trees_s>;
+	using t_items = ex::def_array<tree *, ex::del_pointer, def::ast_trees_r, def::ast_trees_s>;
 	mod::instr i_first_, i_step_, i_last_;
 	t_items trees_;
 
@@ -145,8 +145,8 @@ struct fn_info {
 };
 
 struct body : public fn_info {
-	using t_scopes = ex::def_array<scope *, ex::del_pointer, def_ast_scopes_r, def_ast_scopes_s>;
-	using t_pos = ex::def_array<id, ex::del_plain, def_ast_pos_r, def_ast_pos_s>;
+	using t_scopes = ex::def_array<scope *, ex::del_pointer, def::ast_scopes_r, def::ast_scopes_s>;
+	using t_pos = ex::def_array<id, ex::del_plain, def::ast_pos_r, def::ast_pos_s>;
 
 	bool is_plain_;
 	t_scopes scopes_;
@@ -209,13 +209,13 @@ struct fn_call_places {
 
 	using t_fn_body_actual = ex::def_map<
 		mod::fn_body *, bool, ex::map_del_plain, ex::map_del_plain, ex::cmp_std_plain,
-		def_ast_fn_info_r, def_ast_fn_info_s
+		def::ast_fn_info_r, def::ast_fn_info_s
 	>;
 	using t_fn_global = ex::def_map<
 		wtext, bool, ex::map_del_object, ex::map_del_plain, ex::cmp_std_plain,
-		def_funcs_r, def_funcs_s
+		def::funcs_r, def::funcs_s
 	>;
-	using t_call_places = ex::def_array<place, ex::del_object, def_ast_fn_call_r, def_ast_fn_call_s>;
+	using t_call_places = ex::def_array<place, ex::del_object, def::ast_fn_call_r, def::ast_fn_call_s>;
 
 	t_fn_body_actual fn_body_actual_;
 	t_fn_global fn_global_;
@@ -251,7 +251,7 @@ struct fn_call_places {
 };
 
 struct prepare_data {
-	using fn_info_array = ex::def_array<fn_info, ex::del_object, def_ast_fn_info_r, def_ast_fn_info_s>;
+	using fn_info_array = ex::def_array<fn_info, ex::del_object, def::ast_fn_info_r, def::ast_fn_info_s>;
 
 	ex::ref<body, false> body_;
 	ex::ref<mod::module, false> mod_;

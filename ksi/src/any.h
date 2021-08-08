@@ -75,7 +75,7 @@ struct ei_base : public ex::with_deleter<ei_base> {
 
 using map_keep = ex::def_map<
 	base_keep *, bool, ex::map_del_plain, ex::map_del_plain, ex::cmp_std_plain,
-	def_map_keep_r, def_map_keep_s
+	def::map_keep_r, def::map_keep_s
 >;
 
 struct base_type : ex::with_deleter<base_type> {
@@ -87,10 +87,10 @@ struct base_type : ex::with_deleter<base_type> {
 	base_type & operator = (const base_type &) = delete;
 
 	struct type_config {
-		using array_types = ex::def_array<const base_type *, ex::del_plain, def_native_types_r, def_native_types_s>;
+		using array_types = ex::def_array<const base_type *, ex::del_plain, def::native_types_r, def::native_types_s>;
 		using map_types = ex::def_map<
 			wtext, const base_type *, ex::map_del_object, ex::map_del_plain, ex::cmp_std_plain,
-			def_native_types_r, def_native_types_s
+			def::native_types_r, def::native_types_s
 		>;
 		array_types types_;
 		map_types map_types_;
@@ -724,9 +724,9 @@ struct keep_array : public base_keep, public with_lock {
 	t_items items_;
 	ref_var * link_ = nullptr;
 
-	keep_array() : items_(def_array_r, def_array_s) {}
-	keep_array(id reserve, id add = def_array_s) : items_(reserve + add, def_array_s) {}
-	keep_array(std::initializer_list<any> lst) : items_(lst.size() + def_array_s, def_array_s) {
+	keep_array() : items_(def::array_r, def::array_s) {}
+	keep_array(id reserve, id add = def::array_s) : items_(reserve + add, def::array_s) {}
+	keep_array(std::initializer_list<any> lst) : items_(lst.size() + def::array_s, def::array_s) {
 		for( const any & a : lst )
 		items_.append_obj<const any &>(a);
 	}
@@ -905,14 +905,14 @@ struct keep_map : public base_keep, public with_lock {
 		ref_.h_->detach(key);
 	}
 
-	keep_map() : ref_(new t_items(def_map_r, def_map_s) ) {}
-	keep_map(id reserve, id add = def_map_s) : ref_(new t_items(reserve + add, def_map_s) ) {}
-	keep_map(std::initializer_list<pair> lst) : ref_(new t_items(lst.size() + def_map_s, def_array_s) ) {
+	keep_map() : ref_(new t_items(def::map_r, def::map_s) ) {}
+	keep_map(id reserve, id add = def::map_s) : ref_(new t_items(reserve + add, def::map_s) ) {}
+	keep_map(std::initializer_list<pair> lst) : ref_(new t_items(lst.size() + def::map_s, def::map_s) ) {
 		wtext msg;
 		for( const pair & it : lst )
 		set(it.key_, it.val_, msg, true);
 	}
-	keep_map(const keep_array * ka) : ref_(new t_items(ka->items_.count_ + def_map_s, def_array_s) ) {
+	keep_map(const keep_array * ka) : ref_(new t_items(ka->items_.count_ + def::map_s, def::map_s) ) {
 		wtext msg;
 		for( const ref_var & it : ka->items_ )
 		set(n_null::val, it.h_->val_, msg, false);

@@ -1,19 +1,9 @@
 
-&show vars n ~
-	vars `each name : val ~
-		["\n" name " = "] #echo #
-		val #dump #0
-		-- vars.0 = #1
-	;
-;
-
 `plain
 
-a ??= ('hello' #echo #, 1) ??=> b
-a ??= (' dear' #echo #, 2) ??=> c
-{%a:a %b:b %c:c} &show #
-t1 = #1
-t1 `and= #
-{%t1:t1} &show #
-10 `or=> t1
-{%t1:t1} &show #
+[
+	0 `xor #
+	1 `xor 0
+	# `xor 1
+	1 `xor #1
+] #dump #0

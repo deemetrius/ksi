@@ -535,6 +535,7 @@ struct instructions {
 
 	// xor
 	static void do_xor(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		/*
 		var::any * a1 = &stk->items_.last(1), * a2 = &stk->items_.last(0);
 		wtext msg1, msg2;
 		bool b1 = a1->type_->to_bool(*a1, msg1), b2 = a2->type_->to_bool(*a2, msg2);
@@ -552,6 +553,29 @@ struct instructions {
 			if( b1 )
 			stk->items_.last(0) = false;
 		}
+		*/
+		var::any * a2 = &stk->items_.last(0);
+		wtext msg2;
+		bool b2 = a2->type_->to_bool(*a2, msg2);
+		if( b2 ) {
+			var::any * a1 = &stk->items_.last(1);
+			wtext msg1;
+			bool b1 = a1->type_->to_bool(*a1, msg1);
+			if( msg1 ) log->add({ ex::implode({
+				msg1, L" When doing logical operation `xor (left operand)."
+			}), fns->mod_->path_, params.pos_});
+			if( b1 ) {
+				stk->items_.remove_last_n(1);
+				stk->items_.last(0) = false;
+			} else {
+				stk->items_.remove_from_end(1);
+			}
+		} else {
+			stk->items_.remove_last_n(1);
+		}
+		if( msg2 ) log->add({ ex::implode({
+			msg2, L" When doing logical operation `xor (right operand)."
+		}), fns->mod_->path_, params.pos_});
 	}
 	FN_GET_INSTR_TYPE(xor)
 

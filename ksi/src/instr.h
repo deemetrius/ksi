@@ -549,6 +549,7 @@ struct instructions {
 			stk->items_.remove(stk->items_.count_ -2);
 		} else {
 			stk->items_.remove_last_n(1);
+			if( b1 )
 			stk->items_.last(0) = false;
 		}
 	}

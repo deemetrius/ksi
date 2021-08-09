@@ -59,7 +59,7 @@ struct log_custom : public ksi::base_log {
 			L"\"", msg.file_, L"\" [", ex::to_wtext(msg.pos_.line_), L", ", ex::to_wtext(msg.pos_.col_), L"] ", msg.msg_
 		});
 		ex::text tx = ksi_keep::api->fn_encode_(wtx.h_->cs_, wtx.h_->len_);
-		ap_log_rerror(KSI_LOG_MARK, APLOG_WARNING, 0, r_, tx.h_->cs_);
+		ap_log_rerror(KSI_LOG_MARK, APLOG_WARNING, 0, r_, "%s", tx.h_->cs_);
 	}
 };
 

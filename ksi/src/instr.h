@@ -60,6 +60,14 @@ struct instructions {
 	}
 	FN_GET_INSTR_TYPE(type)
 
+	// type_const: puts static constant from type to stack (params.data_ ~ pos of type, params.extra_ ~ pos of const)
+	static void do_type_const(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		const var::base_type * tp = spc->types_.get_by_pos(params.data_);
+		var::hive_constants * hc = tp->hive_get_constants();
+		stk->items_.append(hc->get_by_pos(params.extra_) );
+	}
+	FN_GET_INSTR_TYPE(type_const)
+
 	// var_get: puts value of variable to stack (params.data_ ~ pos of var)
 	static void do_var_get(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
 		stk->items_.append(fns->vars_[params.data_].h_->val_);

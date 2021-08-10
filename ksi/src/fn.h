@@ -426,10 +426,9 @@ struct base_with_mod {
 };
 
 template <class T>
-struct fn_map
-: public std::conditional_t<std::is_same_v<T, func_mod>, base_with_mod, base_none>
-, public ex::hive<T *, ex::del_ex_pointer, def::funcs_r, def::funcs_s>
-{
+struct fn_map :
+public std::conditional_t<std::is_same_v<T, func_mod>, base_with_mod, base_none>,
+public ex::hive<T *, ex::del_ex_pointer, def::funcs_r, def::funcs_s> {
 	T * obtain(const wtext & name, fn_map<func> * global = nullptr) {
 		ex::id_search_res res = this->map_.find_key(name);
 		T * ret;

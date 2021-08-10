@@ -22,6 +22,12 @@ namespace var {
 struct any;
 struct ref_var;
 
+struct hive_base {
+	virtual ~hive_base() = default;
+};
+
+struct hive_constants;
+
 // keep
 
 struct keep_text;
@@ -82,7 +88,12 @@ struct base_type : ex::with_deleter<base_type> {
 	const any * name_;
 	id id_;
 	bool is_meta_, is_ref_, is_struct_, is_native_, is_map_key_ = false;
+	ex::ref<hive_base, false> constants_;
 
+	hive_constants * hive_get_constants() const;
+	void hive_init();
+
+	// no copy
 	base_type(const base_type &) = delete;
 	base_type & operator = (const base_type &) = delete;
 
@@ -110,6 +121,7 @@ struct base_type : ex::with_deleter<base_type> {
 	, is_native_(true) {
 		id_ = tc->types_.count_;
 		tc->types_.append(this);
+		hive_init();
 	}
 	/*template <class Space>
 	base_type(const any * name, Space * spc, bool is_meta, bool is_ref, bool is_struct)
@@ -121,6 +133,8 @@ struct base_type : ex::with_deleter<base_type> {
 		id_ = spc->reg_type(this);
 	}*/
 	virtual ~base_type() = default;
+
+	virtual void init() const {}
 
 	virtual id compare(const any & v1, const any & v2) const;
 	virtual id cmp_null_x() const {
@@ -207,6 +221,8 @@ struct base_simple : public base_type {
 struct type_null : public base_simple {
 	using base_simple::base_simple;
 
+	void init() const override;
+
 	id compare(const any & v1, const any & v2) const override;
 	id cmp_null_x() const override {
 		return ex::cmp::equal;
@@ -251,9 +267,12 @@ struct type_bool : public base_simple {
 struct type_int : public with_convert_bool<base_simple, type_int> {
 	using with_convert_bool<base_simple, type_int>::with_convert_bool;
 	enum lim : id { min = LLONG_MIN, max = LLONG_MAX };
+	static constexpr real r_min = min, r_max = max;
 	static bool is_out_of_range(real n) {
-		return n < min || n > max;
+		return n < r_min || n > r_max;
 	}
+
+	void init() const override;
 
 	id compare(const any & v1, const any & v2) const override;
 	id cmp_int_x(id v1, const any & v2) const override;
@@ -279,7 +298,9 @@ struct type_int : public with_convert_bool<base_simple, type_int> {
 struct type_float : public base_simple {
 	using base_simple::base_simple;
 
-	static double inf, inf_, nan;
+	void init() const override;
+
+	static real inf, inf_, nan;
 	static bool is_nan(real v) {
 		return v != v;
 	}
@@ -629,14 +650,16 @@ struct values_config {
 	}
 };
 
-struct any_r {
+struct any_r : public ex::with_deleter<any_r> {
 	any val_;
 	ref_id refs_ = 1;
-	void (* deleter_)(any_r *) = deleter;
+	/*void (* deleter_)(any_r *) = deleter;
 
 	static void deleter(any_r * h) {
 		delete h;
-	}
+	}*/
+	any_r() = default;
+	any_r(const any & v) : val_(v) {}
 
 	any_r(const any_r &) = delete;
 	any_r & operator = (const any_r &) = delete;
@@ -659,10 +682,10 @@ struct ref_var {
 	}
 
 	ref_var() {
-		h_ = new any_r{};
+		h_ = new any_r();
 	}
 	ref_var(const any & a) {
-		h_ = new any_r{a};
+		h_ = new any_r(a);
 	}
 	ref_var & operator = (const any & a) {
 		h_->val_ = a;
@@ -670,7 +693,7 @@ struct ref_var {
 	}
 	//
 	ref_var(const ref_var & rv) {
-		h_ = new any_r{rv.h_->val_};
+		h_ = new any_r(rv.h_->val_);
 	}
 	ref_var & operator = (const ref_var & rv) {
 		h_->val_ = rv.h_->val_;
@@ -693,7 +716,7 @@ struct ref_var {
 	}
 	void reset() {
 		unhold();
-		h_ = new any_r{};
+		h_ = new any_r();
 	}
 };
 
@@ -921,6 +944,17 @@ struct keep_map : public base_keep, public with_lock {
 
 inline keep_map * base_keep::k_map() {
 	return static_cast<keep_map *>(this);
+}
+
+// hive
+
+template <class T>
+using wrap_hive = ex::hive<T, ex::del_object, def::type_static_hive_r, def::type_static_hive_s>;
+
+struct hive_constants : public hive_base, public wrap_hive<any> {};
+
+inline hive_constants * base_type::hive_get_constants() const {
+	return static_cast<hive_constants *>(constants_.h_);
 }
 
 // each iterator simple

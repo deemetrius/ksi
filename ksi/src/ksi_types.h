@@ -35,7 +35,8 @@ struct def {
 		for_implode_r = 2, for_implode_s = 4,
 		each_iterators_r = 2, each_iterators_s = 4,
 		ast_fn_info_r = 8, ast_fn_info_s = 8,
-		ast_fn_call_r = 8, ast_fn_call_s = 8
+		ast_fn_call_r = 8, ast_fn_call_s = 8,
+		type_static_hive_r = 4, type_static_hive_s = 4
 	};
 };
 

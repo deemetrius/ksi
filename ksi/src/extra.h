@@ -228,6 +228,14 @@ struct array {
 		return *this;
 	}
 	template <class ... Args>
+	struct detail {
+		using t_mf = array & (array::*)(Args ...);
+
+		static constexpr t_mf get_append_obj() {
+			return &append_obj<Args ...>;
+		}
+	};
+	template <class ... Args>
 	array & append_struct(Args ... args) {
 		prepare_append();
 		new(items_ + count_) T{args ...};
@@ -1066,9 +1074,8 @@ struct hive {
 	t_arr arr_;
 	t_map map_;
 
-	id inner_add(const wtext & name, pass item, id_search_res res) {
-		if( res )
-		return map_.sorted_.items_[res.pos_]->val_;
+	id inner_add(const wtext & name, pass item, const id_search_res & res) {
+		if( res ) return map_.sorted_.items_[res.pos_]->val_;
 		id ret = arr_.count_;
 		arr_.append(item);
 		map_.inner_insert_after(name, ret, same_key::ignore, map_.in_end(), res);
@@ -1077,6 +1084,22 @@ struct hive {
 	inline id add(const wtext & name, pass item) {
 		return inner_add(name, item, map_.find_key(name));
 	}
+
+	template <class ... Args>
+	id inner_add_obj(const wtext & name, const id_search_res & res, Args ... args) {
+		if( res ) return map_.sorted_.items_[res.pos_]->val_;
+		id ret = arr_.count_;
+		using det = typename t_arr::detail<Args ...>;
+		static constexpr typename det::t_mf mf = det::get_append_obj();
+		(arr_.*mf)(args ...);
+		map_.inner_insert_after(name, ret, same_key::ignore, map_.in_end(), res);
+		return ret;
+	}
+	template <class ... Args>
+	inline id add_obj(const wtext & name, Args ... args) {
+		return inner_add_obj<Args ...>(name, map_.find_key(name), args ...);
+	}
+
 	id_search_res find_pos(const wtext & name) {
 		if( id_search_res res = map_.find_key(name) )
 		return {true, map_.sorted_.items_[res.pos_]->val_};
@@ -1088,6 +1111,10 @@ struct hive {
 		return {true, arr_.items_[res.pos_]};
 		else
 		return {false};
+	}
+
+	inline T & get_by_pos(id pos) {
+		return arr_.items_[pos];
 	}
 };
 

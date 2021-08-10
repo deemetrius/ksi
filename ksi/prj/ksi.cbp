@@ -13,7 +13,8 @@
 				<Option compiler="mingw64" />
 				<Compiler>
 					<Add option="-O3" />
-					<Add option="-std=c++17" />
+					<Add option="-Wall" />
+					<Add option="-std=c++2a" />
 					<Add option="-m64" />
 					<Add option="-DKSI_LIB" />
 				</Compiler>

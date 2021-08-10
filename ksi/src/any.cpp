@@ -1,14 +1,16 @@
 #include "any.h"
 #include <errno.h>
+#include <numbers>
+#include <limits>
 
 namespace ksi {
 namespace var {
 
 const config * hcfg = nullptr;
 
-double type_float::inf	= 1.0 / 0.0;
-double type_float::inf_	= -1.0 / 0.0;
-double type_float::nan	= 0.0 / 0.0;
+real type_float::inf	= 1.0 / 0.0;
+real type_float::inf_	= -1.0 / 0.0;
+real type_float::nan	= 0.0 / 0.0;
 
 any::any(keep_array * ka) : type_(&hcfg->t_array) {
 	value_.keep_ = ka;
@@ -19,6 +21,37 @@ any::any(keep_map * km) : type_(&hcfg->t_map) {
 any::any(ref_var * link) : type_(&hcfg->t_array) {
 	value_.keep_ = new keep_array(link);
 }
+
+//
+#define CALL_ONCE { static bool was_run = false; if( was_run ) return; was_run = true; }
+
+void base_type::hive_init() {
+	constants_ = new hive_constants();
+}
+
+void type_null::init() const {
+	CALL_ONCE
+	hive_get_constants()->add_obj(L"null");
+}
+void type_int::init() const {
+	CALL_ONCE
+	hive_constants * hc = hive_get_constants();
+	hc->add_obj(L"min", min);
+	hc->add_obj(L"max", max);
+}
+void type_float::init() const {
+	CALL_ONCE
+	hive_constants * hc = hive_get_constants();
+	hc->add_obj(L"nan", nan);
+	hc->add_obj(L"inf", inf);
+	hc->add_obj(L"inf_", inf_);
+	hc->add_obj(L"pi", std::numbers::pi_v<real>);
+	hc->add_obj(L"e", std::numbers::e_v<real>);
+	hc->add_obj(L"min", std::numeric_limits<real>::min() );
+	hc->add_obj(L"max", std::numeric_limits<real>::max() );
+}
+
+//
 
 void base_type::native_set_name(const any * name, type_config * tc) {
 	name_ = name;
@@ -38,7 +71,8 @@ t_text(tc),
 t_fn(tc),
 t_module(tc),
 t_array(tc, false),
-t_map(tc, false) {
+t_map(tc, false),
+api_(v_api) {
 	hcfg = this;
 	t_int	.is_map_key_ = true;
 	t_type	.is_map_key_ = true;
@@ -57,7 +91,9 @@ t_map(tc, false) {
 	t_array		.native_set_name(&values->cn_array	, tc);
 	t_map		.native_set_name(&values->cn_map	, tc);
 	native_ = mod::inst_native_config();
-	api_ = v_api;
+	//api_ = v_api;
+	for(const base_type * it : tc->types_)
+	it->init();
 }
 #ifdef KSI_LIB
 const config * get_config() {
@@ -402,11 +438,11 @@ id type_float::to_int(const any & a, wtext & msg) const {
 		msg = L"notice: Converting from $float NaN to $int.";
 		return 0;
 	}
-	if( f > 0.0 && f > type_int::max ) {
+	if( f > 0.0 && f > type_int::r_max ) {
 		msg = L"notice: Converting from $float to $int beyond max value.";
 		return type_int::max;
 	}
-	if( f < 0.0 && f < type_int::min ) {
+	if( f < 0.0 && f < type_int::r_min ) {
 		msg = L"notice: Converting from $float to $int beyond min value.";
 		return type_int::min;
 	}

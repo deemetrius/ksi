@@ -1,7 +1,8 @@
 #pragma once
 #include "ksi_types.h"
 #include "ksi_api.h"
-#include <climits>
+//#include <climits>
+#include <limits>
 #include <cmath>
 
 namespace ksi {
@@ -266,7 +267,7 @@ struct type_bool : public base_simple {
 
 struct type_int : public with_convert_bool<base_simple, type_int> {
 	using with_convert_bool<base_simple, type_int>::with_convert_bool;
-	enum lim : id { min = LLONG_MIN, max = LLONG_MAX };
+	enum lim : id { min = std::numeric_limits<id>::min(), max = std::numeric_limits<id>::max() };
 	static constexpr real r_min = min, r_max = max;
 	static bool is_out_of_range(real n) {
 		return n < r_min || n > r_max;
@@ -300,10 +301,14 @@ struct type_float : public base_simple {
 
 	void init() const override;
 
-	static real inf, inf_, nan;
+	static constexpr real
+	inf = std::numeric_limits<real>::infinity(),
+	inf_ = -inf,
+	nan = std::numeric_limits<real>::quiet_NaN();
 	static bool is_nan(real v) {
 		return v != v;
 	}
+
 	id compare(const any & v1, const any & v2) const override;
 	id cmp_int_x(id v1, const any & v2) const override;
 	id cmp_float_x(real v1, const any & v2) const override;
@@ -1207,14 +1212,13 @@ struct op_div {
 struct op_mod {
 	static wtext get_name() { return L"modulo"; }
 	static any calc(id n1, id n2) {
-		real ret = std::fmod(n1, n2);
-		if( n2 == 0 || type_int::is_out_of_range(ret) )
-		return ret;
+		real ret = REAL_FMOD(n1, n2);
+		if( n2 == 0 || type_int::is_out_of_range(ret) ) return ret;
 		return n1 % n2;
 	}
 	template <class T1, class T2>
 	static any calc(T1 n1, T2 n2) {
-		return std::fmod(n1, n2);
+		return REAL_FMOD(n1, n2);
 	}
 };
 

@@ -6,6 +6,10 @@
 namespace ksi {
 namespace rules {
 
+struct base_operand {
+	static void maybe_next_expr(state & st, t_tokens & toks, base_log * log);
+};
+
 //
 
 struct lit_null :
@@ -147,6 +151,36 @@ public check_none {
 	}
 
 	static void post_action(state & st, t_tokens & toks, base_log * log);
+};
+
+struct operand_type_const :
+public check_none,
+public pa_none {
+	static wtext name(state & st) { return L"t_type_const"; }
+
+	static bool parse(state & st, t_tokens & toks, base_log * log) {
+		state tmp_st = st;
+		if( !operand_type::parse(tmp_st, toks, log) ) return false;
+		also::t_pos pos = tmp_st.liner_.get_pos(tmp_st.prev_str_);
+		wtext type_name(tmp_st.prev_str_ +1, tmp_st.str_);
+		// maybe spaces
+		od::parse(tmp_st, toks, log);
+		// dot
+		if( *tmp_st.str_ != L'.' ) return false;
+		tmp_st.next_str(tmp_st.str_ +1);
+		// maybe spaces
+		od::parse(tmp_st, toks, log);
+		// const name
+		if( !is_name::parse(tmp_st, toks, log) ) return false;
+		wtext const_name(tmp_st.prev_str_, tmp_st.str_);
+		// #
+		if( *tmp_st.str_ != L'#' ) return false;
+		// done
+		st.next_str(tmp_st.str_ +1);
+		base_operand::maybe_next_expr(st, toks, log);
+		toks.append( new tokens::token_put_type_const(pos, type_name, const_name) );
+		return true;
+	}
 };
 
 //
@@ -423,12 +457,6 @@ public with_kind<rk_keep> {
 	}
 };
 
-//
-
-struct base_operand {
-	static void maybe_next_expr(state & st, t_tokens & toks, base_log * log);
-};
-
 struct hive {
 
 	// module_info
@@ -595,7 +623,8 @@ struct hive {
 	public with_kind<rk_operand>,
 	public check_none,
 	public rule_alt<false, false,
-		lit_bool, lit_null, lit_float, lit_int, lit_text_short, lit_text_single, lit_text_double, operand_type,
+		lit_bool, lit_null, lit_float, lit_int, lit_text_short, lit_text_single, lit_text_double,
+		operand_type_const, operand_type,
 		operand_scope, operand_array, operand_map
 	>,
 	public pa_none {
@@ -1066,8 +1095,8 @@ struct hive {
 		public check_none,
 		public std::conditional_t<
 			Is_set,
-			rule_alt<false, false, lit_bool, lit_null, lit_int, lit_text_after_dot>,
-			rule_alt<false, false, lit_int, lit_text_after_dot>
+			rule_alt<false, false, lit_bool, lit_null, lit_int, lit_text_after_dot, operand_type>,
+			rule_alt<false, false, lit_int, lit_text_after_dot, operand_type>
 		> {
 			static wtext name(state & st) {
 				if constexpr( Is_set )

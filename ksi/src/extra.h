@@ -10,7 +10,8 @@ using id = signed long long int;
 using ref_id = id;
 using uid = unsigned long long int;
 using real = double;
-#define WCS_TO_REAL wcstod
+#define WCS_TO_REAL std::wcstod
+#define REAL_FMOD std::fmod
 
 template <class T>
 void swap(T & v1, T & v2) {

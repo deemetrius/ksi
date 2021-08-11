@@ -92,7 +92,7 @@ public base_token_fn_add_arg {
 struct token_put_null : public base_token {
 	also::t_pos pos_;
 
-	token_put_null(also::t_pos pos) : pos_(pos) {}
+	token_put_null(const also::t_pos & pos) : pos_(pos) {}
 	wtext get_name() const override { return L"token_put_null"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
@@ -101,7 +101,7 @@ struct token_put_bool : public base_token {
 	also::t_pos pos_;
 	bool val_;
 
-	token_put_bool(also::t_pos pos, bool val) : pos_(pos), val_(val) {}
+	token_put_bool(const also::t_pos & pos, bool val) : pos_(pos), val_(val) {}
 	wtext get_name() const override { return L"token_put_bool"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
@@ -110,7 +110,7 @@ struct token_put_int : public base_token {
 	also::t_pos pos_;
 	id val_;
 
-	token_put_int(also::t_pos pos, id val) : pos_(pos), val_(val) {}
+	token_put_int(const also::t_pos & pos, id val) : pos_(pos), val_(val) {}
 	wtext get_name() const override { return L"token_put_int"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
@@ -119,7 +119,7 @@ struct token_put_float : public base_token {
 	also::t_pos pos_;
 	real val_;
 
-	token_put_float(also::t_pos pos, real val) : pos_(pos), val_(val) {}
+	token_put_float(const also::t_pos & pos, real val) : pos_(pos), val_(val) {}
 	wtext get_name() const override { return L"token_put_float"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
@@ -128,7 +128,7 @@ struct token_put_text : public base_token {
 	also::t_pos pos_;
 	wtext val_;
 
-	token_put_text(also::t_pos pos, const wtext & val) : pos_(pos), val_(val) {}
+	token_put_text(const also::t_pos & pos, const wtext & val) : pos_(pos), val_(val) {}
 	wtext get_name() const override { return L"token_put_text"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
@@ -137,8 +137,19 @@ struct token_put_type : public base_token {
 	also::t_pos pos_;
 	wtext type_name_;
 
-	token_put_type(also::t_pos pos, const wtext & type_name) : pos_(pos), type_name_(type_name) {}
+	token_put_type(const also::t_pos & pos, const wtext & type_name) : pos_(pos), type_name_(type_name) {}
 	wtext get_name() const override { return L"token_put_type"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
+struct token_put_type_const : public base_token {
+	also::t_pos pos_;
+	wtext type_name_, const_name_;
+
+	token_put_type_const(const also::t_pos & pos, const wtext & type_name, const wtext & const_name) :
+	pos_(pos), type_name_(type_name), const_name_(const_name) {}
+
+	wtext get_name() const override { return L"token_put_type_const"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
 
@@ -148,7 +159,7 @@ struct token_put_var : public base_token {
 	also::t_pos pos_;
 	wtext var_name_;
 
-	token_put_var(also::t_pos pos, const wtext & var_name) : pos_(pos), var_name_(var_name) {}
+	token_put_var(const also::t_pos & pos, const wtext & var_name) : pos_(pos), var_name_(var_name) {}
 	wtext get_name() const override { return L"token_put_var"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
@@ -157,7 +168,7 @@ struct token_put_var_link : public base_token {
 	also::t_pos pos_;
 	wtext var_name_;
 
-	token_put_var_link(also::t_pos pos, const wtext & var_name) : pos_(pos), var_name_(var_name) {}
+	token_put_var_link(const also::t_pos & pos, const wtext & var_name) : pos_(pos), var_name_(var_name) {}
 	wtext get_name() const override { return L"token_put_var_link"; }
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };

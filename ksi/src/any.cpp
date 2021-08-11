@@ -1,16 +1,15 @@
 #include "any.h"
 #include <errno.h>
 #include <numbers>
-#include <limits>
 
 namespace ksi {
 namespace var {
 
 const config * hcfg = nullptr;
 
-real type_float::inf	= 1.0 / 0.0;
+/*real type_float::inf	= 1.0 / 0.0;
 real type_float::inf_	= -1.0 / 0.0;
-real type_float::nan	= 0.0 / 0.0;
+real type_float::nan	= 0.0 / 0.0;*/
 
 any::any(keep_array * ka) : type_(&hcfg->t_array) {
 	value_.keep_ = ka;

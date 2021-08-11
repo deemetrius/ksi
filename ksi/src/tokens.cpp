@@ -161,13 +161,39 @@ void token_put_type::perform(space * spc, ast::prepare_data * pd, base_log * log
 		});
 		pd->error_count_ += 1;
 	}
-
 	ast::tree * tr = pd->current_tree();
 	ast::tree::add_leaf(tr, new ast::node{
 		ast::actions::info_leaf(),
 		{mod::instructions::get_type(), {pos_, num} }
 	});
+}
 
+void token_put_type_const::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	id num_type = 0, num_const = 0;
+	if( ex::id_search_res res = spc->types_.find_pos(type_name_) ) {
+		var::hive_constants * hc = spc->types_.get_by_pos(res.pos_)->hive_get_constants();
+		if( ex::id_search_res res_const = hc->find_pos(const_name_) ) {
+			num_type = res.pos_;
+			num_const = res_const.pos_;
+		} else {
+			log->add({ ex::implode({
+				L"deduce error: Undefined type constant: $", type_name_, L".", const_name_, L"#"
+			}), pd->mod_.h_->path_, pos_ });
+			pd->error_count_ += 1;
+		}
+	} else {
+		log->add({
+			ex::implode({L"deduce error: Unknown type: $", type_name_}),
+			pd->mod_.h_->path_,
+			pos_
+		});
+		pd->error_count_ += 1;
+	}
+	ast::tree * tr = pd->current_tree();
+	ast::tree::add_leaf(tr, new ast::node{
+		ast::actions::info_leaf(),
+		{mod::instructions::get_type_const(), {pos_, num_type, num_const} }
+	});
 }
 
 void token_put_var::perform(space * spc, ast::prepare_data * pd, base_log * log) {

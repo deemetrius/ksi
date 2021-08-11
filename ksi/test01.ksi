@@ -1,9 +1,6 @@
 
 `plain
-
-[
-	0 `xor #
-	1 `xor 0
-	# `xor 1
-	1 `xor #1
-] #dump #0
+[$int.min# $int.max# $float.pi# $null . null#] #dump #1
+"\n" #echo #
+{$type : %hello} => map
+map.$type #echo #

@@ -177,6 +177,7 @@ public pa_none {
 		if( *tmp_st.str_ != L'#' ) return false;
 		// done
 		st.next_str(tmp_st.str_ +1);
+		st.liner_ = tmp_st.liner_;
 		base_operand::maybe_next_expr(st, toks, log);
 		toks.append( new tokens::token_put_type_const(pos, type_name, const_name) );
 		return true;

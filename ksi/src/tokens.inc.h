@@ -173,6 +173,16 @@ struct token_put_var_link : public base_token {
 	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
 };
 
+//
+
+struct token_type_of : public base_token {
+	also::t_pos pos_;
+
+	token_type_of(const also::t_pos & pos) : pos_(pos) {}
+	wtext get_name() const override { return L"token_type_of"; }
+	void perform(space * spc, ast::prepare_data * pd, base_log * log) override;
+};
+
 // scope
 
 struct token_scope_begin : public base_token {

@@ -812,6 +812,21 @@ struct hive {
 		}
 	};
 
+	// a$
+	struct operation_type_of :
+	public with_kind<rk_operand>,
+	public is_char<L'$'> {
+		static wtext name(state & st) { return L"t_type_of"; }
+
+		static bool check(state & st) {
+			return st.prev_rule_ == rk_operand_can_dot_get && !st.was_od_;
+		}
+
+		static void post_action(state & st, t_tokens & toks, base_log * log) {
+			toks.append(new tokens::token_type_of(st.liner_.get_pos(st.prev_str_) ) );
+		}
+	};
+
 	struct operation_condition :
 	public with_kind<rk_operand>,
 	public pa_none {
@@ -1177,6 +1192,7 @@ struct hive {
 		od,
 		end_expr,
 		separator,
+		operation_type_of,
 		operation_loop_for,
 		operation_loop_each,
 		fn_call_native,

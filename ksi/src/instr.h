@@ -68,6 +68,14 @@ struct instructions {
 	}
 	FN_GET_INSTR_TYPE(type_const)
 
+	// type_of
+	static void do_type_of(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
+		var::any * v = &stk->items_.last(0);
+		const var::base_type * tp = v->type_;
+		*v = tp;
+	}
+	FN_GET_INSTR_TYPE(type_of)
+
 	// var_get: puts value of variable to stack (params.data_ ~ pos of var)
 	static void do_var_get(space * spc, fn_space * fns, t_stack * stk, base_log * log, const instr_data & params) {
 		stk->items_.append(fns->vars_[params.data_].h_->val_);

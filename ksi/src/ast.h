@@ -6,9 +6,10 @@ namespace ast {
 
 // precedence
 enum n_prec {
-	prec_leaf,		// (ast leaf)
-	prec_x_then,	//	_right_operand_: ? `each `for	(if-then, loop)
+	prec_leaf,		//	(ast leaf)
+	prec_x_then,	//	_right_operand_: ? `each `for a$
 	prec_member,	//	a.key a[key]
+	prec_type_of,	//	a$
 	prec_xrt_assign,//	_right_operand_: => +=> -=> *=> /=> %=> %%=> `and=> `or=> `xor=> ??=> `_and=> `_or=> `_xor=>
 	prec_assign,	//	= += -= *= /= %= %%= `and= `or= `xor= ??= `_and= `_or= `_xor=
 	prec_invoke,	//	! &				(fn call, fn ref)
@@ -26,7 +27,7 @@ enum n_prec {
 	prec_nullc,		//	??				(null coalescing)
 	prec_x_assign,	//	_right_operand_: = += -= *= /= %= %%= `and= `or= `xor= ??= `_and= `_or= `_xor=
 	prec_rt_assign,	//	=> +=> -=> *=> /=> %=> %%=> `and=> `or=> `xor=> ??=> `_and=> `_or=> `_xor=>
-	prec_then,		//	? `each `for	(if-then, loop)
+	prec_then,		//	? `each `for
 	prec_pair,		//	:				(key-value pair)
 	prec_root,		//	(ast top)
 };
@@ -530,6 +531,7 @@ struct actions {
 	static op_info_lite * op_dot_set(); // .
 	static op_info_lite * op_bracket_get(); // []
 	static op_info_lite * op_bracket_set(); // []
+	static op_info_lite * op_type_of(); // a$
 	static op_info_lite * op_then(); // ?
 	static op_info_lite * op_each(); // each
 	static op_info_lite * op_for(); // for

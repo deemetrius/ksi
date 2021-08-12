@@ -216,6 +216,15 @@ void token_put_var_link::perform(space * spc, ast::prepare_data * pd, base_log *
 	});
 }
 
+void token_type_of::perform(space * spc, ast::prepare_data * pd, base_log * log) {
+	ast::tree * tr = pd->current_tree();
+	tr->add_op(pos_, ast::actions::op_type_of() );
+	ast::tree::add_leaf(tr, new ast::node{
+		ast::actions::info_leaf(),
+		{mod::instructions::get_type_of(), {pos_} }
+	});
+}
+
 void token_scope_begin::perform(space * spc, ast::prepare_data * pd, base_log * log) {
 	ast::tree * tr = pd->current_tree();
 	ast::node * nd_scope = new ast::node{

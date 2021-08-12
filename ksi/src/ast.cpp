@@ -959,5 +959,15 @@ op_info_lite * actions::op_bracket_set() {
 	return &op;
 }
 
+// a$
+op_info_lite * actions::op_type_of() {
+	static op_info_lite op = {
+		{do_none_assoc_left, prec_x_then, prec_type_of},
+		tree::add_node_assoc_left,
+		mod::instructions::get_nothing()
+	};
+	return &op;
+}
+
 } // ns
 } // ns

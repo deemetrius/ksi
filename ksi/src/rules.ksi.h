@@ -13,6 +13,7 @@ struct base_operand {
 //
 
 struct lit_null :
+public with_kind<rk_operand>,
 public is_char<L'#'>,
 public check_none {
 	static wtext name(state & st) { return L"t_literal_null"; }
@@ -21,6 +22,7 @@ public check_none {
 };
 
 struct lit_bool :
+public with_kind<rk_operand>,
 public check_none {
 	static wtext name(state & st) { return L"t_literal_bool"; }
 
@@ -37,6 +39,7 @@ public check_none {
 };
 
 struct lit_int :
+public with_kind<rk_operand>,
 public check_none,
 public pa_none {
 	static wtext name(state & st) { return L"t_literal_int"; }
@@ -84,6 +87,7 @@ public pa_none {
 };
 
 struct lit_float :
+public with_kind<rk_operand>,
 public check_none,
 public pa_none {
 	static wtext name(state & st) { return L"t_literal_float"; }
@@ -101,6 +105,7 @@ public is_name {
 
 // %0 %_1 %x %text %_hello_
 struct lit_text_short :
+public with_kind<rk_operand>,
 public check_none,
 public pa_none {
 	static wtext name(state & st) { return L"t_literal_text_short"; }
@@ -114,6 +119,7 @@ public pa_none {
 
 // single-quoted
 struct lit_text_single :
+public with_kind<rk_operand>,
 public check_none,
 public pa_none {
 	static wtext name(state & st) { return L"t_literal_text_single_quoted"; }
@@ -123,6 +129,7 @@ public pa_none {
 
 // double-quoted
 struct lit_text_double :
+public with_kind<rk_operand>,
 public check_none,
 public pa_none {
 	static wtext name(state & st) { return L"t_literal_text_double_quoted"; }
@@ -133,6 +140,7 @@ public pa_none {
 //
 
 struct operand_type :
+public with_kind<rk_operand>,
 public check_none {
 	static wtext name(state & st) { return L"t_type"; }
 
@@ -154,6 +162,7 @@ public check_none {
 };
 
 struct operand_type_const :
+public with_kind<rk_operand_const>,
 public check_none,
 public pa_none {
 	static wtext name(state & st) { return L"t_type_const"; }
@@ -597,6 +606,7 @@ struct hive {
 	};
 
 	struct operand_scope :
+	public with_kind<rk_operand>,
 	public check_none,
 	public pa_none {
 		static wtext name(state & st) { return L"t_parentheses"; }
@@ -605,6 +615,7 @@ struct hive {
 	};
 
 	struct operand_array :
+	public with_kind<rk_operand>,
 	public check_none,
 	public pa_none {
 		static wtext name(state & st) { return L"t_array"; }
@@ -613,6 +624,7 @@ struct hive {
 	};
 
 	struct operand_map :
+	public with_kind<rk_operand>,
 	public check_none,
 	public pa_none {
 		static wtext name(state & st) { return L"t_map"; }
@@ -621,9 +633,9 @@ struct hive {
 	};
 
 	struct operand_normal :
-	public with_kind<rk_operand>,
+	public with_kind<rk_keep>,
 	public check_none,
-	public rule_alt<false, false,
+	public rule_alt<true, false,
 		lit_bool, lit_null, lit_float, lit_int, lit_text_short, lit_text_single, lit_text_double,
 		operand_type_const, operand_type,
 		operand_scope, operand_array, operand_map
@@ -819,7 +831,10 @@ struct hive {
 		static wtext name(state & st) { return L"t_type_of"; }
 
 		static bool check(state & st) {
-			return st.prev_rule_ == rk_operand_can_dot_get && !st.was_od_;
+			return !st.was_od_ && check_kind<
+				rk_operand_const,
+				rk_operand_can_dot_get
+			>::check(st);
 		}
 
 		static void post_action(state & st, t_tokens & toks, base_log * log) {

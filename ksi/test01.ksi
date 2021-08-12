@@ -1,6 +1,6 @@
 
 `plain
-[$int.min# $int.max# $float.pi# $null . null#] #dump #1
+[$int.min# $int.max# $float.pi# $null . null#$] #dump #1
 "\n" #echo #
 {$type : %hello} => map
 map.$type$ #dump #0

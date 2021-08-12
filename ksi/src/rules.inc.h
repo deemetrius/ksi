@@ -43,6 +43,7 @@ enum n_rule_kind : uid {
 	rk_space,
 	rk_keep,
 	rk_operand,
+	rk_operand_const,
 	rk_operand_can_dot_get,
 	rk_operand_can_dot_set,
 	rk_operator,

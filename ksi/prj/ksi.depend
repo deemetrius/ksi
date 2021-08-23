@@ -64,10 +64,10 @@
 	"ksi_api.h"
 	<type_traits>
 
-1626588546 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
+1629692588 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
 	"fn.inc.h"
 
-1627971559 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
+1628758724 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
 	"rules.ksi.h"
 
 1628758551 d:\prog\dropbox\cpp\hive\ksi\src\rules.inc.h

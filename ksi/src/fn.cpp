@@ -71,10 +71,10 @@ void fn_bitwise_not_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space
 
 void fn_echo_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
 	out(fns->args_[1]);
-	fns->args_[0] = fns->args_[2];
+	fns->args_[0] = fns->args_[1];
 }
 void fn_echo_null(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
-	fns->args_[0] = fns->args_[2];
+	fns->args_[0] = fns->args_[1];
 }
 void init_sep(mod::fn_space * fns, var::any *& sep, var::any *& sep_pos) {
 	sep = fns->args_ + 2;
@@ -112,7 +112,7 @@ void fn_echo_array(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fn
 			}
 		}
 	}
-	fns->args_[0] = fns->args_[2];
+	fns->args_[0] = fns->args_[1];
 }
 void fn_echo_map(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
 	var::keep_map * km = fns->args_[1].value_.keep_->k_map();
@@ -141,7 +141,7 @@ void fn_echo_map(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns,
 			}
 		}
 	}
-	fns->args_[0] = fns->args_[2];
+	fns->args_[0] = fns->args_[1];
 }
 
 // dump

@@ -6,12 +6,15 @@ namespace mod {
 
 struct module : ex::with_deleter<module> {
 	using t_literals = ex::def_array<var::any, ex::del_object, def::literals_r, def::literals_s>;
+	using t_types = ex::hive<var::var_type, ex::del_ex_pointer, def::types_mod_r, def::types_mod_s>;
+
 	var::any name_;
 	wtext path_;
 	id id_;
 	bool was_run_ = false;
 	fn_map<func_mod> fn_map_;
 	t_literals lit_;
+	t_types types_;
 	fn_body plain_;
 
 	module(const wtext & path, id i) :
@@ -43,10 +46,10 @@ struct space {
 		def_modules_r, def_modules_s
 	>; */
 	using t_modules = ex::hive<mod::module *, ex::del_ex_pointer, def::modules_r, def::modules_s>;
-	using t_types = ex::hive<var::var_type, var::del_custom_type, def::types_r, def::types_s>;
+	using t_types = ex::hive<var::var_type, /*var::del_custom_type*/ ex::del_plain, def::types_r, def::types_s>;
 	// t_files_map				files_;
-	t_types					types_;
 	t_modules				mods_;
+	t_types					types_;
 	mod::fn_map<mod::func>	fn_map_;
 
 	space() {

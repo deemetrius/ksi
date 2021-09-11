@@ -17,6 +17,7 @@ struct def {
 		log_r = 8, log_s = 4,
 		modules_r = 4, modules_s = 4,
 		types_r = 32, types_s = 8,
+		types_mod_r = 5, types_mod_s = 5,
 		array_r = 5, array_s = 5,
 		map_r = 5, map_s = 5,
 		over_r = 4, over_s = 4,

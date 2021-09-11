@@ -593,7 +593,7 @@ inline wtext type_text::get_text(const any & v) {
 	return get_text(&v);
 }
 
-template <class T>
+/*template <class T>
 struct del_custom_type {
 	using pass = T;
 
@@ -611,7 +611,7 @@ struct del_custom_type {
 	static void set_init(T * item, T val) {
 		*item = val;
 	}
-};
+};*/
 
 struct values_config {
 	any

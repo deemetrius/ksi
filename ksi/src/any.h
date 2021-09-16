@@ -85,10 +85,39 @@ using map_keep = ex::def_map<
 	def::map_keep_r, def::map_keep_s
 >;
 
+enum n_type_flags : uid {
+	tf_none		= 0,
+	tf_meta		= 1 << 0, // abstract
+	tf_native	= 1 << 1,
+	tf_ref		= 1 << 2,
+	tf_struct	= 1 << 3,
+	tf_enum		= 1 << 4,
+	tf_map_key	= 1 << 5
+};
+
+struct t_type_flags {
+	bool
+	meta_,
+	native_,
+	ref_,
+	struct_,
+	enum_,
+	map_key_;
+
+	t_type_flags(uid flags) :
+	meta_	(flags & tf_meta),
+	native_	(flags & tf_native),
+	ref_	(flags & tf_ref),
+	struct_	(flags & tf_struct),
+	enum_	(flags & tf_enum),
+	map_key_(flags & tf_map_key) {}
+};
+
 struct base_type : ex::with_deleter<base_type> {
 	const any * name_;
 	id id_;
-	bool is_meta_, is_ref_, is_struct_, is_native_, is_map_key_ = false;
+	//bool is_meta_, is_ref_, is_struct_, is_native_, is_map_key_ = false;
+	t_type_flags flags_;
 	ex::ref<hive_base, false> constants_;
 
 	hive_constants * hive_get_constants() const;
@@ -115,7 +144,12 @@ struct base_type : ex::with_deleter<base_type> {
 
 	void native_set_name(const any * name, type_config * tc);
 
-	base_type(type_config * tc, bool is_meta, bool is_ref, bool is_struct)
+	base_type(type_config * tc, uid flags) : flags_(flags | tf_native) {
+		id_ = tc->types_.count_;
+		tc->types_.append(this);
+		hive_init();
+	}
+	/*base_type(type_config * tc, bool is_meta, bool is_ref, bool is_struct)
 	: is_meta_(is_meta)
 	, is_ref_(is_ref)
 	, is_struct_(is_struct)
@@ -123,7 +157,7 @@ struct base_type : ex::with_deleter<base_type> {
 		id_ = tc->types_.count_;
 		tc->types_.append(this);
 		hive_init();
-	}
+	}*/
 	/*template <class Space>
 	base_type(const any * name, Space * spc, bool is_meta, bool is_ref, bool is_struct)
 	: name_(name)
@@ -199,7 +233,7 @@ struct with_convert_bool : public with_convert_number<Base, Target> {
 
 struct base_abstract : public base_type {
 	base_abstract(type_config * tc)
-	: base_type(tc, true, false, false) {}
+	: base_type(tc, tf_meta) {}
 };
 
 struct type_any : public base_abstract {	// meta-type
@@ -215,8 +249,7 @@ struct type_number : public base_abstract {	// meta-type
 };
 
 struct base_simple : public base_type {
-	base_simple(type_config * tc)
-	: base_type(tc, false, false, false) {}
+	base_simple(type_config * tc, uid flags = tf_none) : base_type(tc, flags) {}
 };
 
 struct type_null : public base_simple {
@@ -350,7 +383,7 @@ struct type_type : public with_convert_number<base_simple, type_type> {
 };
 
 struct type_text : public base_type {
-	type_text(type_config * tc) : base_type(tc, false, true, false) {}
+	type_text(type_config * tc, uid flags) : base_type(tc, flags | tf_ref) {}
 
 	static wtext get_text(const any * h);
 	static wtext get_text(const any & v);
@@ -413,7 +446,7 @@ struct type_module : public with_convert_bool<base_simple, type_fn> {
 };
 
 struct base_ref : public base_type {
-	base_ref(type_config * tc, bool is_struct) : base_type(tc, false, true, is_struct) {}
+	base_ref(type_config * tc, uid flags) : base_type(tc, flags | tf_ref) {}
 
 	id compare(const any & v1, const any & v2) const override;
 };
@@ -522,11 +555,11 @@ struct any {
 	const base_type * type_;
 
 	void hold() const {
-		if( type_->is_ref_ )
+		if( type_->flags_.ref_ )
 		value_.keep_->refs_ += 1;
 	}
 	void unhold() const {
-		if( type_->is_ref_ ) {
+		if( type_->flags_.ref_ ) {
 			if( value_.keep_->refs_ <= 1 )
 			value_.keep_->deleter_(value_.keep_);
 			else
@@ -868,7 +901,7 @@ struct keep_map : public base_keep, public with_lock {
 		is_full_id_ = false;
 	}
 	any get(const any & key) const {
-		if( !key.type_->is_map_key_ )
+		if( !key.type_->flags_.map_key_ )
 		return n_null::val;
 
 		t_items * items = ref_.h_;
@@ -879,7 +912,7 @@ struct keep_map : public base_keep, public with_lock {
 	}
 	ref_var * set(const any & key, const any & val, wtext & msg, bool reorder = false) {
 		ref_var * ret = nullptr;
-		if( key.type_->is_map_key_ ) {
+		if( key.type_->flags_.map_key_ ) {
 			if( key.type_ == &hcfg->t_int && key.value_.int_ >= next_id_ ) {
 				if( id i = key.value_.int_; i == type_int::max ) {
 					is_full_id_ = true;

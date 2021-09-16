@@ -63,19 +63,19 @@ t_null(tc),
 t_any(tc),
 t_number(tc),
 t_bool(tc),
-t_int(tc),
+t_int(tc, tf_map_key),
 t_float(tc),
-t_type(tc),
-t_text(tc),
+t_type(tc, tf_map_key),
+t_text(tc, tf_map_key),
 t_fn(tc),
 t_module(tc),
-t_array(tc, false),
-t_map(tc, false),
+t_array(tc, tf_none),
+t_map(tc, tf_none),
 api_(v_api) {
 	hcfg = this;
-	t_int	.is_map_key_ = true;
+	/*t_int	.is_map_key_ = true;
 	t_type	.is_map_key_ = true;
-	t_text	.is_map_key_ = true;
+	t_text	.is_map_key_ = true;*/
 	values = values_config::instance();
 	t_null		.native_set_name(&values->cn_null	, tc);
 	t_any		.native_set_name(&values->cn_any	, tc);
@@ -605,7 +605,7 @@ bool base_type::element_set(any & a_link, const any & key, keep_array * ka, wtex
 		keep_map * km;
 		*link = km = new keep_map{ {n_null::val, n_null::val} };
 		new_link = &km->ref_.h_->sorted_.items_[0]->val_;
-	} else if( key.type_->is_map_key_ ) {
+	} else if( key.type_->flags_.map_key_ ) {
 		keep_map * km;
 		*link = km = new keep_map{ {key, n_null::val} };
 		new_link = &km->ref_.h_->sorted_.items_[0]->val_;

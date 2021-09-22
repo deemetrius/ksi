@@ -25,7 +25,7 @@ any::any(ref_var * link) : type_(&hcfg->t_array) {
 #define CALL_ONCE { static bool was_run = false; if( was_run ) return; was_run = true; }
 
 void base_type::hive_init() {
-	constants_ = new hive_constants();
+	hive_ = new hive_data();
 }
 
 void type_null::init() const {
@@ -605,7 +605,7 @@ bool base_type::element_set(any & a_link, const any & key, keep_array * ka, wtex
 		keep_map * km;
 		*link = km = new keep_map{ {n_null::val, n_null::val} };
 		new_link = &km->ref_.h_->sorted_.items_[0]->val_;
-	} else if( key.type_->flags_.map_key_ ) {
+	} else if( key.type_->is_map_key_ ) {
 		keep_map * km;
 		*link = km = new keep_map{ {key, n_null::val} };
 		new_link = &km->ref_.h_->sorted_.items_[0]->val_;

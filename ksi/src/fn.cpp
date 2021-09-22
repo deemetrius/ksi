@@ -209,7 +209,7 @@ void fn_has_key_array(mod::fn_native_can_throw fne, space * spc, mod::fn_space *
 	}
 }
 void fn_has_key_map(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
-	if( fns->args_[2].type_->flags_.map_key_ ) {
+	if( fns->args_[2].type_->is_map_key_ ) {
 		var::keep_map::t_items * items = fns->args_[1].value_.keep_->k_map()->ref_.h_;
 		fns->args_[0] = static_cast<bool>( items->find_key(fns->args_[2]) );
 	}

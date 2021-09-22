@@ -27,6 +27,7 @@ struct hive_base {
 	virtual ~hive_base() = default;
 };
 
+struct hive_data;
 struct hive_constants;
 
 // keep
@@ -80,6 +81,7 @@ struct ei_base : public ex::with_deleter<ei_base> {
 
 // types
 
+// used by dump()
 using map_keep = ex::def_map<
 	base_keep *, bool, ex::map_del_plain, ex::map_del_plain, ex::cmp_std_plain,
 	def::map_keep_r, def::map_keep_s
@@ -97,28 +99,28 @@ enum n_type_flags : uid {
 
 struct t_type_flags {
 	bool
-	meta_,
-	native_,
-	ref_,
-	struct_,
-	enum_,
-	map_key_;
+	is_meta_,
+	is_native_,
+	is_ref_,
+	is_struct_,
+	is_enum_,
+	is_map_key_;
 
 	t_type_flags(uid flags) :
-	meta_	(flags & tf_meta),
-	native_	(flags & tf_native),
-	ref_	(flags & tf_ref),
-	struct_	(flags & tf_struct),
-	enum_	(flags & tf_enum),
-	map_key_(flags & tf_map_key) {}
+	is_meta_	(flags & tf_meta),
+	is_native_	(flags & tf_native),
+	is_ref_		(flags & tf_ref),
+	is_struct_	(flags & tf_struct),
+	is_enum_	(flags & tf_enum),
+	is_map_key_	(flags & tf_map_key) {}
 };
 
-struct base_type : ex::with_deleter<base_type> {
+struct base_type : public t_type_flags, public ex::with_deleter<base_type> {
 	const any * name_;
 	id id_;
 	//bool is_meta_, is_ref_, is_struct_, is_native_, is_map_key_ = false;
-	t_type_flags flags_;
-	ex::ref<hive_base, false> constants_;
+	//t_type_flags flags_;
+	ex::ref<hive_base, false> hive_;
 
 	hive_constants * hive_get_constants() const;
 	void hive_init();
@@ -144,7 +146,7 @@ struct base_type : ex::with_deleter<base_type> {
 
 	void native_set_name(const any * name, type_config * tc);
 
-	base_type(type_config * tc, uid flags) : flags_(flags | tf_native) {
+	base_type(type_config * tc, uid flags) : t_type_flags(flags | tf_native) {
 		id_ = tc->types_.count_;
 		tc->types_.append(this);
 		hive_init();
@@ -555,11 +557,11 @@ struct any {
 	const base_type * type_;
 
 	void hold() const {
-		if( type_->flags_.ref_ )
+		if( type_->is_ref_ )
 		value_.keep_->refs_ += 1;
 	}
 	void unhold() const {
-		if( type_->flags_.ref_ ) {
+		if( type_->is_ref_ ) {
 			if( value_.keep_->refs_ <= 1 )
 			value_.keep_->deleter_(value_.keep_);
 			else
@@ -901,7 +903,7 @@ struct keep_map : public base_keep, public with_lock {
 		is_full_id_ = false;
 	}
 	any get(const any & key) const {
-		if( !key.type_->flags_.map_key_ )
+		if( !key.type_->is_map_key_ )
 		return n_null::val;
 
 		t_items * items = ref_.h_;
@@ -912,7 +914,7 @@ struct keep_map : public base_keep, public with_lock {
 	}
 	ref_var * set(const any & key, const any & val, wtext & msg, bool reorder = false) {
 		ref_var * ret = nullptr;
-		if( key.type_->flags_.map_key_ ) {
+		if( key.type_->is_map_key_ ) {
 			if( key.type_ == &hcfg->t_int && key.value_.int_ >= next_id_ ) {
 				if( id i = key.value_.int_; i == type_int::max ) {
 					is_full_id_ = true;
@@ -989,10 +991,14 @@ inline keep_map * base_keep::k_map() {
 template <class T>
 using wrap_hive = ex::hive<T, ex::del_object, def::type_static_hive_r, def::type_static_hive_s>;
 
-struct hive_constants : public hive_base, public wrap_hive<any> {};
+struct hive_constants : public wrap_hive<any> {};
+
+struct hive_data : public hive_base {
+	hive_constants constants_;
+};
 
 inline hive_constants * base_type::hive_get_constants() const {
-	return static_cast<hive_constants *>(constants_.h_);
+	return &(static_cast<hive_data *>(hive_.h_)->constants_);
 }
 
 // each iterator simple

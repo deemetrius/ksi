@@ -67,15 +67,8 @@ void fn_bitwise_not_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space
 	*fns->args_ = ~n;
 }
 
-// echo
+// echo, write_ln
 
-void fn_echo_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
-	out(fns->args_[1]);
-	fns->args_[0] = fns->args_[1];
-}
-void fn_echo_null(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
-	fns->args_[0] = fns->args_[1];
-}
 void init_sep(mod::fn_space * fns, var::any *& sep, var::any *& sep_pos) {
 	sep = fns->args_ + 2;
 	sep_pos = nullptr;
@@ -86,63 +79,84 @@ void init_sep(mod::fn_space * fns, var::any *& sep, var::any *& sep_pos) {
 		sep = &rv->h_->val_;
 	}
 }
-void fn_echo_array(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
-	var::keep_array * ka = fns->args_[1].value_.keep_->k_array();
-	if( ka->items_.count_ ) {
-		var::any * sep, * sep_pos;
-		init_sep(fns, sep, sep_pos);
-		if( sep_pos ) {
-			id pos = 0;
-			for( var::ref_var & it : ka->items_ ) {
-				if( pos )
-				out(*sep);
-				std::wcout << pos;
-				out(*sep_pos);
-				out(it.h_->val_);
-				++pos;
-			}
-		} else {
-			bool is_first = true;
-			for( var::ref_var & it : ka->items_ ) {
-				if( is_first )
-				is_first = false;
-				else
-				out(*sep);
-				out(it.h_->val_);
+template <bool NewLine>
+struct tfn_echo {
+	static void add_to(mod::func_native * fun) {
+		fun->over_.set_common(fn_echo_def);
+		fun->over_.add(&var::hcfg->t_null, fn_echo_null);
+		fun->over_.add(&var::hcfg->t_array, fn_echo_array);
+		fun->over_.add(&var::hcfg->t_map, fn_echo_map);
+	}
+
+	static void fn_echo_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+		out(fns->args_[1]);
+		if constexpr( NewLine ) std::wcout << std::endl;
+		fns->args_[0] = fns->args_[1];
+	}
+	static void fn_echo_null(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+		if constexpr( NewLine ) std::wcout << std::endl;
+		//fns->args_[0] = fns->args_[1];
+	}
+	static void fn_echo_array(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+		var::keep_array * ka = fns->args_[1].value_.keep_->k_array();
+		if( ka->items_.count_ ) {
+			var::any * sep, * sep_pos;
+			init_sep(fns, sep, sep_pos);
+			if( sep_pos ) {
+				id pos = 0;
+				for( var::ref_var & it : ka->items_ ) {
+					if( pos )
+					out(*sep);
+					std::wcout << pos;
+					out(*sep_pos);
+					out(it.h_->val_);
+					++pos;
+				}
+			} else {
+				bool is_first = true;
+				for( var::ref_var & it : ka->items_ ) {
+					if( is_first )
+					is_first = false;
+					else
+					out(*sep);
+					out(it.h_->val_);
+				}
 			}
 		}
+		if constexpr( NewLine ) std::wcout << std::endl;
+		fns->args_[0] = fns->args_[1];
 	}
-	fns->args_[0] = fns->args_[1];
-}
-void fn_echo_map(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
-	var::keep_map * km = fns->args_[1].value_.keep_->k_map();
-	if( km->ref_.h_->sorted_.count_ ) {
-		var::any * sep, * sep_pos;
-		init_sep(fns, sep, sep_pos);
-		if( sep_pos ) {
-			bool is_first = true;
-			for( var::keep_map::t_items::cnode * it : km->ref_.h_->items_ ) {
-				if( is_first )
-				is_first = false;
-				else
-				out(*sep);
-				out(it->key_);
-				out(*sep_pos);
-				out(it->val_.h_->val_);
-			}
-		} else {
-			bool is_first = true;
-			for( var::keep_map::t_items::cnode * it : km->ref_.h_->items_ ) {
-				if( is_first )
-				is_first = false;
-				else
-				out(*sep);
-				out(it->val_.h_->val_);
+	static void fn_echo_map(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
+		var::keep_map * km = fns->args_[1].value_.keep_->k_map();
+		if( km->ref_.h_->sorted_.count_ ) {
+			var::any * sep, * sep_pos;
+			init_sep(fns, sep, sep_pos);
+			if( sep_pos ) {
+				bool is_first = true;
+				for( var::keep_map::t_items::cnode * it : km->ref_.h_->items_ ) {
+					if( is_first )
+					is_first = false;
+					else
+					out(*sep);
+					out(it->key_);
+					out(*sep_pos);
+					out(it->val_.h_->val_);
+				}
+			} else {
+				bool is_first = true;
+				for( var::keep_map::t_items::cnode * it : km->ref_.h_->items_ ) {
+					if( is_first )
+					is_first = false;
+					else
+					out(*sep);
+					out(it->val_.h_->val_);
+				}
 			}
 		}
+		if constexpr( NewLine ) std::wcout << std::endl;
+		fns->args_[0] = fns->args_[1];
 	}
-	fns->args_[0] = fns->args_[1];
-}
+};
 
 // dump
 
@@ -418,10 +432,14 @@ native_config::native_config() {
 	fun->over_.add(&var::hcfg->t_map, native::fn_count_map);
 	// #echo
 	fun = fn_map_.obtain(L"#echo");
-	fun->over_.set_common(native::fn_echo_def);
+	native::tfn_echo<false>::add_to(fun);
+	/* fun->over_.set_common(native::fn_echo_def);
 	fun->over_.add(&var::hcfg->t_null, native::fn_echo_null);
 	fun->over_.add(&var::hcfg->t_array, native::fn_echo_array);
-	fun->over_.add(&var::hcfg->t_map, native::fn_echo_map);
+	fun->over_.add(&var::hcfg->t_map, native::fn_echo_map); */
+	// #write_ln
+	fun = fn_map_.obtain(L"#write_ln");
+	native::tfn_echo<true>::add_to(fun);
 	// #dump
 	fun = fn_map_.obtain(L"#dump");
 	fun->over_.set_common(native::fn_dump_def);

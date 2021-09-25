@@ -1,6 +1,40 @@
+`plain
+[1 100] `for pos : n ~
+	out = []
+	n `mod 3 == 0 ? out.# = 'Fizz' ;
+	n `mod 5 == 0 ? out.# = 'Buzz' ;
+	(out `or n) #write_ln #
+;
 
+/* `plain
+[1, max = 100] `for pos : n ~
+	flag = #1
+	n `mod 3 == 0 ?
+		flag = #0
+		'Fizz' #echo #
+	;
+	n `mod 5 == 0 ?
+		flag = #0
+		'Buzz' #echo #
+	;
+	flag ? n #echo # ;
+	"\n" #echo #
+;
+
+`plain
+[1, max = 100] `for pos : n ~
+	n `mod 15 `switch ~
+		0 ~ 'FizzBuzz' ;
+		3 6 9 12 ~ 'Fizz' ;
+		5 10 ~ 'Buzz' ;
+		`default ~ n ;
+	; #write_ln #
+; */
+
+/*
 `plain
 [$int.min# $int.max# $float.pi# $null . null#$] #dump #1
 "\n" #echo #
 {$type : %hello} => map
 map.$type$ #dump #0
+*/

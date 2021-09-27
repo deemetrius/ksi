@@ -59,12 +59,11 @@
 	<ctime>
 	<iomanip>
 
-1628598830 d:\prog\dropbox\cpp\hive\ksi\src\fn.h
+1632714739 d:\prog\dropbox\cpp\hive\ksi\src\fn.h
 	"any.h"
-	"ksi_api.h"
 	<type_traits>
 
-1632342839 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
+1632714401 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
 	"fn.inc.h"
 
 1628758724 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp

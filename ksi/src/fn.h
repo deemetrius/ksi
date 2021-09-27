@@ -1,6 +1,5 @@
 #pragma once
 #include "any.h"
-#include "ksi_api.h"
 #include <type_traits>
 
 namespace ksi {

@@ -191,18 +191,21 @@ void fn_log_text(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns,
 template <bool To_up>
 void fn_change_case_text(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
 	wtext * tx_src = &fns->args_[1].value_.keep_->k_text()->tx_;
-	id len = tx_src->h_->len_;
-	const Char * h_src = tx_src->h_->cs_;
-	Char * h_dest;
-	wtext tx_dest(h_dest = new Char[len +1], len);
-	for( id i = 0; i < len; ++i ) {
-		if constexpr( To_up )
-		h_dest[i] = std::towupper(h_src[i]);
-		else
-		h_dest[i] = std::towlower(h_src[i]);
+	if( id len = tx_src->h_->len_ ) {
+		const Char * h_src = tx_src->h_->cs_;
+		Char * h_dest;
+		wtext tx_dest(h_dest = new Char[len +1], len);
+		for( id i = 0; i < len; ++i ) {
+			if constexpr( To_up )
+			h_dest[i] = std::towupper(h_src[i]);
+			else
+			h_dest[i] = std::towlower(h_src[i]);
+		}
+		h_dest[len] = 0;
+		fns->args_[0] = tx_dest;
+	} else {
+		fns->args_[0] = fns->args_[1];
 	}
-	h_dest[len] = 0;
-	fns->args_[0] = tx_dest;
 }
 
 // text_size

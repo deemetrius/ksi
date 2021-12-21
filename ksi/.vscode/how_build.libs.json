@@ -1,0 +1,21 @@
+{
+	"win64:release" : {
+		"_prepare" : {
+			"dir": "${workspace_dir}/obj",
+			"command": "D:/prog/mingw64/bin/g++.exe",
+			"args": [
+				"-std=c++20",
+				"-fmodules-ts",
+				"-xc++-system-header",
+				"-m64",
+				"${each}"
+			],
+			"each_plain" : [
+				"utility",
+				"string_view",
+				"algorithm",
+				"iostream"
+			]
+		}
+	}
+}

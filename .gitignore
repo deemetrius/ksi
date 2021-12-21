@@ -1,2 +1,3 @@
 /ksi/bin/**
 /ksi/obj/**
+/ksi/.vscode/how_build.config.json

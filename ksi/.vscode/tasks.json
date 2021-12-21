@@ -1,0 +1,62 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: g++.exe how_build workspace",
+			"command": "D:/prog/VertrigoServ/Php/php.exe",
+			"args": [
+				"-c",
+				"D:/prog/VertrigoServ/Php/php_how_build.ini",
+				"-C",
+				"-q",
+				"-f",
+				"D:/prog/Dropbox/cpp/ksi/.vscode/how_build.php",
+				"--",
+				"-json",
+				"${workspaceFolder}/.vscode/how_build.json",
+				"-config",
+				"${workspaceFolder}/.vscode/how_build.config.json"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/obj"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "компилятор: D:/prog/mingw64/bin/g++.exe"
+		},
+		{
+			"type": "cppbuild",
+			"label": "C/C++: g++.exe how_build libs",
+			"command": "D:/prog/VertrigoServ/Php/php.exe",
+			"args": [
+				"-c",
+				"D:/prog/VertrigoServ/Php/php_how_build.ini",
+				"-C",
+				"-q",
+				"-f",
+				"D:/prog/Dropbox/cpp/ksi/.vscode/how_build.php",
+				"--",
+				"-json",
+				"${workspaceFolder}/.vscode/how_build.libs.json",
+				"-config",
+				"${workspaceFolder}/.vscode/how_build.config.json"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/obj"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "компилятор: D:/prog/mingw64/bin/g++.exe"
+		}
+	]
+}

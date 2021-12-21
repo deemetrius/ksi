@@ -1,0 +1,42 @@
+{
+	"win64:release" : {
+		"_build" : {
+			"res": "windres.exe -J rc -O coff -i D:\prog\Dropbox\cpp\hive\ksi\res\res.rc -o ..\obj_exe\res\res.res",
+			"dir": "${workspace_dir}/obj",
+			"command": "D:/prog/mingw64/bin/g++.exe",
+			"args": [
+				"-Wall",
+				"-O3",
+				"-std=c++20",
+				"-m64",
+				"-c",
+				"${each.full}",
+				"-o",
+				"${workspace_dir}/obj/${each.rel.no_extension}.o",
+				"-fmodules-ts"
+			],
+			"maybe_create_dir" : "${workspace_dir}/obj/${each.rel.dirname}",
+			"each" : [
+				"${workspace_dir}/src_just/just.common.cpp",
+				"${workspace_dir}/src_just/just.ref.cpp",
+				"${workspace_dir}/src_just/just.text.cpp",
+				"${workspace_dir}/src_bin/main.cpp"
+			]
+		},
+		"_link" : {
+			"dir": "${workspace_dir}/obj",
+			"command": "D:/prog/mingw64/bin/g++.exe",
+			"args": [
+				"-o",
+				"${workspace_dir}/bin/ksi.exe",
+				"${workspace_dir}/obj/src_just/just.common.o",
+				"${workspace_dir}/obj/src_just/just.ref.o",
+				"${workspace_dir}/obj/src_just/just.text.o",
+				"${workspace_dir}/obj/src_bin/main.o",
+				"-s",
+				"-m64",
+				"-fmodules-ts"
+			]
+		}
+	}
+}

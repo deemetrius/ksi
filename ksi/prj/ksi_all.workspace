@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<CodeBlocks_workspace_file>
-	<Workspace title="ksi_all">
-		<Project filename="ksi.cbp" />
-		<Project filename="ksi_exe.cbp" />
-		<Project filename="mod_ksi.cbp" />
-	</Workspace>
-</CodeBlocks_workspace_file>

@@ -50,21 +50,28 @@ struct space {
 	// t_files_map				files_;
 	t_modules				mods_;
 	t_types					types_;
+	id						types_count_;
 	mod::fn_map<mod::func>	fn_map_;
 
-	space() {
+	space(const run_args & ra) {
 		for( var::var_type it : var::hcfg->tc->types_ )
 		types_.add(var::type_text::get_text(it->name_), it);
+		types_count_ = var::hcfg->tc->types_.count_;
 
 		mod::module * md = new mod::module(L"<none>", 0);
 		mods_.add(L"@0", md);
 		md->was_run_ = true;
+		reg_type(new var::type_srv(ra.req_inf_), md);
 	}
 
-	id reg_type(var::base_type * tp) {
-		id ret = types_.arr_.count_;
+	// before call: you should check if type_name is not in module's hive already
+	id reg_type(var::base_type * tp, mod::module * mod) {
+		id ret = types_count_;
 		tp->id_ = ret;
-		types_.add(var::type_text::get_text(tp->name_), tp);
+		wtext type_name = var::type_text::get_text(tp->name_);
+		mod->types_.add(type_name, tp);
+		types_.add(type_name, tp);
+		++types_count_;
 		return ret;
 	}
 

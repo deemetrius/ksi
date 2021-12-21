@@ -49,6 +49,29 @@ void type_float::init() const {
 	hc->add_obj(L"min", std::numeric_limits<real>::min() );
 	hc->add_obj(L"max", std::numeric_limits<real>::max() );
 }
+type_srv::type_srv(request_info * req_inf) : base_type(tf_meta | tf_native) {
+	name_ = &hcfg->values->cn_srv;
+	hive_props * hp = hive_get_props();
+	if( req_inf ) {
+		hp->add_obj(L"url"		, req_inf->url_);
+		hp->add_obj(L"scheme"	, req_inf->scheme_);
+		hp->add_obj(L"host"		, req_inf->host_);
+		hp->add_obj(L"path"		, req_inf->path_);
+		hp->add_obj(L"query"	, req_inf->query_);
+		hp->add_obj(L"hash"		, req_inf->hash_);
+		hp->add_obj(L"method"	, req_inf->method_);
+		hp->add_obj(L"protocol"	, req_inf->protocol_);
+	} else {
+		hp->add_obj(L"url");
+		hp->add_obj(L"scheme");
+		hp->add_obj(L"host");
+		hp->add_obj(L"path");
+		hp->add_obj(L"query");
+		hp->add_obj(L"hash");
+		hp->add_obj(L"method");
+		hp->add_obj(L"protocol");
+	}
+}
 
 //
 
@@ -281,13 +304,13 @@ void type_array::inner_dump(const any & v, std::wostream & wo, bool structured, 
 	id depth_1 = depth +1;
 	if( structured ) {
 		for( ref_var & it : *items ) {
-			wo << std::endl;
+			wo << ksi::endl;
 			for( id i = 0; i < depth; ++i )
 			wo << L'\t';
 			it.h_->val_.type_->dump(it.h_->val_, wo, structured, depth_1, hmk);
 		}
 		if( items->count_ ) {
-			wo << std::endl;
+			wo << ksi::endl;
 			for( id i = 0, end = depth -1; i < end; ++i )
 			wo << L'\t';
 		}
@@ -324,7 +347,8 @@ void type_map::inner_dump(const any & v, std::wostream & wo, bool structured, id
 	id depth_1 = depth +1;
 	if( structured ) {
 		for( keep_map::t_items::cnode * it : items->items_ ) {
-			wo << std::endl;
+			//wo << std::endl;
+			wo << ksi::endl;
 			for( id i = 0; i < depth; ++i )
 			wo << L'\t';
 			it->key_.type_->dump(it->key_, wo, structured, depth_1, hmk);
@@ -332,7 +356,7 @@ void type_map::inner_dump(const any & v, std::wostream & wo, bool structured, id
 			it->val_.h_->val_.type_->dump(it->val_.h_->val_, wo, structured, depth_1, hmk);
 		}
 		if( items->sorted_.count_ ) {
-			wo << std::endl;
+			wo << ksi::endl;
 			for( id i = 0, end = depth -1; i < end; ++i )
 			wo << L'\t';
 		}
@@ -551,6 +575,18 @@ any base_type::to_map(const any & a, wtext & msg) const {
 }
 any type_null::to_map(const any & a, wtext & msg) const {
 	return new keep_map;
+}
+any type_type::to_map(const any & a, wtext & msg) const {
+	hive_props * props = a.value_.type_->hive_get_props();
+	hive_props::t_map * props_map = &props->map_;
+	id count = props_map->sorted_.count_;
+	keep_map * km = new keep_map(count);
+	if( count ) {
+		wtext tmp_msg;
+		for( hive_props::t_map::cnode * it : props_map->items_ )
+		km->set(it->key_, props->arr_.items_[it->val_].h_->val_, tmp_msg, false);
+	}
+	return km;
 }
 any type_array::to_map(const any & a, wtext & msg) const {
 	return new keep_map(a.value_.keep_->k_array() );

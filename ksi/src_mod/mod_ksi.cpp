@@ -5,6 +5,7 @@
 #include "../src_apache/http_protocol.h"
 #include "../src_apache/http_request.h"
 //#include "../src_apache/apr_strings.h" // ..\src_apache\lib\libapr-1.lib // -L"D:\prog\VertrigoServ\Apache\lib"
+// ..\src_apache\lib\aprutil-1.lib
 #include "../src_exe/ksi_lib_loader.h"
 #include "../src/ksi_types.h"
 #include <iostream>
@@ -33,6 +34,39 @@ module AP_MODULE_DECLARE_DATA ksi_module = {
 
 struct ksi_keep {
 	static const ksi::api * api;
+
+	static ex::wtext conv(const ex::text & tx) {
+		return api->fn_decode_(tx.h_->cs_, tx.h_->len_);
+	}
+
+	static ex::wtext conv(const char * str) {
+		return api->fn_decode_(str, std::strlen(str) );
+	}
+
+	static ex::wtext conv_maybe(const char * str, const ex::wtext & def) {
+		return str ? conv(str) : def;
+	}
+
+	static void fill_request_info(ksi::request_info & ri, request_rec * r) {
+		ri.method_		= conv(r->method);
+		ri.protocol_	= conv(r->protocol);
+		ri.host_		= conv(r->hostname);
+		request_rec * rr = r;
+		while( rr->prev ) rr = rr->prev;
+		ex::text
+		u_scheme(ex::base_text::n_get::val, ap_http_scheme(r) ),
+		u_host(ex::base_text::n_get::val, r->hostname),
+		u_path_q(ex::base_text::n_get::val, rr->filename),
+		url = ex::implode({u_scheme, "://", u_host, u_path_q});
+		ri.url_			= conv(url);
+		ri.scheme_		= conv(u_scheme);
+		//ri.hash_		= conv(rr->the_request);
+		apr_uri_t uri;
+		if( apr_uri_parse(r->pool, url.h_->cs_, &uri) == APR_SUCCESS ) {
+			ri.path_	= conv_maybe(uri.path, L"/"); // apr_escape_urlencoded
+			ri.query_	= conv_maybe(uri.query, L"");
+		}
+	}
 };
 const ksi::api * ksi_keep::api = nullptr;
 
@@ -47,6 +81,10 @@ struct custom_streambuf : public std::wstreambuf {
 		}
 		return count;
 	}
+
+	/*int sync() override {
+		return 0;
+	}*/
 };
 
 struct log_custom : public ksi::base_log {
@@ -126,7 +164,10 @@ static int handler_ksi(request_rec * r) {
 		wo->rdbuf(&buf_custom);
 		//
 		ap_set_content_type(r, "text/html");
+		ksi::request_info req_inf;
+		ksi_keep::fill_request_info(req_inf, r);
 		ksi::run_args ra;
+		ra.req_inf_ = &req_inf;
 		log_custom log(r);
 		ex::wtext path = ksi_keep::api->fn_decode_(r->path_info, std::strlen(r->path_info) );
 		ksi_keep::api->fn_run_script_(path, ra, &log);

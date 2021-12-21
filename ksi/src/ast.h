@@ -24,13 +24,17 @@ enum n_prec {
 	prec_and,		//	`and			(logical)
 	prec_xor,		//	`xor
 	prec_or,		//	`or
-	prec_nullc,		//	??				(null coalescing)
+	prec_nullc,		//	?? ?!			(null coalescing)
 	prec_x_assign,	//	_right_operand_: = += -= *= /= %= %%= `and= `or= `xor= ??= `_and= `_or= `_xor=
 	prec_rt_assign,	//	=> +=> -=> *=> /=> %=> %%=> `and=> `or=> `xor=> ??=> `_and=> `_or=> `_xor=>
 	prec_then,		//	? `each `for
 	prec_pair,		//	:				(key-value pair)
 	prec_root,		//	(ast top)
 };
+
+// a + b = c	// a + (b = c)
+// a => b += c	// not implemented atm
+// a = b => c	// (a = b) => c
 
 struct prepare_data;
 struct tree;

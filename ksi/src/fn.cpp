@@ -90,11 +90,11 @@ struct tfn_echo {
 
 	static void fn_echo_def(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
 		out(fns->args_[1]);
-		if constexpr( NewLine ) std::wcout << std::endl;
+		if constexpr( NewLine ) std::wcout << ksi::endl;
 		fns->args_[0] = fns->args_[1];
 	}
 	static void fn_echo_null(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
-		if constexpr( NewLine ) std::wcout << std::endl;
+		if constexpr( NewLine ) std::wcout << ksi::endl;
 		//fns->args_[0] = fns->args_[1];
 	}
 	static void fn_echo_array(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
@@ -123,7 +123,7 @@ struct tfn_echo {
 				}
 			}
 		}
-		if constexpr( NewLine ) std::wcout << std::endl;
+		if constexpr( NewLine ) std::wcout << ksi::endl;
 		fns->args_[0] = fns->args_[1];
 	}
 	static void fn_echo_map(mod::fn_native_can_throw fne, space * spc, mod::fn_space * fns, t_stack * stk, base_log * log) {
@@ -153,7 +153,7 @@ struct tfn_echo {
 				}
 			}
 		}
-		if constexpr( NewLine ) std::wcout << std::endl;
+		if constexpr( NewLine ) std::wcout << ksi::endl;
 		fns->args_[0] = fns->args_[1];
 	}
 };

@@ -21,6 +21,7 @@
 					<Add option="-s" />
 					<Add option="-m64" />
 					<Add library="../src_apache/lib/libhttpd.lib" />
+					<Add library="../src_apache/lib/aprutil-1.lib" />
 					<Add library="../src_apache/lib/libapr-1.lib" />
 				</Linker>
 			</Target>

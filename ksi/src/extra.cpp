@@ -30,29 +30,31 @@ wtext to_wtext(real num) {
 	return wtext(wtext::n_copy::val, s.c_str(), s.size() );
 }
 
-template <class Items>
-wtext inner_implode(const Items & items, const wtext & sep, id count) {
-	if( !count ) return L"";
+template <class Items, class Text>
+Text inner_implode(const Items & items, const Text & sep, id count) {
+	using Char = typename Text::Char;
+	using Traits = typename Text::traits;
+	if( !count ) return Text::traits::v_empty;
 	if( count == 1 ) return *items.begin();
 	id len = 0, sep_len = sep.h_->len_;
-	for( const wtext & it : items )
+	for( const Text & it : items )
 	len += it.h_->len_;
 	len += (count -1) * sep_len;
-	wtext::Char * s;
-	wtext tx(s = new wtext::Char[len +1], len);
+	Char * s;
+	Text tx(s = new Char[len +1], len);
 	if( sep_len ) {
 		bool not_first = false;
-		for( const wtext & it : items ) {
+		for( const Text & it : items ) {
 			if( not_first ) {
-				wcsncpy(s, sep.h_->cs_, sep_len);
+				Traits::copy_n(s, sep.h_->cs_, sep_len);
 				s += sep_len;
 			} else
 			not_first = true;
-			wcsncpy(s, it.h_->cs_, it.h_->len_);
+			Traits::copy_n(s, it.h_->cs_, it.h_->len_);
 			s += it.h_->len_;
 		}
-	} else for( const wtext & it : items ) {
-		wcsncpy(s, it.h_->cs_, it.h_->len_);
+	} else for( const Text & it : items ) {
+		Traits::copy_n(s, it.h_->cs_, it.h_->len_);
 		s += it.h_->len_;
 	}
 	*s = 0;
@@ -66,6 +68,10 @@ wtext implode(std::initializer_list<wtext> lst, const wtext & sep) {
 
 wtext implode(const wtext_array & items, const wtext & sep) {
 	return inner_implode(items, sep, items.count_);
+}
+
+text implode(std::initializer_list<text> lst, const text & sep) {
+	return inner_implode(lst, sep, lst.size() );
 }
 
 wtext replace_filename(const wtext & path, const wtext & file) {

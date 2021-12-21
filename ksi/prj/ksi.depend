@@ -4,7 +4,7 @@
 	<clocale>
 	<new>
 
-1628678614 d:\prog\dropbox\cpp\hive\ksi\src\extra.h
+1634269421 d:\prog\dropbox\cpp\hive\ksi\src\extra.h
 	<initializer_list>
 	<cstring>
 	<cwchar>
@@ -13,21 +13,21 @@
 1582436279 d:\prog\dropbox\cpp\hive\ksi\src\tester.h
 	<iostream>
 
-1632344078 source:d:\prog\dropbox\cpp\hive\ksi\src\any.cpp
+1634271246 source:d:\prog\dropbox\cpp\hive\ksi\src\any.cpp
 	"any.h"
 	<errno.h>
 	<numbers>
 
-1632344023 d:\prog\dropbox\cpp\hive\ksi\src\any.h
+1634227498 d:\prog\dropbox\cpp\hive\ksi\src\any.h
 	"ksi_types.h"
 	"ksi_api.h"
 	<limits>
 	<cmath>
 
-1631333848 d:\prog\dropbox\cpp\hive\ksi\src\ksi_types.h
+1634271016 d:\prog\dropbox\cpp\hive\ksi\src\ksi_types.h
 	"extra.h"
 
-1631333867 d:\prog\dropbox\cpp\hive\ksi\src\space.h
+1634226008 d:\prog\dropbox\cpp\hive\ksi\src\space.h
 	"fn.h"
 
 1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\any_space.cpp
@@ -37,7 +37,7 @@
 	"any.h"
 	<windows.h>
 
-1628332649 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_lib.cpp
+1634266390 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_lib.cpp
 	"ast.h"
 	"rules.h"
 	<windows.h>
@@ -46,14 +46,14 @@
 	"ksi_types.h"
 	"ksi_api.h"
 
-1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\extra.cpp
+1634270578 source:d:\prog\dropbox\cpp\hive\ksi\src\extra.cpp
 	"extra.h"
 	<string>
 	<sstream>
 	<fstream>
 	<filesystem>
 
-1623174680 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_types.cpp
+1634266401 source:d:\prog\dropbox\cpp\hive\ksi\src\ksi_types.cpp
 	"ksi_types.h"
 	<fstream>
 	<ctime>
@@ -63,7 +63,7 @@
 	"any.h"
 	<type_traits>
 
-1632714401 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
+1634266234 source:d:\prog\dropbox\cpp\hive\ksi\src\fn.cpp
 	"fn.inc.h"
 
 1628758724 source:d:\prog\dropbox\cpp\hive\ksi\src\rules.cpp
@@ -93,7 +93,7 @@
 1628755270 d:\prog\dropbox\cpp\hive\ksi\src\instr.h
 	"space.h"
 
-1628755231 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
+1639795607 d:\prog\dropbox\cpp\hive\ksi\src\ast.h
 	"space.h"
 
 1628755653 source:d:\prog\dropbox\cpp\hive\ksi\src\ast.cpp

@@ -23,7 +23,7 @@ void log_file::out(std::wostream & wo) const {
 	fi.seekg(pos_);
 	std::wstring s;
 	while( std::getline(fi, s) ) {
-		wo << s << std::endl;
+		wo << s << ksi::endl;
 	}
 }
 

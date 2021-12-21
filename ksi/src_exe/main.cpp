@@ -6,7 +6,7 @@
 int wmain(int args_count, wchar_t ** args, wchar_t ** env) {
 	std::setlocale(LC_ALL, "Rus");
 	if( args_count < 2 ) {
-		std::wcout << L"Usage: ksi.exe file.ksi [-debug -show_log]" << std::endl;
+		std::wcout << L"Usage: ksi.exe file.ksi [-debug -show_log]" << ksi::endl;
 		return 0;
 	}
 	try {
@@ -18,13 +18,13 @@ int wmain(int args_count, wchar_t ** args, wchar_t ** env) {
 			if( !api->fn_run_script_(path, ra, &log) )
 			return 1;
 		} else {
-			std::wcout << L"Unable to load lib: ksi.dll" << std::endl;
+			std::wcout << L"Unable to load lib: ksi.dll" << ksi::endl;
 		}
 	} catch( const std::bad_alloc & e ) {
-		std::wcout << "Memory allocation error: " << e.what() << std::endl;
+		std::wcout << "Memory allocation error: " << e.what() << ksi::endl;
 		return 1;
 	} catch( ... ) {
-		std::wcout << L"Unknown error." << std::endl;
+		std::wcout << L"Unknown error." << ksi::endl;
 		return 1;
 	}
 	return 0;

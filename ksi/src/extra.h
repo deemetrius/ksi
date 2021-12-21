@@ -968,6 +968,8 @@ wtext implode(const wtext_array & items, const wtext & sep = L"");
 wtext replace_filename(const wtext & path, const wtext & file);
 wtext absolute_path(const wtext & path);
 
+text implode(std::initializer_list<text> lst, const text & sep = "");
+
 inline std::wostream & operator << (std::wostream & wo, const wtext & tx) {
 	return wo << tx.h_->cs_;
 }

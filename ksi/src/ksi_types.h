@@ -10,6 +10,8 @@ using ex::real;
 using ex::wtext;
 using Char = wtext::Char;
 
+constexpr Char endl = L'\n';
+
 // array/map ~ reserve and step
 struct def {
 	enum n_def : id {
@@ -54,7 +56,7 @@ struct message {
 
 inline std::wostream & operator << (std::wostream & wo, const message & msg) {
 	return wo << L"line " << msg.pos_.line_ << L", col " << msg.pos_.col_ << L": "
-	<< msg.file_ << std::endl << msg.msg_ << std::endl;
+	<< msg.file_ << ksi::endl << msg.msg_ << ksi::endl;
 }
 
 } // ns
@@ -101,10 +103,23 @@ struct log_file : public base_log {
 
 //
 
+struct request_info {
+	wtext
+	url_,
+	scheme_,
+	host_,
+	path_,
+	query_,
+	hash_,
+	method_,
+	protocol_;
+};
+
 struct run_args {
 	bool
 	debug_		= false,
 	show_log_	= false;
+	request_info * req_inf_ = nullptr;
 
 	void init(wchar_t ** args, int args_count) {
 		if( args_count > 2 ) {

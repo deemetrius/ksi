@@ -51,9 +51,9 @@ ex::wtext read_file(const ex::wtext & path, bool & done) {
 }
 
 void show_tokens(const t_tokens & toks) {
-	std::wcout << L"tokens:" << std::endl;
+	std::wcout << L"tokens:" << ksi::endl;
 	for( const tokens::base_token * it : toks )
-	std::wcout << L'\t' << it->get_name() << std::endl;
+	std::wcout << L'\t' << it->get_name() << ksi::endl;
 }
 
 } // ns
@@ -92,7 +92,7 @@ bool load_script(const wtext & path, space * spc, const run_args & ra, base_log 
 			//std::wcout << tx << std::endl;
 			rules::rule_start::parse(tx.h_->cs_, inf, toks, log);
 			if( ra.debug_ ) {
-				std::wcout << full_path << std::endl;
+				std::wcout << full_path << ksi::endl;
 				also::show_tokens(toks);
 			}
 			if( inf.good_ ) {
@@ -111,12 +111,12 @@ bool load_script(const wtext & path, space * spc, const run_args & ra, base_log 
 					if( ra.debug_ ) {
 						ex::id side_pos = 0;
 						for( const ksi::mod::side * sd : pd.mod_.h_->plain_.sides_ ) {
-							std::wcout << L"side " << side_pos << L':' << std::endl;
+							std::wcout << L"side " << side_pos << L':' << ksi::endl;
 							++side_pos;
 							for( const ksi::mod::instr & it : sd->instructions_ )
-							std::wcout << L'\t' << it << std::endl;
+							std::wcout << L'\t' << it << ksi::endl;
 						}
-						std::wcout << std::endl;
+						std::wcout << ksi::endl;
 					}
 					//pd.put_mod(spc);
 					//pd.put_fn_all(spc);
@@ -132,28 +132,28 @@ bool load_script(const wtext & path, space * spc, const run_args & ra, base_log 
 bool run_script(const wtext & path, const run_args & ra, base_log * log) {
 	bool ret = false;
 	try {
-		space spc;
+		space spc(ra);
 		if( load_script(path, &spc, ra, log) ) {
 			ret = true;
 			t_stack stk;
 			spc.first_run(nullptr, &stk, {0, 0}, log);
 			if( ra.debug_ ) {
-				*wc << std::endl
+				*wc << ksi::endl
 					<< L"stack size: " << stk.items_.count_
-					<< L", max: " << stk.items_.size_ << std::endl
+					<< L", max: " << stk.items_.size_ << ksi::endl
 				;
 				if( ra.show_log_ )
 				log->out(*wc);
 			} else if( ra.show_log_ && log->filled_ ) {
-				*wc << std::endl;
+				*wc << ksi::endl;
 				log->out(*wc);
 			}
 		} else
 		log->out(*wc);
 	} catch( const std::bad_alloc & e ) {
-		*wc << "Memory allocation error: " << e.what() << std::endl;
+		*wc << "Memory allocation error: " << e.what() << ksi::endl;
 	} catch( ... ) {
-		*wc << L"Unknown error." << std::endl;
+		*wc << L"Unknown error." << ksi::endl;
 	}
 	return ret;
 }

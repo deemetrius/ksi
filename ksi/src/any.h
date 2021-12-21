@@ -29,6 +29,7 @@ struct hive_base {
 
 struct hive_data;
 struct hive_constants;
+struct hive_props;
 
 // keep
 
@@ -117,12 +118,13 @@ struct t_type_flags {
 
 struct base_type : public t_type_flags, public ex::with_deleter<base_type> {
 	const any * name_;
-	id id_;
+	id id_ = -1;
 	//bool is_meta_, is_ref_, is_struct_, is_native_, is_map_key_ = false;
 	//t_type_flags flags_;
 	ex::ref<hive_base, false> hive_;
 
 	hive_constants * hive_get_constants() const;
+	hive_props * hive_get_props() const;
 	void hive_init();
 
 	// no copy
@@ -146,29 +148,16 @@ struct base_type : public t_type_flags, public ex::with_deleter<base_type> {
 
 	void native_set_name(const any * name, type_config * tc);
 
+	// constructor for native types only
 	base_type(type_config * tc, uid flags) : t_type_flags(flags | tf_native) {
 		id_ = tc->types_.count_;
 		tc->types_.append(this);
 		hive_init();
 	}
-	/*base_type(type_config * tc, bool is_meta, bool is_ref, bool is_struct)
-	: is_meta_(is_meta)
-	, is_ref_(is_ref)
-	, is_struct_(is_struct)
-	, is_native_(true) {
-		id_ = tc->types_.count_;
-		tc->types_.append(this);
+	// constructor for dynamic creation
+	base_type(uid flags) : t_type_flags(flags) {
 		hive_init();
-	}*/
-	/*template <class Space>
-	base_type(const any * name, Space * spc, bool is_meta, bool is_ref, bool is_struct)
-	: name_(name)
-	, is_meta_(is_meta)
-	, is_ref_(is_ref)
-	, is_struct_(is_struct)
-	, is_native_(false) {
-		id_ = spc->reg_type(this);
-	}*/
+	}
 	virtual ~base_type() = default;
 
 	virtual void init() const {}
@@ -234,8 +223,8 @@ struct with_convert_bool : public with_convert_number<Base, Target> {
 };
 
 struct base_abstract : public base_type {
-	base_abstract(type_config * tc)
-	: base_type(tc, tf_meta) {}
+	base_abstract(type_config * tc, uid flags = 0)
+	: base_type(tc, flags | tf_meta) {}
 };
 
 struct type_any : public base_abstract {	// meta-type
@@ -249,6 +238,12 @@ struct type_number : public base_abstract {	// meta-type
 
 	any convert_from(const any & a, wtext & msg, space * spc) const override;
 };
+
+struct type_srv : public base_type {
+	type_srv(request_info * req_inf);
+};
+
+//
 
 struct base_simple : public base_type {
 	base_simple(type_config * tc, uid flags = tf_none) : base_type(tc, flags) {}
@@ -382,6 +377,7 @@ struct type_type : public with_convert_number<base_simple, type_type> {
 	bool to_bool(const any & a, wtext & msg) const override;
 	var_type to_type(const any & a, wtext & msg, space * spc) const override;
 	any to_text(const any & a, wtext & msg) const override;
+	any to_map(const any & a, wtext & msg) const override;
 };
 
 struct type_text : public base_type {
@@ -653,6 +649,7 @@ struct values_config {
 	cn_null,
 	cn_any,
 	cn_number,
+	cn_srv,
 	cn_bool,
 	cn_int,
 	cn_float,
@@ -670,6 +667,7 @@ struct values_config {
 	cn_null		(L"null"),
 	cn_any		(L"any"),
 	cn_number	(L"number"),
+	cn_srv		(L"srv"),
 	cn_bool		(L"bool"),
 	cn_int		(L"int"),
 	cn_float	(L"float"),
@@ -992,13 +990,18 @@ template <class T>
 using wrap_hive = ex::hive<T, ex::del_object, def::type_static_hive_r, def::type_static_hive_s>;
 
 struct hive_constants : public wrap_hive<any> {};
+struct hive_props : public wrap_hive<ref_var> {};
 
 struct hive_data : public hive_base {
-	hive_constants constants_;
+	hive_constants	constants_;
+	hive_props		props_;
 };
 
 inline hive_constants * base_type::hive_get_constants() const {
 	return &(static_cast<hive_data *>(hive_.h_)->constants_);
+}
+inline hive_props * base_type::hive_get_props() const {
+	return &(static_cast<hive_data *>(hive_.h_)->props_);
 }
 
 // each iterator simple

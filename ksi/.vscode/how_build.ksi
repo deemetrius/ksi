@@ -20,7 +20,7 @@ $how_build (
 
 &read_json_opt path default (
 	`try e (
-		ret = path #read_json #
+		ret = path &read_json #
 	) `catch (
 		e.msg #replace [~^error\:~ , 'notice:'] #write_ln #
 		ret = default
@@ -59,7 +59,7 @@ $how_build (
 	map `each key value (
 		data #is_not $map || data #key_absent value
 		`then
-			# `throw 'error: ' % key % ' "' % $value % '" was not configured in file "' % $path % '"'
+			# `throw 'error: ' % key % ' "' % $value % '" was not configured in file "' % path % '"'
 		`end
 		data = data[value]
 	)
@@ -80,7 +80,7 @@ $how_build (
 &magic_rules magic null (
 	ret = {}
 	magic `each key value (
-		ret.# = ['${' % key % '}', value]
+		ret[k = '${' % key % '}'] = [k, value]
 	)
 )
 

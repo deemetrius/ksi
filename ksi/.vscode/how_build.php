@@ -32,11 +32,9 @@ class how_build {
 		}
 		self::$perm = $stat['mode'] & 0777;
 		self::$magic['workspace_dir'] = preg_replace('~[/\\\\][^/\\\\]+$~u', '', $dir_config);
-		//return $path['dirname'] .'/'. $path['filename'] .'.config.json';
 	}
 
 	static public function read_config($path) {
-		//$path = self::config_path($path);
 		self::config_path($path);
 		$data = self::read_json_opt($path, self::def_cfg);
 		$ret = [];

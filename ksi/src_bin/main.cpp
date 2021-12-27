@@ -8,7 +8,7 @@ int main() {
 		just::wtext tx = L"hello"_jt;
 		std::wcout << tx << L"\n";
 	}{
-		just::array<bool, just::capacity_step<8, 4> > arr;
+		just::array_pod<bool, just::capacity_step<8, 4> > arr;
 		std::wcout << arr->count_ << L"\n";
 		for( bool it : arr.get_reverse_range() ) std::wcout << it << L"\n";
 	}

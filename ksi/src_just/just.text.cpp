@@ -12,7 +12,7 @@ namespace detail {
 template <typename C>
 struct impl_text_base {
 	using const_pointer = const C *;
-	using tfn_deleter = with_deleter< impl_text_base<C> >::tfn_deleter;
+	using tfn_deleter = bases::with_deleter< impl_text_base<C> >::tfn_deleter;
 
 	const_pointer cs_;
 	id len_;
@@ -27,7 +27,7 @@ struct impl_text_base {
 template <typename C>
 struct impl_text :
 	public impl_text_base<C>,
-	public with_deleter< impl_text_base<C> >
+	public bases::with_deleter< impl_text_base<C> >
 {
 	using base = impl_text_base<C>;
 	using const_pointer = const C *;
@@ -55,7 +55,7 @@ struct basic_text {
 	using t_impl_base = detail::impl_text_base<type>;
 	using t_impl = detail::impl_text<type>;
 	using t_ref = ref<const t_impl_base,
-		traits_ref_cnt<false, closer_cnt_deleter_with<false>::closer>
+		traits_ref_cnt<false, closers::compound_cnt_call_deleter<false>::closer>
 	>;
 
 	t_ref ref_;

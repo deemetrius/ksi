@@ -118,9 +118,9 @@ struct traits_ref_unique {
 		using ref_base = bases::with_handle_mutable<T>;
 		using pointer = T *;
 
-		static void accept_init(pointer & to, pointer & from) { using std::swap; swap(to, from); }
+		static void accept_init(pointer & to, pointer & from) { std::swap(to, from); }
 
-		static void accept(pointer & to, pointer & from) { using std::swap; swap(to, from); }
+		static void accept(pointer & to, pointer & from) { std::swap(to, from); }
 	};
 };
 
@@ -131,18 +131,19 @@ struct traits_ref_cnt {
 		public Closer<T>
 	{
 		using ref_base = bases::with_handle<T>;
+		using t_closer = Closer<T>;
 		using pointer = T *;
 
 		static void accept_init(pointer & to, pointer from) {
-			if constexpr ( Check_null ) { if( from ) from->ref_inc(); }
-			else { from->ref_inc(); }
+			if constexpr ( Check_null ) { if( from ) from->refs_inc(); }
+			else { from->refs_inc(); }
 			to = from;
 		}
 
 		static void accept(pointer & to, pointer from) {
-			if constexpr ( Check_null ) { if( from ) from->ref_inc(); }
-			else { from->ref_inc(); }
-			close(to);
+			if constexpr ( Check_null ) { if( from ) from->refs_inc(); }
+			else { from->refs_inc(); }
+			t_closer::close(to);
 			to = from;
 		}
 	};

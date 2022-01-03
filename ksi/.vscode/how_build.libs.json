@@ -11,6 +11,7 @@
 				"${each}"
 			],
 			"each_plain" : [
+				"cstring",
 				"compare",
 				"utility",
 				"string_view",

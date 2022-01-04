@@ -3,6 +3,7 @@ module;
 export module just.array;
 export import just.ref;
 import <cstring>;
+import <iostream>;
 
 export namespace just {
 
@@ -83,13 +84,23 @@ struct impl_array :
 
 } // ns detail
 
+struct result_capacity_more {
+	id count_;
+	bool flag_ = false;
+	id capacity_;
+
+	operator bool () const { return flag_; }
+	bool operator ! () const { return !flag_; }
+};
+
 template <id Initial, id Step>
 struct capacity_step {
 	enum : id { initial = Initial, step = Step };
 
-	static id more(const detail::impl_array_base * impl, id n, id & new_count) {
-		new_count = impl->count_ + n;
-		return (new_count <= impl->capacity_) ? impl->capacity_ : (new_count + step);
+	static result_capacity_more more(const detail::impl_array_base * impl, id n) {
+		id new_count = impl->count_ + n;
+		if( new_count <= impl->capacity_ ) return {new_count};
+		return {new_count, true, new_count + step};
 	}
 };
 
@@ -103,6 +114,8 @@ struct array_pod {
 		traits_ref_cnt<false, closers::compound_cnt<false, closers::simple_call_deleter>::closer>
 	>;
 	
+	friend void swap(array_pod & r1, array_pod & r2) { swap(r1.ref_, r2.ref_); }
+
 	t_ref ref_;
 
 	array_pod(id capacity = t_capacity::initial) : ref_( new t_impl(capacity) ) {}
@@ -112,9 +125,11 @@ struct array_pod {
 	id count() const { return impl()->count_; }
 	bool empty() const { return count(); }
 	operator bool () const { return empty(); }
+	bool operator ! () const { return !empty(); }
 	pointer data() const { return impl()->h_; }
 	T & operator [] (id pos) const { return data()[pos]; }
-	id stored_bytes() const { return count() * t_impl::t_closer::item_size; }
+	static id stored_bytes(id cnt) { return cnt * t_impl::t_closer::item_size; }
+	id stored_bytes() const { return stored_bytes( count() ); }
 
 	using t_range = range<pointer>;
 	using t_reverse_iterator = reverse_iterator<pointer>;
@@ -137,6 +152,8 @@ struct array_with_closer :
 	using type = base::type;
 	using t_closer = Range_closer<type>;
 
+	friend void swap(array_with_closer & r1, array_with_closer & r2) { swap(r1.ref_, r2.ref_); }
+
 	using base::base;
 
 	~array_with_closer() { t_closer::close_range( this->get_reverse_range() ); }
@@ -147,20 +164,52 @@ using array = array_with_closer<array_pod<T, Capacity>, closers::range_compound<
 
 template <typename Array>
 auto append_n(Array & to, id n) -> Array::pointer {
-	id new_count;
-	id new_capacity = Array::t_capacity::more(to.impl(), n, new_count);
-	Array from(new_capacity);
-	if( to ) {
-		std::memcpy(from.data(), to.data(), to.stored_bytes() );
+	result_capacity_more res = Array::t_capacity::more(to.impl(), n);
+	// in-place
+	if( !res ) {
 		id old_count = to->count_;
-		to->count_ = 0;
-		from->count_ = new_count;
-		to = from;
+		to->count_ = res.count_;
 		return to.data() + old_count;
 	}
-	from->count_ = new_count;
+	Array from(res.capacity_);
+	// was empty
+	if( !to ) {
+		from->count_ = res.count_;
+		to = from;
+		return to.data();
+	}
+	// copy data
+	std::memcpy(from.data(), to.data(), to.stored_bytes() );
+	id old_count = to->count_;
+	to->count_ = 0;
+	from->count_ = res.count_;
 	to = from;
-	return to.data();
+	return to.data() + old_count;
+}
+
+template <typename Array>
+auto insert_n(Array & to, id pos, id n) -> Array::pointer {
+	if( pos >= to->count_ ) return append_n(to, n);
+	result_capacity_more res = Array::t_capacity::more(to.impl(), n);
+	id rest = to->count_ - pos;
+	// in-place
+	if( !res ) {
+		typename Array::pointer src = to.data() + pos, dest = src + n;
+		if( rest ) std::memmove(dest, src, Array::stored_bytes(rest) );
+		to->count_ = res.count_;
+		return src;
+	}
+	Array from(res.capacity_);
+	if( pos ) std::memcpy(from.data(), to.data(), Array::stored_bytes(pos) );
+	typename Array::pointer ret = from.data() + pos, dest = ret + n;
+	if( rest ) {
+		typename Array::pointer src = to.data() + pos;
+		std::memcpy(dest, src, Array::stored_bytes(rest) );
+	}
+	to->count_ = 0;
+	from->count_ = res.count_;
+	to = from;
+	return ret;
 }
 
 } // ns just

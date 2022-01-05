@@ -3,23 +3,12 @@ module;
 export module just.array;
 export import just.ref;
 import <cstring>;
+import <type_traits>;
 import <iostream>;
 
 export namespace just {
 
 namespace closers {
-
-/*template <typename T>
-struct range_none {
-	using type = T;
-	using pointer = type *;
-	using const_pointer = const type *;
-
-	static void close_one(const_pointer h) {}
-
-	template <typename Range>
-	static void close_range(const Range & r) {}
-};*/
 
 namespace bases {
 
@@ -79,7 +68,27 @@ struct impl_array :
 	impl_array(const impl_array &) = delete;
 	impl_array & operator = (const impl_array &) = delete;
 
-	//t_ref & get_ref() { return *this; }
+	// range-for helpers
+	using t_range = range<pointer>;
+	using t_reverse_iterator = reverse_iterator<pointer>;
+	using t_reverse_range = range<t_reverse_iterator>;
+
+	t_range get_range() const { return {this->h_, this->h_ + count_}; }
+	t_range get_range(id from) const { return {this->h_ + from, this->h_ + count_}; }
+	t_range get_range(id from, id cnt) const { pointer it = this->h_ + from; return {it, it + cnt}; }
+
+	t_reverse_range get_reverse_range() const { pointer it = this->h_ -1; return {it + count_, it}; }
+	t_reverse_range get_reverse_range(id from) const { pointer it = this->h_ -1; return {it + count_, it + from}; }
+	t_reverse_range get_reverse_range(id from, id cnt) const { pointer it = this->h_ + from -1; return {it + cnt, it}; }
+};
+
+template <typename T, template <typename T1> typename Range_closer>
+struct impl_array_special :
+	public impl_array<T>
+{
+	using t_range_closer = Range_closer<T>;
+
+	~impl_array_special() { t_range_closer::close_range( this->get_reverse_range() ); }
 };
 
 } // ns detail
@@ -104,66 +113,38 @@ struct capacity_step {
 	}
 };
 
-template <typename T, typename Capacity>
-struct array_pod {
+template <typename T, typename Capacity, template <typename T1> typename Closer = closers::simple_none>
+struct array {
 	using type = T;
 	using pointer = type *;
 	using t_capacity = Capacity;
-	using t_impl = detail::impl_array<type>;
+	using t_impl = std::conditional_t<
+		std::is_same_v<Closer<T>, closers::simple_none<T> >,
+		detail::impl_array<type>,
+		detail::impl_array_special<type, closers::range_compound<Closer>::template closer>
+	>;
 	using t_ref = ref<t_impl,
 		traits_ref_cnt<false, closers::compound_cnt<false, closers::simple_call_deleter>::closer>
 	>;
 	
-	friend void swap(array_pod & r1, array_pod & r2) { swap(r1.ref_, r2.ref_); }
+	friend void swap(array & r1, array & r2) { swap(r1.ref_, r2.ref_); }
 
 	t_ref ref_;
 
-	array_pod(id capacity = t_capacity::initial) : ref_( new t_impl(capacity) ) {}
+	array(id capacity = t_capacity::initial) : ref_( new t_impl(capacity) ) {}
 
 	t_impl * impl() const { return ref_.h_; }
-	t_impl * operator -> () const { return impl(); }
-	id count() const { return impl()->count_; }
-	bool empty() const { return count(); }
-	operator bool () const { return empty(); }
-	bool operator ! () const { return !empty(); }
-	pointer data() const { return impl()->h_; }
-	T & operator [] (id pos) const { return data()[pos]; }
+	t_impl * operator -> () const { return ref_.h_; }
+	operator bool () const { return ref_->count_; }
+	bool operator ! () const { return !ref_->count_; }
+	pointer data() const { return ref_->h_; }
+	T & operator [] (id pos) const { return ref_->h_[pos]; }
 	static id stored_bytes(id cnt) { return cnt * t_impl::t_closer::item_size; }
-	id stored_bytes() const { return stored_bytes( count() ); }
-
-	using t_range = range<pointer>;
-	using t_reverse_iterator = reverse_iterator<pointer>;
-	using t_reverse_range = range<t_reverse_iterator>;
-
-	t_range get_range() const { pointer it = data(); return {it, it + count()}; }
-	t_range get_range(id from) const { pointer it = data(); return {it + from, it + count()}; }
-	t_range get_range(id from, id cnt) const { pointer it = data() + from; return {it, it + cnt}; }
-
-	t_reverse_range get_reverse_range() const { pointer it = data() -1; return {it + count(), it}; }
-	t_reverse_range get_reverse_range(id from) const { pointer it = data() -1; return {it + count(), it + from}; }
-	t_reverse_range get_reverse_range(id from, id cnt) const { pointer it = data() + from -1; return {it + cnt, it}; }
+	id stored_bytes() const { return stored_bytes(ref_->count_); }
 };
-
-template <typename Base, template <typename T1> typename Range_closer>
-struct array_with_closer :
-	public Base
-{
-	using base = Base;
-	using type = base::type;
-	using t_closer = Range_closer<type>;
-
-	friend void swap(array_with_closer & r1, array_with_closer & r2) { swap(r1.ref_, r2.ref_); }
-
-	using base::base;
-
-	~array_with_closer() { t_closer::close_range( this->get_reverse_range() ); }
-};
-
-template <typename T, typename Capacity, template <typename T1> typename Closer>
-using array = array_with_closer<array_pod<T, Capacity>, closers::range_compound<Closer>::template closer>;
 
 template <typename Array>
-auto append_n(Array & to, id n) -> Array::pointer {
+auto array_append_n(Array & to, id n) -> Array::pointer {
 	result_capacity_more res = Array::t_capacity::more(to.impl(), n);
 	// in-place
 	if( !res ) {
@@ -188,8 +169,8 @@ auto append_n(Array & to, id n) -> Array::pointer {
 }
 
 template <typename Array>
-auto insert_n(Array & to, id pos, id n) -> Array::pointer {
-	if( pos >= to->count_ ) return append_n(to, n);
+auto array_insert_n(Array & to, id pos, id n) -> Array::pointer {
+	if( pos >= to->count_ ) return array_append_n(to, n);
 	result_capacity_more res = Array::t_capacity::more(to.impl(), n);
 	id rest = to->count_ - pos;
 	// in-place

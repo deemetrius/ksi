@@ -12,6 +12,7 @@
 			],
 			"each_plain" : [
 				"cstring",
+				"type_traits",
 				"compare",
 				"utility",
 				"string_view",

@@ -10,8 +10,16 @@ export namespace just {
 namespace closers {
 
 template <typename T>
+struct simple_none {
+	using const_pointer = const T *;
+
+	static void close(const_pointer) {}
+};
+
+template <typename T>
 struct simple_destructor {
-	using pointer = T *;
+	using type = T;
+	using pointer = type *;
 
 	static void close(pointer h) { h->~type(); }
 };

@@ -2,6 +2,7 @@ module;
 
 export module just.text;
 export import just.ref;
+import <concepts>;
 import <string_view>;
 import <iostream>;
 
@@ -57,6 +58,8 @@ struct basic_text {
 	using t_ref = ref<const t_impl_base,
 		traits_ref_cnt<false, closers::compound_cnt_call_deleter<false>::closer>
 	>;
+
+	friend void swap(basic_text & t1, basic_text & t2) { std::ranges::swap(t1.ref_, t2.ref_); }
 
 	t_ref ref_;
 

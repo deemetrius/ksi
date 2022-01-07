@@ -2,7 +2,7 @@ module;
 
 export module just.ref;
 export import just.common;
-import <string_view>;
+import <concepts>;
 import <utility>;
 
 export namespace just {
@@ -126,9 +126,9 @@ struct traits_ref_unique {
 		using ref_base = bases::with_handle_mutable<T>;
 		using pointer = T *;
 
-		static void accept_init(pointer & to, pointer & from) { std::swap(to, from); }
+		static void accept_init(pointer & to, pointer & from) { std::ranges::swap(to, from); }
 
-		static void accept(pointer & to, pointer & from) { std::swap(to, from); }
+		static void accept(pointer & to, pointer & from) { std::ranges::swap(to, from); }
 	};
 };
 
@@ -167,7 +167,7 @@ struct ref :
 	using base = traits::ref_base;
 	using pointer = traits::pointer;
 
-	friend void swap(ref & r1, ref & r2) { std::swap(r1.h_, r2.h_); }
+	friend void swap(ref & r1, ref & r2) { std::ranges::swap(r1.h_, r2.h_); }
 
 	ref(pointer h) : base{h} {}
 	ref & operator = (pointer h) {

@@ -3,6 +3,7 @@ module;
 export module just.array;
 export import just.ref;
 import <cstring>;
+import <concepts>;
 import <type_traits>;
 import <iostream>;
 
@@ -118,16 +119,17 @@ struct array {
 	using type = T;
 	using pointer = type *;
 	using t_capacity = Capacity;
+	static constexpr bool is_special = ! std::is_same_v<Closer<T>, closers::simple_none<T> >;
 	using t_impl = std::conditional_t<
-		std::is_same_v<Closer<T>, closers::simple_none<T> >,
-		detail::impl_array<type>,
-		detail::impl_array_special<type, closers::range_compound<Closer>::template closer>
+		is_special,
+		detail::impl_array_special<type, closers::range_compound<Closer>::template closer>,
+		detail::impl_array<type>
 	>;
 	using t_ref = ref<t_impl,
 		traits_ref_cnt<false, closers::compound_cnt<false, closers::simple_call_deleter>::closer>
 	>;
 	
-	friend void swap(array & r1, array & r2) { swap(r1.ref_, r2.ref_); }
+	friend void swap(array & r1, array & r2) { std::ranges::swap(r1.ref_, r2.ref_); }
 
 	t_ref ref_;
 
@@ -156,7 +158,7 @@ auto array_append_n(Array & to, id n) -> Array::pointer {
 	// was empty
 	if( !to ) {
 		from->count_ = res.count_;
-		to = from;
+		std::ranges::swap(to, from);
 		return to.data();
 	}
 	// copy data
@@ -164,7 +166,7 @@ auto array_append_n(Array & to, id n) -> Array::pointer {
 	id old_count = to->count_;
 	to->count_ = 0;
 	from->count_ = res.count_;
-	to = from;
+	std::ranges::swap(to, from);
 	return to.data() + old_count;
 }
 
@@ -189,8 +191,54 @@ auto array_insert_n(Array & to, id pos, id n) -> Array::pointer {
 	}
 	to->count_ = 0;
 	from->count_ = res.count_;
-	to = from;
+	std::ranges::swap(to, from);
 	return ret;
+}
+
+namespace detail {
+
+template <typename Array>
+inline void impl_array_remove_last_n(Array & to, id pos) {
+	if constexpr( Array::is_special ) {
+		Array::t_impl::t_range_closer::close_range( to->get_reverse_range(pos) );
+	}
+	to->count_ = pos;
+}
+
+} // ns detail
+
+template <typename Array>
+void array_remove_last_n(Array & to, id n = 1) {
+	id pos = to->count_ - n;
+	detail::impl_array_remove_last_n(to, pos);
+}
+
+template <typename Array>
+void array_remove_n(Array & to, id pos, id n = 1) {
+	if( pos + n < to->count_ ) {
+		if constexpr( Array::is_special ) {
+			Array::t_impl::t_range_closer::close_range( to->get_reverse_range(pos, n) );
+		}
+		typename Array::pointer dest = to.data() + pos;
+		std::memmove(dest, dest + n, Array::stored_bytes(n) );
+		to->count_ -= n;
+	} else {
+		detail::impl_array_remove_last_n(to, pos);
+	}
+}
+
+template <typename Array>
+void array_clear(Array & to) {
+	if constexpr( Array::is_special ) {
+		Array::t_impl::t_range_closer::close_range( to->get_reverse_range() );
+	}
+	to->count_ = 0;
+}
+
+template <typename Array>
+void array_reset(Array & to, id capacity = Array::t_capacity::initial) {
+	Array from(capacity);
+	std::ranges::swap(to, from);
 }
 
 } // ns just

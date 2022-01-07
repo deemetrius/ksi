@@ -11,13 +11,14 @@
 				"${each}"
 			],
 			"each_plain" : [
-				"cstring",
 				"type_traits",
 				"concepts",
+				"compare",
 				"utility",
 				"string_view",
-				"algorithm",
-				"iostream"
+				"iostream",
+				"cstring",
+				"cwchar"
 			]
 		}
 	}

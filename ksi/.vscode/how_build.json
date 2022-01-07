@@ -20,6 +20,7 @@
 				"${workspace_dir}/src_just/just.common.cpp",
 				"${workspace_dir}/src_just/just.ref.cpp",
 				"${workspace_dir}/src_just/just.text.cpp",
+				"${workspace_dir}/src_just/just.text.actions.cpp",
 				"${workspace_dir}/src_just/just.array.cpp",
 				"${workspace_dir}/src_bin/main.cpp"
 			]
@@ -33,6 +34,7 @@
 				"${workspace_dir}/obj/src_just/just.common.o",
 				"${workspace_dir}/obj/src_just/just.ref.o",
 				"${workspace_dir}/obj/src_just/just.text.o",
+				"${workspace_dir}/obj/src_just/just.text.actions.o",
 				"${workspace_dir}/obj/src_just/just.array.o",
 				"${workspace_dir}/obj/src_bin/main.o",
 				"-s",

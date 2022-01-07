@@ -3,12 +3,17 @@ module;
 
 export module just.common;
 import <compare>;
-import <algorithm>;
+//import <algorithm>;
 
 export namespace just {
 
 using id = std::ptrdiff_t;
 using uid = std::size_t;
+
+template <typename From, typename To>
+constexpr void copy_n(From from, uid n, To to) {
+	for( uid i{}; i < n; ++i, ++from, ++to ) *to = *from;
+}
 
 template <typename C, uid N>
 struct fixed_string {
@@ -17,7 +22,7 @@ struct fixed_string {
 	type s_[N];
 
 	constexpr fixed_string(const type (&s)[N]) {
-		std::copy_n(s, N, s_);
+		copy_n(s, N, s_);
 	}
 };
 
@@ -46,8 +51,8 @@ struct reverse_iterator {
 		return it_ <=> it2.it_;
 	}
 	template <typename Iterator2>
-	constexpr bool operator != (const reverse_iterator<Iterator2> & it2) const {
-		return it_ != it2.it_;
+	constexpr bool operator == (const reverse_iterator<Iterator2> & it2) const {
+		return it_ == it2.it_;
 	}
 };
 

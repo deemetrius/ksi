@@ -198,7 +198,7 @@ auto array_insert_n(Array & to, id pos, id n) -> Array::pointer {
 namespace detail {
 
 template <typename Array>
-inline void impl_array_remove_last_n(Array & to, id pos) {
+inline void impl_array_remove_till_end(Array & to, id pos) {
 	if constexpr( Array::is_special ) {
 		Array::t_impl::t_range_closer::close_range( to->get_reverse_range(pos) );
 	}
@@ -208,9 +208,14 @@ inline void impl_array_remove_last_n(Array & to, id pos) {
 } // ns detail
 
 template <typename Array>
+void array_remove_till_end(Array & to, id pos) {
+	detail::impl_array_remove_till_end(to, pos);
+}
+
+template <typename Array>
 void array_remove_last_n(Array & to, id n = 1) {
 	id pos = to->count_ - n;
-	detail::impl_array_remove_last_n(to, pos);
+	detail::impl_array_remove_till_end(to, pos);
 }
 
 template <typename Array>
@@ -223,7 +228,7 @@ void array_remove_n(Array & to, id pos, id n = 1) {
 		std::memmove(dest, dest + n, Array::stored_bytes(n) );
 		to->count_ -= n;
 	} else {
-		detail::impl_array_remove_last_n(to, pos);
+		detail::impl_array_remove_till_end(to, pos);
 	}
 }
 

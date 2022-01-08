@@ -3,6 +3,7 @@ module;
 export module just.ref;
 export import just.common;
 import <concepts>;
+import <type_traits>;
 import <utility>;
 
 export namespace just {
@@ -19,9 +20,9 @@ struct simple_none {
 template <typename T>
 struct simple_destructor {
 	using type = T;
-	using pointer = type *;
+	using const_pointer = type *;
 
-	static void close(pointer h) { h->~type(); }
+	static void close(const_pointer h) { h->~type(); }
 };
 
 template <typename T>
@@ -45,14 +46,17 @@ struct simple_call_deleter {
 	static void close(const_pointer h) { h->deleter_(h); }
 };
 
-template <bool Check_null = true, template <typename T1> typename Closer = simple_one>
+template <bool Check_null = true, bool Const_close = false, template <typename T1> typename Closer = simple_one>
 struct compound_cnt {
 	template <typename T>
 	struct closer {
-		using t_closer = Closer<T>;
-		using pointer = T *;
+		using type = T;
+		using pointer = type *;
+		using const_pointer = type *;
+		using t_closer = Closer<type>;
+		using t_pass = std::conditional_t<Const_close, const_pointer, pointer>;
 
-		static void close(pointer h) {
+		static void close(t_pass h) {
 			if constexpr ( Check_null ) { if( h && h->refs_dec() ) t_closer::close(h); }
 			else { if( h->refs_dec() ) t_closer::close(h); }
 		}
@@ -63,11 +67,12 @@ template <bool Check_null = true>
 struct compound_cnt_call_deleter {
 	template <typename T>
 	struct closer {
-		using pointer = T *;
-		using const_pointer = const T *;
-		using tfn_deleter = decltype( std::declval<pointer>()->refs_dec() );
+		using type = T;
+		using pointer = type *;
+		using const_pointer = const type *;
+		//using tfn_deleter = decltype( std::declval<const_pointer>()->refs_dec() );
 
-		static void close(pointer h) {
+		static void close(const_pointer h) {
 			if constexpr ( Check_null ) {
 				if( h ) { if( auto deleter = h->refs_dec() ) deleter(h); }
 			} else { if( auto deleter = h->refs_dec() ) deleter(h); }
@@ -193,4 +198,4 @@ struct ref :
 	T & operator * () const { return *this->h_; }
 };
 
-} // ns
+} // ns just

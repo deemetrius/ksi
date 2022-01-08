@@ -13,7 +13,7 @@ namespace detail {
 template <typename C>
 struct impl_text_base {
 	using const_pointer = const C *;
-	using tfn_deleter = bases::with_deleter< impl_text_base<C> >::tfn_deleter;
+	using tfn_deleter = bases::with_deleter< const impl_text_base<C> >::tfn_deleter;
 
 	const_pointer cs_;
 	id len_;
@@ -28,21 +28,22 @@ struct impl_text_base {
 template <typename C>
 struct impl_text :
 	public impl_text_base<C>,
-	public bases::with_deleter< impl_text_base<C> >
+	public bases::with_deleter< const impl_text_base<C> >
 {
-	using base = impl_text_base<C>;
-	using const_pointer = const C *;
-	using pointer = C *;
+	using type = C;
+	using base = impl_text_base<type>;
+	using const_pointer = const type *;
+	using pointer = type *;
 	using tfn_deleter = base::tfn_deleter;
 
 	mutable id refs_ = 1;
-	pointer s_;
+	//pointer s_;
 
 	void refs_inc() const override { ++refs_; }
 	tfn_deleter refs_dec() const override { --refs_; return refs_ < 1 ? this->deleter_ : nullptr; }
 
-	impl_text(pointer s, id len) : base(s, len), s_(s) {}
-	~impl_text() { delete [] s_; }
+	impl_text(pointer s, id len) : base(s, len)/*, s_(s)*/ {}
+	~impl_text() { delete [] this->cs_; }
 };
 
 } // ns
@@ -69,11 +70,7 @@ struct basic_text {
 		return *this;
 	}
 
-	explicit basic_text(id len) {
-		pointer s;
-		ref_ = new t_impl{s = new type[len +1], len};
-		*s = 0;
-	}
+	basic_text(id len, pointer & s) : ref_( new t_impl(s = new type[len +1], len) ) { *s = 0; }
 
 	//
 	operator bool () const { return *ref_->cs_; }
@@ -88,6 +85,7 @@ std::basic_ostream<C> & operator << (std::basic_ostream<C, T> & os, const basic_
 
 using text = basic_text<char>;
 using wtext = basic_text<wchar_t>;
+//using utext = basic_text<char16_t>;
 
 namespace detail {
 
@@ -107,5 +105,12 @@ constexpr auto operator "" _jt () {
 	return &detail::static_data<V>::value;
 }
 
-} // ns
-} // ns
+} // ns text_literals
+
+/*struct omg {
+	static wtext text_implode(wtext tx) {
+		return tx;
+	}
+};*/
+
+} // ns just

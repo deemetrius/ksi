@@ -2,7 +2,7 @@
 	"win64:release" : {
 		"_prepare" : {
 			"dir": "${workspace_dir}/obj",
-			"command": "D:/prog/mingw64/bin/g++.exe",
+			"command": "g++.exe",
 			"args": [
 				"-std=c++20",
 				"-fmodules-ts",
@@ -11,6 +11,7 @@
 				"${each}"
 			],
 			"each_plain" : [
+				"initializer_list",
 				"type_traits",
 				"concepts",
 				"compare",

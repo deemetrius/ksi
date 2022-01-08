@@ -2,9 +2,9 @@ module;
 
 export module just.array;
 export import just.ref;
-import <cstring>;
 import <concepts>;
 import <type_traits>;
+import <cstring>;
 
 export namespace just {
 
@@ -34,7 +34,7 @@ struct range_compound {
 namespace detail {
 
 template <typename T>
-struct impl_array_closer {
+struct impl_array_allocator {
 	using type = T;
 	using const_pointer = const type *;
 	using pointer = type *;
@@ -53,16 +53,15 @@ template <typename T>
 struct impl_array :
 	public bases::with_ref_count,
 	public impl_array_base,
-	public ref<T, traits_ref_unique<impl_array_closer> >,
-	public bases::with_deleter< impl_array<T> >
+	public ref<T, traits_ref_unique<impl_array_allocator> >
 {
 	using type = T;
 	using const_pointer = const type *;
 	using pointer = type *;
-	using t_closer = impl_array_closer<type>;
-	using t_ref = ref<T, traits_ref_unique<impl_array_closer> >;
+	using t_allocator = impl_array_allocator<type>;
+	using t_ref = ref<T, traits_ref_unique<impl_array_allocator> >;
 
-	impl_array(id capacity) : impl_array_base{capacity}, t_ref( t_closer::allocate(capacity) ) {}
+	impl_array(id capacity) : impl_array_base{capacity}, t_ref( t_allocator::allocate(capacity) ) {}
 
 	// no copy
 	impl_array(const impl_array &) = delete;
@@ -82,11 +81,25 @@ struct impl_array :
 	t_reverse_range get_reverse_range(id from, id cnt) const { pointer it = this->h_ + from -1; return {it + cnt, it}; }
 };
 
+template <typename T>
+struct impl_array_simple :
+	public impl_array<T>,
+	public bases::with_deleter< impl_array_simple<T> >
+{
+	using base = impl_array<T>;
+
+	using base::base;
+};
+
 template <typename T, template <typename T1> typename Range_closer>
 struct impl_array_special :
-	public impl_array<T>
+	public impl_array<T>,
+	public bases::with_deleter< impl_array_special<T, Range_closer> >
 {
 	using t_range_closer = Range_closer<T>;
+	using base = impl_array<T>;
+
+	using base::base;
 
 	~impl_array_special() { t_range_closer::close_range( this->get_reverse_range() ); }
 };
@@ -122,10 +135,10 @@ struct array {
 	using t_impl = std::conditional_t<
 		is_special,
 		detail::impl_array_special<type, closers::range_compound<Closer>::template closer>,
-		detail::impl_array<type>
+		detail::impl_array_simple<type>
 	>;
 	using t_ref = ref<t_impl,
-		traits_ref_cnt<false, closers::compound_cnt<false, closers::simple_call_deleter>::closer>
+		traits_ref_cnt<false, closers::compound_cnt<false, false, closers::simple_call_deleter>::closer>
 	>;
 	
 	friend void swap(array & r1, array & r2) { std::ranges::swap(r1.ref_, r2.ref_); }
@@ -140,7 +153,7 @@ struct array {
 	bool operator ! () const { return !ref_->count_; }
 	pointer data() const { return ref_->h_; }
 	T & operator [] (id pos) const { return ref_->h_[pos]; }
-	static id stored_bytes(id cnt) { return cnt * t_impl::t_closer::item_size; }
+	static id stored_bytes(id cnt) { return cnt * t_impl::t_allocator::item_size; }
 	id stored_bytes() const { return stored_bytes(ref_->count_); }
 };
 

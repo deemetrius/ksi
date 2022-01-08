@@ -3,7 +3,6 @@ module;
 
 export module just.common;
 import <compare>;
-//import <algorithm>;
 
 export namespace just {
 
@@ -31,8 +30,8 @@ struct range {
 	IterBegin begin_;
 	IterEnd end_;
 
-	IterBegin begin() const { return begin_; }
-	IterEnd end() const { return end_; }
+	constexpr IterBegin begin() const { return begin_; }
+	constexpr IterEnd end() const { return end_; }
 };
 
 template <typename Iter>

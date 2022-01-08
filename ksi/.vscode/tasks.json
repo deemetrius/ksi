@@ -4,12 +4,12 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "cppbuild",
-			"label": "C/C++: g++.exe how_build workspace",
-			"command": "D:/prog/VertrigoServ/Php/php.exe",
+			"type": "shell",
+			"label": "C/C++: g++ how_build workspace",
+			"command": "${config:php.validate.executablePath}",
 			"args": [
 				"-c",
-				"D:/prog/VertrigoServ/Php/php_how_build.ini",
+				"${config:php.validate.ini_path}",
 				"-C",
 				"-q",
 				"-f",
@@ -30,15 +30,15 @@
 				"kind": "build",
 				"isDefault": true
 			},
-			"detail": "компилятор: D:/prog/mingw64/bin/g++.exe"
+			"detail": "compiler: g++"
 		},
 		{
-			"type": "cppbuild",
-			"label": "C/C++: g++.exe how_build libs",
-			"command": "D:/prog/VertrigoServ/Php/php.exe",
+			"type": "shell",
+			"label": "C/C++: g++ how_build libs",
+			"command": "${config:php.validate.executablePath}",
 			"args": [
 				"-c",
-				"D:/prog/VertrigoServ/Php/php_how_build.ini",
+				"${config:php.validate.ini_path}",
 				"-C",
 				"-q",
 				"-f",
@@ -56,7 +56,7 @@
 				"$gcc"
 			],
 			"group": "build",
-			"detail": "компилятор: D:/prog/mingw64/bin/g++.exe"
+			"detail": "compiler: g++"
 		}
 	]
 }

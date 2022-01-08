@@ -3,7 +3,7 @@
 		"_build" : {
 			"res": "windres.exe -J rc -O coff -i D:/prog/Dropbox/cpp/hive/ksi/res/res.rc -o ../obj_exe/res/res.res",
 			"dir": "${workspace_dir}/obj",
-			"command": "D:/prog/mingw64/bin/g++.exe",
+			"command": "g++.exe",
 			"args": [
 				"-Wall",
 				"-O3",
@@ -27,7 +27,7 @@
 		},
 		"_link" : {
 			"dir": "${workspace_dir}/obj",
-			"command": "D:/prog/mingw64/bin/g++.exe",
+			"command": "g++.exe",
 			"args": [
 				"-o",
 				"${workspace_dir}/bin/ksi.exe",

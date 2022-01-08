@@ -14,7 +14,7 @@
 			"cwd": "${workspaceFolder}",
 			"environment": [],
 			"console": "externalTerminal",
-			"preLaunchTask#": "C/C++: g++.exe how_build workspace"
+			"preLaunchTask#": "C/C++: g++ how_build workspace"
 		}
 	]
 }

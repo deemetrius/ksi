@@ -2,6 +2,7 @@ module;
 
 export module just.text.actions;
 export import just.text;
+//import just.array;
 //export import <initializer_list>;
 import <compare>;
 import <cstring>;
@@ -15,9 +16,9 @@ struct text_actions;
 template <>
 struct text_actions<char> {
 	using type = char;
-	using pointer = type *;
-	using const_pointer = const type *;
 	using t_text = basic_text<type>;
+	using pointer = t_text::pointer;
+	using const_pointer = t_text::const_pointer;
 
 	static id compare(const t_text & tx1, const t_text & tx2) {
 		return (tx1.ref_ == tx2.ref_) ? 0 : std::strcmp(tx1->cs_, tx2->cs_);
@@ -35,9 +36,9 @@ struct text_actions<char> {
 template <>
 struct text_actions<wchar_t> {
 	using type = wchar_t;
-	using pointer = type *;
-	using const_pointer = const type *;
 	using t_text = basic_text<type>;
+	using pointer = t_text::pointer;
+	using const_pointer = t_text::const_pointer;
 
 	static id compare(const t_text & tx1, const t_text & tx2) {
 		return (tx1.ref_ == tx2.ref_) ? 0 : std::wcscmp(tx1->cs_, tx2->cs_);
@@ -108,15 +109,16 @@ struct text_no_case {
 	return ret;
 }*/
 
-struct omg {
-	/*static just::array<bool, just::capacity_step<2, 2> > text_implode(just::array<bool, just::capacity_step<2, 2> > arr) {
-		return arr;
-	}*/
+/*struct omg {
+	using type = char;
+	using tt = just::basic_text<type>;
 
-	static inline bool text_implode(text tx) {
+	static tt text_implode(const tt & tx) {
 		using namespace text_literals;
-		return L""_jt;
+		return "1"_jt;
+		//just::array<bool, just::capacity_step<3, 4> > arr;
+		//return tx;
 	}
-};
+};*/
 
 } // ns just

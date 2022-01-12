@@ -3,7 +3,7 @@
         {
             "name": "Win32",
             "includePath": [
-				"D:/prog/mingw64/include/c++/11.2.0",
+				"D:/prog/mingw64/include/c++/11.2.0/**",
                 "${workspaceFolder}/**"
             ],
             "defines": [
@@ -22,7 +22,7 @@
             "cppStandard": "c++20",
             "browse": {
                 "path": [
-                    "D:/prog/mingw64/include/c++/11.2.0",
+                    "D:/prog/mingw64/include/c++/11.2.0/**",
 					"${workspaceFolder}/**"
                 ],
                 "limitSymbolsToIncludedHeaders": false

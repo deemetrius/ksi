@@ -46,13 +46,32 @@ struct simple_call_deleter {
 	static void close(const_pointer h) { h->deleter_(h); }
 };
 
+template <typename Cast, bool Const_close = false, template <typename T1> typename Closer = simple_one>
+struct compound_cast {
+	using target = Cast;
+	using target_pointer = target *;
+	using target_const_pointer = const target *;
+	using target_pass = std::conditional_t<Const_close, target_const_pointer, target_pointer>;
+	using t_closer = Closer<target>;
+
+	template <typename T>
+	struct closer {
+		using type = T;
+		using pointer = type *;
+		using const_pointer = const type *;
+		using t_pass = std::conditional_t<Const_close, const_pointer, pointer>;
+
+		static void close(t_pass h) { t_closer::close( static_cast<target_pass>(h) ); }
+	};
+};
+
 template <bool Check_null = true, bool Const_close = false, template <typename T1> typename Closer = simple_one>
 struct compound_cnt {
 	template <typename T>
 	struct closer {
 		using type = T;
 		using pointer = type *;
-		using const_pointer = type *;
+		using const_pointer = const type *;
 		using t_closer = Closer<type>;
 		using t_pass = std::conditional_t<Const_close, const_pointer, pointer>;
 
@@ -174,7 +193,7 @@ struct ref :
 
 	friend void swap(ref & r1, ref & r2) { std::ranges::swap(r1.h_, r2.h_); }
 
-	ref(pointer h) : base{h} {}
+	inline ref(pointer h) : base{h} {}
 	ref & operator = (pointer h) {
 		traits::close(this->h_);
 		this->h_ = h;
@@ -183,7 +202,7 @@ struct ref :
 
 	//
 	ref() = default;
-	~ref() { traits::close(this->h_); }
+	inline ~ref() { traits::close(this->h_); }
 
 	// copy
 	ref(const ref & r) { traits::accept_init(this->h_, r.h_); }
@@ -197,5 +216,8 @@ struct ref :
 	pointer operator -> () const { return this->h_; }
 	T & operator * () const { return *this->h_; }
 };
+
+//template <typename T, typename Traits>
+//inline ref<T, Traits>::~ref() { traits::close(this->h_); }
 
 } // ns just

@@ -1,3 +1,6 @@
+module;
+
+export module try_main;
 import just.text.actions;
 import just.array;
 import <iostream>;
@@ -6,10 +9,11 @@ int main() {
 	{
 		using namespace just::text_literals;
 		just::wtext tx = L"hello"_jt;
-		std::wcout << tx->cs_ << L"\n";
-		std::wcout << (just::text_no_case{tx} == L"hEllo"_jt ? L'y' : L'n') << L"\n";
-		just::wtext tx2 = L"123"_jt;
-		tx2 = tx;
+		just::text tx2 = "1"_jt;
+		//std::wcout << tx->cs_ << L"\n";
+		//std::wcout << (just::text_no_case{tx} == L"hEllo"_jt ? L'y' : L'n') << L"\n";
+		//just::wtext tx2 = L"123"_jt;
+		//tx2 = tx;
 		//tx = just::text_implode({tx, L" ;"_jt});
 	}{
 		just::array<bool, just::capacity_step<3, 4> > arr;

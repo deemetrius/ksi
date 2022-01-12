@@ -11,16 +11,21 @@ export namespace just {
 namespace detail {
 
 template <typename C>
+struct impl_text;
+
+template <typename C>
 struct impl_text_base {
-	using const_pointer = const C *;
-	using tfn_deleter = bases::with_deleter< const impl_text_base<C> >::tfn_deleter;
+	using type = C;
+	using pointer = type *;
+	using const_pointer = const type *;
+	using t_with = bases::with_deleter<const impl_text_base<C>, closers::compound_cast<const impl_text<C>, true>::template closer>;
+	using tfn_deleter = t_with::tfn_deleter;
 
 	const_pointer cs_;
 	id len_;
 
-	constexpr virtual ~impl_text_base() = default;
-	constexpr virtual void refs_inc() const {}
-	constexpr virtual tfn_deleter refs_dec() const { return nullptr; }
+	virtual void refs_inc() const {}
+	virtual tfn_deleter refs_dec() const { return nullptr; }
 
 	constexpr impl_text_base(const_pointer cs, id len) : cs_(cs), len_(len) {}
 };
@@ -28,12 +33,12 @@ struct impl_text_base {
 template <typename C>
 struct impl_text :
 	public impl_text_base<C>,
-	public bases::with_deleter< const impl_text_base<C> >
+	public impl_text_base<C>::t_with
 {
 	using type = C;
 	using base = impl_text_base<type>;
-	using const_pointer = const type *;
-	using pointer = type *;
+	using pointer = base::pointer;
+	using const_pointer = base::const_pointer;
 	using tfn_deleter = base::tfn_deleter;
 
 	mutable id refs_ = 1;
@@ -51,20 +56,19 @@ struct impl_text :
 template <typename C>
 struct basic_text {
 	using type = C;
-	using pointer = type *;
-	using const_pointer = const type *;
-	//
 	using t_impl_base = detail::impl_text_base<type>;
 	using t_impl = detail::impl_text<type>;
 	using t_ref = ref<const t_impl_base,
 		traits_ref_cnt<false, closers::compound_cnt_call_deleter<false>::closer>
 	>;
+	using pointer = t_impl_base::pointer;
+	using const_pointer = t_impl_base::const_pointer;
 
 	friend void swap(basic_text & t1, basic_text & t2) { std::ranges::swap(t1.ref_, t2.ref_); }
 
 	t_ref ref_;
 
-	basic_text(const t_impl_base * impl) : ref_(impl) {}
+	inline basic_text(const t_impl_base * impl) : ref_(impl) {}
 	basic_text & operator = (const t_impl_base * impl) {
 		ref_ = impl;
 		return *this;
@@ -89,11 +93,14 @@ using wtext = basic_text<wchar_t>;
 
 namespace detail {
 
+template <typename T> T plain(const T &);
+
 template <fixed_string V>
 struct static_data {
-	using type = std::remove_cvref_t<decltype(V)>;
-	using t_impl_base = basic_text<typename type::type>::t_impl_base;
-	static constexpr const t_impl_base value{V.s_, type::len};
+	using type = decltype( plain(*V.s_) );
+	using t_impl_base = basic_text<type>::t_impl_base;
+	
+	static constexpr t_impl_base value{V.s_, /*type::len*/ V.len};
 };
 
 } // ns
@@ -106,11 +113,5 @@ constexpr auto operator "" _jt () {
 }
 
 } // ns text_literals
-
-/*struct omg {
-	static wtext text_implode(wtext tx) {
-		return tx;
-	}
-};*/
 
 } // ns just

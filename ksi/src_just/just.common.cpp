@@ -23,6 +23,8 @@ struct fixed_string {
 	constexpr fixed_string(const type (&s)[N]) {
 		copy_n(s, N, s_);
 	}
+
+	//constexpr uid size() const { return len; }
 };
 
 template <typename IterBegin, typename IterEnd = IterBegin>

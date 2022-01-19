@@ -42,7 +42,10 @@ struct impl_array_allocator {
 	enum : uid { item_size = sizeof(type) };
 
 	static pointer allocate(id capacity) { return reinterpret_cast<pointer>(new char[capacity * item_size]); }
-	static void close(pointer h) { delete [] reinterpret_cast<char *>(h); }
+	static void deallocate(pointer h) { delete [] reinterpret_cast<char *>(h); }
+	static void close(pointer h) {}
+
+	using tfn_deallocator = decltype(&deallocate);
 };
 
 struct impl_array_base {
@@ -51,9 +54,8 @@ struct impl_array_base {
 
 template <typename T>
 struct impl_array :
-	public bases::with_ref_count,
-	public impl_array_base,
-	public ref<T, traits_ref_unique<impl_array_allocator> >
+	public ref<T, traits_ref_unique<impl_array_allocator> >,
+	public impl_array_base
 {
 	using type = T;
 	using const_pointer = const type *;
@@ -61,11 +63,20 @@ struct impl_array :
 	using t_allocator = impl_array_allocator<type>;
 	using t_ref = ref<T, traits_ref_unique<impl_array_allocator> >;
 
-	impl_array(id capacity) : impl_array_base{capacity}, t_ref( t_allocator::allocate(capacity) ) {}
+	t_allocator::tfn_deallocator deallocator_ = t_allocator::deallocate;
+
+	impl_array(id capacity) : t_ref( t_allocator::allocate(capacity) ), impl_array_base{capacity} {}
+	~impl_array() { deallocator_(this->h_); }
 
 	// no copy
 	impl_array(const impl_array &) = delete;
 	impl_array & operator = (const impl_array &) = delete;
+
+	friend void swap(impl_array & r1, impl_array & r2) {
+		std::ranges::swap( static_cast<impl_array_base &>(r1), static_cast<impl_array_base &>(r2) );
+		std::ranges::swap( static_cast<t_ref &>(r1), static_cast<t_ref &>(r2) );
+		std::ranges::swap(r1.deallocator_, r2.deallocator_);
+	}
 
 	// range-for helpers
 	using t_range = range<pointer>;
@@ -84,7 +95,8 @@ struct impl_array :
 template <typename T>
 struct impl_array_simple :
 	public impl_array<T>,
-	public bases::with_deleter< impl_array_simple<T> >
+	public bases::with_deleter< impl_array_simple<T> >,
+	public bases::with_ref_count
 {
 	using base = impl_array<T>;
 
@@ -94,7 +106,8 @@ struct impl_array_simple :
 template <typename T, template <typename T1> typename Range_closer>
 struct impl_array_special :
 	public impl_array<T>,
-	public bases::with_deleter< impl_array_special<T, Range_closer> >
+	public bases::with_deleter< impl_array_special<T, Range_closer> >,
+	public bases::with_ref_count
 {
 	using t_range_closer = Range_closer<T>;
 	using base = impl_array<T>;
@@ -151,6 +164,7 @@ struct array {
 
 	array(id capacity = t_capacity::initial) : ref_( new t_impl(capacity) ) {}
 
+	t_impl::base & base() const { return *ref_.h_; }
 	t_impl * impl() const { return ref_.h_; }
 	t_impl * operator -> () const { return ref_.h_; }
 	operator bool () const { return ref_->count_; }
@@ -176,7 +190,7 @@ auto array_append_n(Array & to, id n) -> Array::pointer {
 	// was empty
 	if( !to ) {
 		from->count_ = res.count_;
-		std::ranges::swap(to, from);
+		std::ranges::swap( to.base(), from.base() );
 		return to.data();
 	}
 	// copy data
@@ -184,7 +198,7 @@ auto array_append_n(Array & to, id n) -> Array::pointer {
 	id old_count = to->count_;
 	to->count_ = 0;
 	from->count_ = res.count_;
-	std::ranges::swap(to, from);
+	std::ranges::swap( to.base(), from.base() );
 	return to.data() + old_count;
 }
 
@@ -209,7 +223,7 @@ auto array_insert_n(Array & to, id pos, id n) -> Array::pointer {
 	}
 	to->count_ = 0;
 	from->count_ = res.count_;
-	std::ranges::swap(to, from);
+	std::ranges::swap( to.base(), from.base() );
 	return ret;
 }
 
@@ -260,8 +274,9 @@ void array_clear(Array & to) {
 
 template <typename Array>
 void array_reset(Array & to, id capacity = Array::t_capacity::initial) {
-	Array from(capacity);
-	std::ranges::swap(to, from);
+	//Array from(capacity);
+	//std::ranges::swap(to, from);
+	to.ref_ = new Array::t_impl(capacity);
 }
 
 } // ns just

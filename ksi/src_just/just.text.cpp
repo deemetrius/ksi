@@ -68,7 +68,7 @@ struct basic_text {
 
 	t_ref ref_;
 
-	inline basic_text(const t_impl_base * impl) : ref_(impl) {}
+	basic_text(const t_impl_base * impl) : ref_(impl) {}
 	basic_text & operator = (const t_impl_base * impl) {
 		ref_ = impl;
 		return *this;
@@ -89,7 +89,6 @@ std::basic_ostream<C> & operator << (std::basic_ostream<C, T> & os, const basic_
 
 using text = basic_text<char>;
 using wtext = basic_text<wchar_t>;
-//using utext = basic_text<char16_t>;
 
 namespace detail {
 
@@ -100,7 +99,7 @@ struct static_data {
 	using type = decltype( plain(*V.s_) );
 	using t_impl_base = basic_text<type>::t_impl_base;
 	
-	static constexpr t_impl_base value{V.s_, /*type::len*/ V.len};
+	static constexpr t_impl_base value{V.s_, V.len};
 };
 
 } // ns

@@ -193,7 +193,7 @@ struct ref :
 
 	friend void swap(ref & r1, ref & r2) { std::ranges::swap(r1.h_, r2.h_); }
 
-	inline ref(pointer h) : base{h} {}
+	ref(pointer h) : base{h} {}
 	ref & operator = (pointer h) {
 		traits::close(this->h_);
 		this->h_ = h;
@@ -202,7 +202,7 @@ struct ref :
 
 	//
 	ref() = default;
-	inline ~ref() { traits::close(this->h_); }
+	~ref() { traits::close(this->h_); }
 
 	// copy
 	ref(const ref & r) { traits::accept_init(this->h_, r.h_); }
@@ -216,8 +216,5 @@ struct ref :
 	pointer operator -> () const { return this->h_; }
 	T & operator * () const { return *this->h_; }
 };
-
-//template <typename T, typename Traits>
-//inline ref<T, Traits>::~ref() { traits::close(this->h_); }
 
 } // ns just

@@ -42,7 +42,7 @@ struct impl_array_allocator {
 	enum : uid { item_size = sizeof(type) };
 
 	static pointer allocate(id capacity) { return reinterpret_cast<pointer>(new char[capacity * item_size]); }
-	static void close(const_pointer h) { delete [] reinterpret_cast<const char *>(h); }
+	static void close(pointer h) { delete [] reinterpret_cast<char *>(h); }
 };
 
 struct impl_array_base {
@@ -106,6 +106,8 @@ struct impl_array_special :
 
 } // ns detail
 
+// capacity
+
 struct result_capacity_more {
 	id count_;
 	bool flag_ = false;
@@ -125,6 +127,8 @@ struct capacity_step {
 		return {new_count, true, new_count + step};
 	}
 };
+
+// array
 
 template <typename T, typename Capacity, template <typename T1> typename Closer = closers::simple_none>
 struct array {
@@ -156,6 +160,8 @@ struct array {
 	static id stored_bytes(id cnt) { return cnt * t_impl::t_allocator::item_size; }
 	id stored_bytes() const { return stored_bytes(ref_->count_); }
 };
+
+// actions
 
 template <typename Array>
 auto array_append_n(Array & to, id n) -> Array::pointer {

@@ -1,6 +1,3 @@
-module;
-
-export module try_main;
 import just.text.actions;
 import just.array;
 import <iostream>;

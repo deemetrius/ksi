@@ -150,6 +150,8 @@ struct traits_ref_unique {
 		using ref_base = bases::with_handle_mutable<T>;
 		using pointer = T *;
 
+		static constexpr bool allow_default = true;
+
 		static void accept_init(pointer & to, pointer & from) { std::ranges::swap(to, from); }
 
 		static void accept(pointer & to, pointer & from) { std::ranges::swap(to, from); }
@@ -165,6 +167,8 @@ struct traits_ref_cnt {
 		using ref_base = bases::with_handle<T>;
 		using t_closer = Closer<T>;
 		using pointer = T *;
+
+		static constexpr bool allow_default = Check_null;
 
 		static void accept_init(pointer & to, pointer from) {
 			if constexpr ( Check_null ) { if( from ) from->refs_inc(); }
@@ -201,7 +205,7 @@ struct ref :
 	}
 
 	//
-	ref() = default;
+	ref() requires( traits::allow_default ) = default;
 	~ref() { traits::close(this->h_); }
 
 	// copy

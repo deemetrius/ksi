@@ -18,6 +18,7 @@
 				"utility",
 				"string_view",
 				"iostream",
+				"exception",
 				"cstring",
 				"cwchar"
 			]

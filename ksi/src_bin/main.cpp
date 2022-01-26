@@ -14,7 +14,8 @@ int main() {
 		//tx = just::text_implode({tx, L" ;"_jt});
 	}{
 		just::array<bool, just::capacity_step<3, 4> > arr;
-		{ const just::id n = 2; new( just::array_append_n(arr, n) ) bool[n]{true, false}; }
+		//{ const just::id n = 2; new( just::array_append_n(arr, n) ) bool[n]{true, false}; }
+		{ just::array_append_guard ag(arr, 2); new( ag.place ) bool[ag.quantity]{true, false}; }
 		{ const just::id n = 2; new( just::array_insert_n(arr, 1, n) ) bool[n]{true}; }
 		just::array_remove_last_n(arr, 1);
 		for( bool it : arr->get_range() ) std::wcout << it << L" ";

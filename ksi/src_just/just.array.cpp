@@ -5,6 +5,7 @@ export import just.ref;
 import <concepts>;
 import <type_traits>;
 import <cstring>;
+import <exception>;
 
 export namespace just {
 
@@ -63,6 +64,7 @@ struct impl_array :
 	using t_allocator = impl_array_allocator<type>;
 	using t_ref = ref<T, traits_ref_unique<impl_array_allocator> >;
 
+	// data
 	t_allocator::tfn_deallocator deallocator_ = t_allocator::deallocate;
 
 	impl_array(id capacity) : t_ref( t_allocator::allocate(capacity) ), impl_array_base{capacity} {}
@@ -122,7 +124,6 @@ struct impl_array_special :
 // capacity
 
 struct result_capacity_more {
-	id count_;
 	bool flag_ = false;
 	id capacity_;
 
@@ -134,10 +135,10 @@ template <id Initial, id Step>
 struct capacity_step {
 	enum : id { initial = Initial, step = Step };
 
-	static result_capacity_more more(const detail::impl_array_base * impl, id n) {
-		id new_count = impl->count_ + n;
-		if( new_count <= impl->capacity_ ) return {new_count};
-		return {new_count, true, new_count + step};
+	static result_capacity_more more(const detail::impl_array_base * impl, id n, id & new_count) {
+		new_count = impl->count_ + n;
+		if( new_count <= impl->capacity_ ) return {};
+		return {true, new_count + step};
 	}
 };
 
@@ -178,18 +179,52 @@ struct array {
 // actions
 
 template <typename Array>
+struct array_append_guard {
+private:
+	int uncaught_;
+	const Array * target_;
+	id new_count_;
+public:
+	const id quantity;
+	Array::pointer place;
+
+	array_append_guard(Array & to, const id n = 1) :
+		uncaught_( std::uncaught_exceptions() ),
+		target_(&to),
+		quantity(n)
+	{
+		if( result_capacity_more res = Array::t_capacity::more(to.impl(), n, new_count_) ) {
+			// changing amount_
+			Array from(res.capacity_);
+			if( to ) {
+				// copy data
+				std::memcpy(from.data(), to.data(), to.stored_bytes() );
+				from->count_ = to->count_;
+				to->count_ = 0;
+			}
+			std::ranges::swap( to.base(), from.base() );
+		}
+		place = to.data() + to->count_;
+	}
+	~array_append_guard() {
+		if( uncaught_ == std::uncaught_exceptions() ) (*target_)->count_ = new_count_;
+	}
+};
+
+template <typename Array>
 auto array_append_n(Array & to, id n) -> Array::pointer {
-	result_capacity_more res = Array::t_capacity::more(to.impl(), n);
+	id new_count;
+	result_capacity_more res = Array::t_capacity::more(to.impl(), n, new_count);
 	// in-place
 	if( !res ) {
 		id old_count = to->count_;
-		to->count_ = res.count_;
+		to->count_ = new_count;
 		return to.data() + old_count;
 	}
 	Array from(res.capacity_);
 	// was empty
 	if( !to ) {
-		from->count_ = res.count_;
+		from->count_ = new_count;
 		std::ranges::swap( to.base(), from.base() );
 		return to.data();
 	}
@@ -197,7 +232,7 @@ auto array_append_n(Array & to, id n) -> Array::pointer {
 	std::memcpy(from.data(), to.data(), to.stored_bytes() );
 	id old_count = to->count_;
 	to->count_ = 0;
-	from->count_ = res.count_;
+	from->count_ = new_count;
 	std::ranges::swap( to.base(), from.base() );
 	return to.data() + old_count;
 }
@@ -205,13 +240,14 @@ auto array_append_n(Array & to, id n) -> Array::pointer {
 template <typename Array>
 auto array_insert_n(Array & to, id pos, id n) -> Array::pointer {
 	if( pos >= to->count_ ) return array_append_n(to, n);
-	result_capacity_more res = Array::t_capacity::more(to.impl(), n);
+	id new_count;
+	result_capacity_more res = Array::t_capacity::more(to.impl(), n, new_count);
 	id rest = to->count_ - pos;
 	// in-place
 	if( !res ) {
 		typename Array::pointer src = to.data() + pos, dest = src + n;
 		if( rest ) std::memmove(dest, src, Array::stored_bytes(rest) );
-		to->count_ = res.count_;
+		to->count_ = new_count;
 		return src;
 	}
 	Array from(res.capacity_);
@@ -222,7 +258,7 @@ auto array_insert_n(Array & to, id pos, id n) -> Array::pointer {
 		std::memcpy(dest, src, Array::stored_bytes(rest) );
 	}
 	to->count_ = 0;
-	from->count_ = res.count_;
+	from->count_ = new_count;
 	std::ranges::swap( to.base(), from.base() );
 	return ret;
 }
@@ -274,8 +310,6 @@ void array_clear(Array & to) {
 
 template <typename Array>
 void array_reset(Array & to, id capacity = Array::t_capacity::initial) {
-	//Array from(capacity);
-	//std::ranges::swap(to, from);
 	to.ref_ = new Array::t_impl(capacity);
 }
 

@@ -42,12 +42,11 @@ struct impl_text :
 	using tfn_deleter = base::tfn_deleter;
 
 	mutable id refs_ = 1;
-	//pointer s_;
 
 	void refs_inc() const override { ++refs_; }
 	tfn_deleter refs_dec() const override { --refs_; return refs_ < 1 ? this->deleter_ : nullptr; }
 
-	impl_text(pointer s, id len) : base(s, len)/*, s_(s)*/ {}
+	impl_text(pointer & s, id len) : base(s = new type[len +1], len) {}
 	~impl_text() { delete [] this->cs_; }
 };
 
@@ -74,7 +73,7 @@ struct basic_text {
 		return *this;
 	}
 
-	basic_text(id len, pointer & s) : ref_( new t_impl(s = new type[len +1], len) ) { *s = 0; }
+	basic_text(id len, pointer & s) : ref_( new t_impl(s, len) ) { *s = 0; }
 
 	//
 	operator bool () const { return *ref_->cs_; }

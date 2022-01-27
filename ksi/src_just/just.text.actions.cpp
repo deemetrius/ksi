@@ -53,11 +53,11 @@ struct text_actions<wchar_t> {
 	}
 };
 
-template <typename C>
+template <typename C, template <typename C1> typename Actions = text_actions>
 struct text_with_case {
 	using type = C;
 	using t_text = basic_text<type>;
-	using t_actions = text_actions<type>;
+	using t_actions = Actions<type>;
 
 	t_text text_;
 
@@ -73,11 +73,11 @@ struct text_with_case {
 	}
 };
 
-template <typename C>
+template <typename C, template <typename C1> typename Actions = text_actions>
 struct text_no_case {
 	using type = C;
 	using t_text = basic_text<type>;
-	using t_actions = text_actions<type>;
+	using t_actions = Actions<type>;
 
 	t_text text_;
 

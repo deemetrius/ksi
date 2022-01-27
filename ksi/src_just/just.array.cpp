@@ -6,6 +6,7 @@ import <concepts>;
 import <type_traits>;
 import <cstring>;
 import <exception>;
+import <new>;
 
 export namespace just {
 
@@ -41,9 +42,10 @@ struct impl_array_allocator {
 	using pointer = type *;
 
 	enum : uid { item_size = sizeof(type) };
+	static constexpr std::align_val_t v_align{alignof(type)};
 
-	static pointer allocate(id capacity) { return reinterpret_cast<pointer>(new char[capacity * item_size]); }
-	static void deallocate(pointer h) { delete [] reinterpret_cast<char *>(h); }
+	static pointer allocate(id capacity) { return reinterpret_cast<pointer>(new(v_align) char[capacity * item_size]); }
+	static void deallocate(pointer h) { ::operator delete [] (reinterpret_cast<char *>(h), v_align); }
 	static void close(pointer h) {}
 
 	using tfn_deallocator = decltype(&deallocate);
@@ -178,23 +180,91 @@ struct array {
 
 // actions
 
+namespace detail {
+
 template <typename Array>
-struct array_append_guard {
+struct array_add_guard {
+	const id quantity;
+	Array::pointer place;
+
+	array_add_guard(const id n) : quantity(n) {}
+	virtual ~array_add_guard() = default;
+};
+
+template <typename Array>
+struct array_insert_guard :
+	public array_add_guard<Array>
+{
+private:
+	int uncaught_;
+	const Array * target_;
+	id new_count_, pos_;
+	result_capacity_more res_;
+	Array from_;
+public:
+	using base = array_add_guard<Array>;
+
+	array_insert_guard(Array & to, id pos, const id n) :
+		base(n),
+		uncaught_( std::uncaught_exceptions() ),
+		target_(&to),
+		pos_(pos),
+		res_( Array::t_capacity::more(to.impl(), n, new_count_) ),
+		from_(res_ ? res_.capacity_ : n)
+	{
+		this->place = from_.data();
+		if( res_ ) this->place += pos;
+	}
+	~array_insert_guard() override {
+		if( uncaught_ < std::uncaught_exceptions() ) return;
+		id rest = (*target_)->count_ - pos_;
+		if( res_ ) {
+			// more amount_
+			typename Array::pointer src = target_->data();
+			if( pos_ ) {
+				std::memcpy(from_.data(), src, Array::stored_bytes(pos_) );
+				src += pos_;
+			}
+			typename Array::pointer dest = this->place + this->quantity;
+			std::memcpy(dest, src, Array::stored_bytes(rest) );
+			(*target_)->count_ = 0;
+			from_->count_ = new_count_;
+			std::ranges::swap( target_->base(), from_.base() );
+		} else {
+			// in-place
+			typename Array::pointer src = target_->data() + pos_, dest = src + this->quantity;
+			std::memmove(dest, src, Array::stored_bytes(rest) );
+			std::memcpy(src, this->place, Array::stored_bytes(this->quantity) );
+			from_->count_ = 0;
+			(*target_)->count_ = new_count_;
+		}
+	}
+};
+
+template <typename T>
+constexpr T max(T a, T b) { return (a < b) ? b : a; }
+
+} // ns detail
+
+template <typename Array>
+struct array_append_guard :
+	public detail::array_add_guard<Array>
+{
 private:
 	int uncaught_;
 	const Array * target_;
 	id new_count_;
+
 public:
-	const id quantity;
-	Array::pointer place;
+	using base = detail::array_add_guard<Array>;
 
 	array_append_guard(Array & to, const id n = 1) :
+		base(n),
 		uncaught_( std::uncaught_exceptions() ),
-		target_(&to),
-		quantity(n)
+		target_(&to)
 	{
 		if( result_capacity_more res = Array::t_capacity::more(to.impl(), n, new_count_) ) {
-			// changing amount_
+			// more amount_
 			Array from(res.capacity_);
 			if( to ) {
 				// copy data
@@ -204,14 +274,42 @@ public:
 			}
 			std::ranges::swap( to.base(), from.base() );
 		}
-		place = to.data() + to->count_;
+		this->place = to.data() + to->count_;
 	}
-	~array_append_guard() {
-		if( uncaught_ == std::uncaught_exceptions() ) (*target_)->count_ = new_count_;
+	~array_append_guard() override {
+		if( uncaught_ >= std::uncaught_exceptions() ) (*target_)->count_ = new_count_;
 	}
 };
 
 template <typename Array>
+struct array_insert_guard {
+private:
+	using t_append = array_append_guard<Array>;
+	using t_insert = detail::array_insert_guard<Array>;
+	enum : uid {
+		local_size = detail::max(sizeof(t_append), sizeof(t_insert) ),
+		local_align = detail::max(alignof(t_append), alignof(t_insert) )
+	};
+	alignas(local_align)
+	char local_data_[local_size];
+
+public:
+	using t_add = detail::array_add_guard<Array>;
+
+	const t_add * impl() const { return reinterpret_cast<const t_add *>(local_data_); }
+	const t_add * operator -> () const { return impl(); }
+
+	array_insert_guard(Array & to, id pos, const id n = 1) {
+		if( pos >= to->count_ ) {
+			new(local_data_) t_append(to, n);
+		} else {
+			new(local_data_) t_insert(to, pos, n);
+		}
+	}
+	~array_insert_guard() { impl()->~t_add(); }
+};
+
+/*template <typename Array>
 auto array_append_n(Array & to, id n) -> Array::pointer {
 	id new_count;
 	result_capacity_more res = Array::t_capacity::more(to.impl(), n, new_count);
@@ -261,7 +359,7 @@ auto array_insert_n(Array & to, id pos, id n) -> Array::pointer {
 	from->count_ = new_count;
 	std::ranges::swap( to.base(), from.base() );
 	return ret;
-}
+}*/
 
 namespace detail {
 

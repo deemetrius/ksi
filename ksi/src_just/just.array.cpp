@@ -310,58 +310,6 @@ public:
 	~array_insert_guard() { impl()->~t_add(); }
 };
 
-/*template <typename Array>
-auto array_append_n(Array & to, id n) -> Array::pointer {
-	id new_count;
-	result_capacity_more res = Array::t_capacity::more(to.impl(), n, new_count);
-	// in-place
-	if( !res ) {
-		id old_count = to->count_;
-		to->count_ = new_count;
-		return to.data() + old_count;
-	}
-	Array from(res.capacity_);
-	// was empty
-	if( !to ) {
-		from->count_ = new_count;
-		std::ranges::swap( to.base(), from.base() );
-		return to.data();
-	}
-	// copy data
-	std::memcpy(from.data(), to.data(), to.stored_bytes() );
-	id old_count = to->count_;
-	to->count_ = 0;
-	from->count_ = new_count;
-	std::ranges::swap( to.base(), from.base() );
-	return to.data() + old_count;
-}
-
-template <typename Array>
-auto array_insert_n(Array & to, id pos, id n) -> Array::pointer {
-	if( pos >= to->count_ ) return array_append_n(to, n);
-	id new_count;
-	result_capacity_more res = Array::t_capacity::more(to.impl(), n, new_count);
-	id rest = to->count_ - pos;
-	// in-place
-	if( !res ) {
-		typename Array::pointer src = to.data() + pos, dest = src + n;
-		if( rest ) std::memmove(dest, src, Array::stored_bytes(rest) );
-		to->count_ = new_count;
-		return src;
-	}
-	Array from(res.capacity_);
-	if( pos ) std::memcpy(from.data(), to.data(), Array::stored_bytes(pos) );
-	typename Array::pointer ret = from.data() + pos, dest = ret + n;
-	if( rest ) {
-		typename Array::pointer src = to.data() + pos;
-		std::memcpy(dest, src, Array::stored_bytes(rest) );
-	}
-	to->count_ = 0;
-	from->count_ = new_count;
-	std::ranges::swap( to.base(), from.base() );
-	return ret;
-}*/
-
 namespace detail {
 
 template <typename Array>

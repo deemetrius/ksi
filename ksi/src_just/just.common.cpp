@@ -55,7 +55,7 @@ constexpr Result cast_ordering(std::partial_ordering from) {
 	using t_from = decltype(from);
 	return from == t_from::less ? Result::less : (
 		from == t_from::greater ? Result::greater : (
-			from == t_from::equivalent ? Result::equal_partial : Result::unordered
+			from == t_from::unordered ? Result::unordered : Result::equal_partial
 		)
 	);
 }

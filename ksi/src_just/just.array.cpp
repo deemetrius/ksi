@@ -202,6 +202,7 @@ private:
 	id new_count_, pos_;
 	result_capacity_more res_;
 	Array from_;
+
 public:
 	using base = array_add_guard<Array>;
 
@@ -291,6 +292,8 @@ private:
 		local_size = detail::max(sizeof(t_append), sizeof(t_insert) ),
 		local_align = detail::max(alignof(t_append), alignof(t_insert) )
 	};
+
+	// data
 	alignas(local_align)
 	char local_data_[local_size];
 

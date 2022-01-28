@@ -163,6 +163,7 @@ struct array {
 	
 	friend void swap(array & r1, array & r2) { std::ranges::swap(r1.ref_, r2.ref_); }
 
+	// data
 	t_ref ref_;
 
 	array(id capacity = t_capacity::initial) : ref_( new t_impl(capacity) ) {}
@@ -222,19 +223,19 @@ public:
 			// more amount_
 			typename Array::pointer src = target_->data();
 			if( pos_ ) {
-				std::memcpy(from_.data(), src, Array::stored_bytes(pos_) );
+				std::memcpy(reinterpret_cast<char *>( from_.data() ), src, Array::stored_bytes(pos_) );
 				src += pos_;
 			}
 			typename Array::pointer dest = this->place + this->quantity;
-			std::memcpy(dest, src, Array::stored_bytes(rest) );
+			std::memcpy(reinterpret_cast<char *>( dest ), src, Array::stored_bytes(rest) );
 			(*target_)->count_ = 0;
 			from_->count_ = new_count_;
 			std::ranges::swap( target_->base(), from_.base() );
 		} else {
 			// in-place
 			typename Array::pointer src = target_->data() + pos_, dest = src + this->quantity;
-			std::memmove(dest, src, Array::stored_bytes(rest) );
-			std::memcpy(src, this->place, Array::stored_bytes(this->quantity) );
+			std::memmove(reinterpret_cast<char *>( dest ), src, Array::stored_bytes(rest) );
+			std::memcpy(reinterpret_cast<char *>( src ), this->place, Array::stored_bytes(this->quantity) );
 			from_->count_ = 0;
 			(*target_)->count_ = new_count_;
 		}
@@ -268,7 +269,7 @@ public:
 			Array from(res.capacity_);
 			if( to ) {
 				// copy data
-				std::memcpy(from.data(), to.data(), to.stored_bytes() );
+				std::memcpy(reinterpret_cast<char *>( from.data() ), to.data(), to.stored_bytes() );
 				from->count_ = to->count_;
 				to->count_ = 0;
 			}
@@ -391,7 +392,7 @@ void array_remove_n(Array & to, id pos, id n = 1) {
 			Array::t_impl::t_range_closer::close_range( to->get_reverse_range(pos, n) );
 		}
 		typename Array::pointer dest = to.data() + pos;
-		std::memmove(dest, dest + n, Array::stored_bytes(n) );
+		std::memmove(reinterpret_cast<char *>( dest ), dest + n, Array::stored_bytes(n) );
 		to->count_ -= n;
 	} else {
 		detail::impl_array_remove_till_end(to, pos);

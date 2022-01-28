@@ -16,6 +16,7 @@
 				"type_traits",
 				"compare",
 				"utility",
+				"numeric",
 				"string_view",
 				"iostream",
 				"exception",

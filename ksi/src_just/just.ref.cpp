@@ -20,7 +20,7 @@ struct simple_none {
 template <typename T>
 struct simple_destructor {
 	using type = T;
-	using const_pointer = type *;
+	using const_pointer = const type *;
 
 	static void close(const_pointer h) { h->~type(); }
 };

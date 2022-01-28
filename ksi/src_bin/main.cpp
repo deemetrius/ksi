@@ -1,10 +1,17 @@
 import just.text.actions;
-import just.array;
+//import just.array;
+import just.dict;
 import <iostream>;
 
 template <typename Array>
 void print_items(const Array & arr) {
-	for( bool it : arr->get_range() ) std::wcout << it << L" ";
+	for( auto it : arr->get_range() ) std::wcout << it << L" ";
+	std::wcout << L"\n";
+}
+
+template <typename Array>
+void print_dict(const Array & arr) {
+	for( const auto & it : arr->get_range() ) std::wcout << it.key_ << L": " << it.value_ << L", ";
 	std::wcout << L"\n";
 }
 
@@ -25,6 +32,13 @@ int main() {
 		just::array_remove_last_n(arr, 1);
 		print_items(arr);
 		std::wcout << arr->capacity_ << L"\n";
+	}{
+		using t_dict = just::dict< just::id, bool, just::capacity_step<4, 4> >;
+		t_dict::t_internal dict;
+		t_dict::add(dict, 10, false);
+		t_dict::add(dict, 1, true);
+		print_dict(dict);
+		std::wcout << dict->capacity_ << L"\n";
 	}
 	return 0;
 }

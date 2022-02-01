@@ -36,7 +36,7 @@ int main() {
 		t_dict::add(dict, 10, L"ten"_jt);
 		t_dict::add(dict, 1, L"one"_jt);
 		print_dict(dict);
-		std::wcout << L"dict capacity = " << dict->capacity_ << L"\n";
+		std::wcout << L"dict capacity = " << dict->capacity_ << L"\n" << t_dict::contains(dict, 1) << L"\n";
 	}
 	return 0;
 }

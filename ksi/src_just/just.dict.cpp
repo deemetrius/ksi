@@ -8,113 +8,68 @@ import <numeric>;
 
 export namespace just {
 
+template <typename Pointer>
+struct dict_find_result {
+	id index_;
+	Pointer element_ = nullptr;
+
+	operator bool () const { return element_; }
+	bool operator ! () const { return !element_; }
+
+	Pointer operator -> () const { return element_; }
+};
+
 template <typename Key, typename Value>
-struct dict_node {
+struct dict_pair {
 	const Key key_;
 	Value value_;
 };
 
-template <typename T, bool Can_change = false>
-using arg_passing_t = std::conditional_t<std::is_scalar_v<T>, T,
-	std::conditional_t<Can_change, T &, const T &>
->;
+namespace detail {
 
-template <typename Data>
-struct dict_find_result {
-	id index_;
-	bool flag_ = false;
-	Data * data_ = nullptr;
-
-	operator bool () const { return flag_; }
-	bool operator ! () const { return !flag_; }
-
-	Data * operator -> () const { return data_; }
-};
-
-struct traits_dict_store_node {
-	template <typename Key, typename Value, typename Capacity>
-	struct inner {
-		using t_node = dict_node<Key, Value>;
-		using t_key = Key;
-		using t_value = Value;
-		using t_pass_key = arg_passing_t<t_key>;
-		using t_pass_value = arg_passing_t<t_value>;
-		using t_internal = std::conditional_t<
-			std::is_trivially_destructible_v<t_node>,
-			array<t_node, Capacity>,
-			array<t_node, Capacity, closers::simple_destructor>
-		>;
-		using pointer = t_internal::pointer;
-		using t_find_result = dict_find_result<t_node>;
-
-		static inline t_pass_key get_key(pointer h) {
-			return h->key_;
-		}
-
-		static inline void assign_new(pointer place, t_pass_key key, t_pass_value value) {
-			new( place ) t_node{key, value};
-		}
-
-		static inline void change_existing(t_find_result & res, t_pass_key key, t_pass_value value) {
-			res->value_ = value;
-		}
-	};
-};
-
-template <typename Key, typename Value, typename Capacity, typename Traits = traits_dict_store_node>
-struct dict {
-	using traits = Traits::template inner<Key, Value, Capacity>;
-	using t_key = traits::t_key;
-	using t_value = traits::t_value;
-	using t_pass_key = traits::t_pass_key;
-	using t_pass_value = traits::t_pass_value;
-	using t_internal = traits::t_internal;
-	using pointer = traits::pointer;
-	using t_find_result = traits::t_find_result;
+template <typename Container, typename Key,
+	template <typename Pointer1, typename Key1> typename Key_helper
+>
+struct dict_base {
+	using t_key = Key;
+	using t_pass_key = arg_passing_t<t_key>;
 	using t_ordering = std::compare_three_way_result_t<t_key>;
+	//
+	using t_internal = Container;
+	using pointer = t_internal::pointer;
+	using t_find_result = dict_find_result<pointer>;
+	//
+	using traits_key = Key_helper<pointer, t_key>;
 
 	static t_find_result find(const t_internal & to, t_pass_key key) {
 		// empty
 		if( !to ) return {0};
 		// last
 		id right = to->count_ -1;
-		pointer current = to.data() + right;
-		t_ordering order = key <=> traits::get_key(current);
+		pointer begin = to.data(), current = begin + right;
+		t_ordering order = key <=> traits_key::get_key(current);
 		if( order == t_ordering::greater ) return {to->count_};
-		if( order == t_ordering::equivalent ) return {right, true, current};
+		if( order == t_ordering::equivalent ) return {right, current};
 		// count 1
 		if( !right ) return {0};
 		// first
-		current = to.data();
-		order = key <=> traits::get_key(current);
+		current = begin;
+		order = key <=> traits_key::get_key(current);
 		if( order == t_ordering::less ) return {0};
-		if( order == t_ordering::equivalent ) return {0, true, current};
+		if( order == t_ordering::equivalent ) return {0, current};
 		// count 2
 		if( right == 1 ) return {1};
 		--right;
 		id left = 1, mid;
 		do {
 			mid = std::midpoint(left, right);
-			current = to.data() + mid;
-			order = key <=> traits::get_key(current);
+			current = begin + mid;
+			order = key <=> traits_key::get_key(current);
 			if( order == t_ordering::greater ) left = mid + 1;
 			else if( order == t_ordering::less ) right = mid - 1;
-			else return {mid, true, current};
+			else return {mid, current};
 		} while( left <= right );
 		return {mid + (order > 0 ? 1 : 0)};
-	}
-
-	static t_find_result add(t_internal & to, t_pass_key key, t_pass_value value) {
-		t_find_result res = find(to, key);
-		if( res ) {
-			traits::change_existing(res, key, value);
-		} else {
-			just::array_insert_guard ag(to, res.index_);
-			traits::assign_new(ag->place, key, value);
-			res.data_ = ag->place;
-			res.flag_ = true;
-		}
-		return res;
 	}
 
 	static bool remove(t_internal & to, t_pass_key key) {
@@ -123,6 +78,104 @@ struct dict {
 			return true;
 		}
 		return false;
+	}
+
+	static bool contains(const t_internal & to, t_pass_key key) { return find(to, key); }
+};
+
+//
+
+template <typename Pointer, typename Key>
+struct dict_pair_key_helper {
+	using t_pass_key = arg_passing_t<Key>;
+
+	static inline t_pass_key get_key(Pointer h) { return h->key_; }
+};
+
+template <typename Key, typename Value, typename Capacity>
+struct dict_pair_helper {
+	using t_element = dict_pair<Key, Value>;
+	using t_internal = std::conditional_t<
+		std::is_trivially_destructible_v<t_element>,
+		array<t_element, Capacity>,
+		array<t_element, Capacity, closers::simple_destructor>
+	>;
+	using use_base = dict_base<t_internal, Key, dict_pair_key_helper>;
+};
+
+//
+
+template <typename Pointer, typename Key>
+struct dict_set_key_helper {
+	using t_pass_key = arg_passing_t<Key>;
+
+	static inline t_pass_key get_key(Pointer h) { return *h; }
+};
+
+template <typename Key, typename Capacity>
+struct dict_set_helper {
+	using t_element = Key;
+	using t_internal = std::conditional_t<
+		std::is_trivially_destructible_v<t_element>,
+		array<t_element, Capacity>,
+		array<t_element, Capacity, closers::simple_destructor>
+	>;
+	using use_base = dict_base<t_internal, Key, dict_set_key_helper>;
+};
+
+} // ns detail
+
+template <typename Key, typename Value, typename Capacity>
+struct dict :
+	public detail::dict_pair_helper<Key, Value, Capacity>::use_base
+{
+	using helper = detail::dict_pair_helper<Key, Value, Capacity>;
+	using t_element = helper::t_element;
+	using t_internal =  helper::t_internal;
+	using base = helper::use_base;
+	using pointer = base::pointer;
+	using t_find_result = base::t_find_result;
+	//
+	using t_key = Key;
+	using t_value = Value;
+	using t_pass_key = arg_passing_t<t_key>;
+	using t_pass_value = arg_passing_t<t_value>;
+
+	static t_find_result add(t_internal & to, t_pass_key key, t_pass_value value) {
+		t_find_result res = base::find(to, key);
+		if( res ) {
+			res->value_ = value;
+		} else {
+			just::array_insert_guard ag(to, res.index_);
+			new( res.element_ = ag->place ) t_element{key, value};
+		}
+		return res;
+	}
+};
+
+template <typename Key, typename Capacity>
+struct dict_set :
+	public detail::dict_set_helper<Key, Capacity>::use_base
+{
+	using helper = detail::dict_set_helper<Key, Capacity>;
+	using t_element = helper::t_element;
+	using t_internal =  helper::t_internal;
+	using base = helper::use_base;
+	using pointer = base::pointer;
+	using t_find_result = base::t_find_result;
+	//
+	using t_key = Key;
+	using t_pass_key = arg_passing_t<t_key>;
+
+	static t_find_result add(t_internal & to, t_pass_key key) {
+		t_find_result res = base::find(to, key);
+		if( res ) {
+			*res.element_ = key;
+		} else {
+			just::array_insert_guard ag(to, res.index_);
+			new( res.element_ = ag->place ) t_element(key);
+		}
+		return res;
 	}
 };
 

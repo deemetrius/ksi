@@ -11,6 +11,14 @@ using uid = std::size_t;
 
 //
 
+template <typename T, bool Can_change = false>
+using arg_passing_t = std::conditional_t<std::is_scalar_v<T>, T,
+	std::conditional_t<Can_change, T &, const T &>
+>;
+
+//
+
+/*
 enum class compare_strict {
 	unordered = -2,
 
@@ -59,6 +67,7 @@ constexpr Result cast_ordering(std::partial_ordering from) {
 		)
 	);
 }
+*/
 
 //
 

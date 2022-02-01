@@ -3,6 +3,7 @@ module;
 
 export module just.common;
 import <compare>;
+import <concepts>;
 
 export namespace just {
 
@@ -17,6 +18,33 @@ using arg_passing_t = std::conditional_t<std::is_scalar_v<T>, T,
 >;
 
 //
+
+template <typename Result, std::unsigned_integral T>
+constexpr inline Result sign(T val) {
+	return val > 0;
+}
+
+template <typename Result, std::signed_integral T>
+constexpr inline Result sign(T val) {
+	return (val > 0) - (val < 0);
+}
+
+template <std::signed_integral Result, std::floating_point T>
+constexpr inline Result sign(T val, Result on_nan = 0) {
+	return (val == val) ? (val > 0.0) - (val < 0.0) : on_nan;
+}
+
+template <std::floating_point Result, std::floating_point T>
+constexpr inline Result sign(T val, Result on_nan = 0.0) {
+	return (val == val) ? (val > 0.0) - (val < 0.0) : on_nan;
+}
+
+template <typename Ordering>
+struct sign_to_ordering {
+	static constexpr const Ordering
+	values[]{Ordering::less, Ordering::equivalent, Ordering::greater},
+	* mid = values + 1;
+};
 
 /*
 enum class compare_strict {

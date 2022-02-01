@@ -39,7 +39,11 @@ struct traits_dict_store_node {
 		using t_value = Value;
 		using t_pass_key = arg_passing_t<t_key>;
 		using t_pass_value = arg_passing_t<t_value>;
-		using t_internal = array<t_node, Capacity, closers::simple_destructor>;
+		using t_internal = std::conditional_t<
+			std::is_trivially_destructible_v<t_node>,
+			array<t_node, Capacity>,
+			array<t_node, Capacity, closers::simple_destructor>
+		>;
 		using pointer = t_internal::pointer;
 		using t_find_result = dict_find_result<t_node>;
 

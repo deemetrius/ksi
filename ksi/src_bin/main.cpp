@@ -1,6 +1,7 @@
 import just.text.actions;
-//import just.array;
+import just.compare;
 import just.dict;
+import <compare>;
 import <iostream>;
 
 template <typename Array>
@@ -18,9 +19,15 @@ void print_dict(const Array & arr) {
 int main() {
 	using namespace just::text_literals;
 	{
+		std::cout << "test compare: " << just::to_underlying(
+			just::cast_ordering<just::compare_simple>(
+				1.0 <=> 0.0/0.0
+			)
+		) << "\n";
+	}{
 		just::wtext tx = L"hello"_jt;
 		just::text tx2 = "1"_jt;
-		std::wcout << (just::text_no_case{tx} == L"hEllo"_jt ? L'y' : L'n') << L"\n";
+		std::wcout << L"test text: " << (just::text_no_case{tx} == L"hEllo"_jt ? L'y' : L'n') << L"\n";
 	}{
 		just::array<bool, just::capacity_step<3, 4> > arr;
 		{ just::array_append_guard ag(arr, 2); new( ag.place ) bool[ag.quantity]{true, false}; }

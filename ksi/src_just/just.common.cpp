@@ -1,9 +1,10 @@
 module;
-#include <cstddef>
 
 export module just.common;
 import <compare>;
+import <type_traits>;
 import <concepts>;
+import <cstddef>;
 
 export namespace just {
 
@@ -19,83 +20,15 @@ using arg_passing_t = std::conditional_t<std::is_scalar_v<T>, T,
 
 //
 
-template <typename Result, std::unsigned_integral T>
-constexpr inline Result sign(T val) {
-	return val > 0;
+template <typename Enum>
+constexpr inline std::underlying_type_t<Enum> to_underlying(Enum val) noexcept {
+	return static_cast< std::underlying_type_t<Enum> >(val);
 }
 
-template <typename Result, std::signed_integral T>
-constexpr inline Result sign(T val) {
-	return (val > 0) - (val < 0);
-}
+//
 
-template <std::signed_integral Result, std::floating_point T>
-constexpr inline Result sign(T val, Result on_nan = 0) {
-	return (val == val) ? (val > 0.0) - (val < 0.0) : on_nan;
-}
-
-template <std::floating_point Result, std::floating_point T>
-constexpr inline Result sign(T val, Result on_nan = 0.0) {
-	return (val == val) ? (val > 0.0) - (val < 0.0) : on_nan;
-}
-
-template <typename Ordering>
-struct sign_to_ordering {
-	static constexpr const Ordering
-	values[]{Ordering::less, Ordering::equivalent, Ordering::greater},
-	* mid = values + 1;
-};
-
-/*
-enum class compare_strict {
-	unordered = -2,
-
-	less = -1,
-	greater = +1,
-
-	equal_strong = 0,
-	equal_weak = 2,
-	equal_partial = 3
-};
-
-enum class compare_simple {
-	less = -1,
-	equal_any = 0,
-	greater = +1,
-
-	equal_strong = equal_any,
-	equal_weak = equal_any,
-	equal_partial = equal_any,
-
-	unordered = less
-};
-
-template <typename Result>
-constexpr Result cast_ordering(std::strong_ordering from) {
-	using t_from = decltype(from);
-	return from == t_from::less ? Result::less : (
-		from == t_from::greater ? Result::greater : Result::equal_strong
-	);
-}
-
-template <typename Result>
-constexpr Result cast_ordering(std::weak_ordering from) {
-	using t_from = decltype(from);
-	return from == t_from::less ? Result::less : (
-		from == t_from::greater ? Result::greater : Result::equal_weak
-	);
-}
-
-template <typename Result>
-constexpr Result cast_ordering(std::partial_ordering from) {
-	using t_from = decltype(from);
-	return from == t_from::less ? Result::less : (
-		from == t_from::greater ? Result::greater : (
-			from == t_from::unordered ? Result::unordered : Result::equal_partial
-		)
-	);
-}
-*/
+template <typename T, typename ... U>
+concept is_any_of = ( std::same_as<T, U> || ... );
 
 //
 

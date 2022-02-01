@@ -22,7 +22,8 @@
 				"exception",
 				"new",
 				"cstring",
-				"cwchar"
+				"cwchar",
+				"cstddef"
 			]
 		}
 	}

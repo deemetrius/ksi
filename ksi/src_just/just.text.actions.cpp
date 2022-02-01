@@ -2,6 +2,7 @@ module;
 
 export module just.text.actions;
 export import just.text;
+import just.compare;
 //import just.array;
 //export import <initializer_list>;
 import <compare>;

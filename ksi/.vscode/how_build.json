@@ -18,6 +18,7 @@
 			"maybe_create_dir" : "${workspace_dir}/obj/${each.rel.dirname}",
 			"each" : [
 				"${workspace_dir}/src_just/just.common.cpp",
+				"${workspace_dir}/src_just/just.compare.cpp",
 				"${workspace_dir}/src_just/just.ref.cpp",
 				"${workspace_dir}/src_just/just.text.cpp",
 				"${workspace_dir}/src_just/just.array.cpp",
@@ -33,6 +34,7 @@
 				"-o",
 				"${workspace_dir}/bin/ksi.exe",
 				"${workspace_dir}/obj/src_just/just.common.o",
+				"${workspace_dir}/obj/src_just/just.compare.o",
 				"${workspace_dir}/obj/src_just/just.ref.o",
 				"${workspace_dir}/obj/src_just/just.text.o",
 				"${workspace_dir}/obj/src_just/just.text.actions.o",

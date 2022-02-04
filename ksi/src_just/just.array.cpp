@@ -56,30 +56,37 @@ struct impl_array_base {
 };
 
 template <typename T>
+struct impl_array_base_ex :
+	public impl_array_base
+{
+	using t_allocator = impl_array_allocator<T>;
+
+	// data
+	t_allocator::tfn_deallocator deallocator_ = t_allocator::deallocate;
+};
+
+template <typename T>
 struct impl_array :
 	public ref<T, traits_ref_unique<impl_array_allocator> >,
-	public impl_array_base
+	public impl_array_base_ex<T>
 {
 	using type = T;
 	using const_pointer = const type *;
 	using pointer = type *;
-	using t_allocator = impl_array_allocator<type>;
+	using base_ex = impl_array_base_ex<type>;
+	using t_allocator = base_ex::t_allocator;
 	using t_ref = ref<T, traits_ref_unique<impl_array_allocator> >;
 
-	// data
-	t_allocator::tfn_deallocator deallocator_ = t_allocator::deallocate;
-
-	impl_array(id capacity) : t_ref( t_allocator::allocate(capacity) ), impl_array_base{capacity} {}
-	~impl_array() { deallocator_(this->h_); }
+	impl_array(id capacity) : t_ref( t_allocator::allocate(capacity) ), base_ex{capacity} {}
+	~impl_array() { this->deallocator_(this->h_); }
 
 	// no copy
 	impl_array(const impl_array &) = delete;
 	impl_array & operator = (const impl_array &) = delete;
 
 	friend void swap(impl_array & r1, impl_array & r2) {
-		std::ranges::swap( static_cast<impl_array_base &>(r1), static_cast<impl_array_base &>(r2) );
+		std::ranges::swap( static_cast<base_ex &>(r1), static_cast<base_ex &>(r2) );
 		std::ranges::swap( static_cast<t_ref &>(r1), static_cast<t_ref &>(r2) );
-		std::ranges::swap(r1.deallocator_, r2.deallocator_);
 	}
 
 	// range-for helpers
@@ -87,12 +94,12 @@ struct impl_array :
 	using t_reverse_iterator = reverse_iterator<pointer>;
 	using t_reverse_range = range<t_reverse_iterator>;
 
-	t_range get_range() const { return {this->h_, this->h_ + count_}; }
-	t_range get_range(id from) const { return {this->h_ + from, this->h_ + count_}; }
+	t_range get_range() const { return {this->h_, this->h_ + this->count_}; }
+	t_range get_range(id from) const { return {this->h_ + from, this->h_ + this->count_}; }
 	t_range get_range(id from, id cnt) const { pointer it = this->h_ + from; return {it, it + cnt}; }
 
-	t_reverse_range get_reverse_range() const { pointer it = this->h_ -1; return {it + count_, it}; }
-	t_reverse_range get_reverse_range(id from) const { pointer it = this->h_ -1; return {it + count_, it + from}; }
+	t_reverse_range get_reverse_range() const { pointer it = this->h_ -1; return {it + this->count_, it}; }
+	t_reverse_range get_reverse_range(id from) const { pointer it = this->h_ -1; return {it + this->count_, it + from}; }
 	t_reverse_range get_reverse_range(id from, id cnt) const { pointer it = this->h_ + from -1; return {it + cnt, it}; }
 };
 
@@ -294,20 +301,19 @@ private:
 	};
 
 	// data
-	alignas(local_align)
-	char local_data_[local_size];
+	aligned_data<local_size, local_align> local_data_;
 
 public:
 	using t_add = detail::array_add_guard<Array>;
 
-	const t_add * impl() const { return reinterpret_cast<const t_add *>(local_data_); }
+	const t_add * impl() const { return reinterpret_cast<const t_add *>(&local_data_); }
 	const t_add * operator -> () const { return impl(); }
 
 	array_insert_guard(Array & to, id pos, const id n = 1) {
 		if( pos >= to->count_ ) {
-			new(local_data_) t_append(to, n);
+			new(&local_data_) t_append(to, n);
 		} else {
-			new(local_data_) t_insert(to, pos, n);
+			new(&local_data_) t_insert(to, pos, n);
 		}
 	}
 	~array_insert_guard() { impl()->~t_add(); }

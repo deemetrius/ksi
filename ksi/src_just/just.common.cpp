@@ -41,6 +41,8 @@ template <typename C, uid N>
 struct fixed_string {
 	using type = C;
 	enum n_size : uid { len = N -1 };
+
+	// data
 	type s_[N];
 
 	constexpr fixed_string(const type (&s)[N]) {
@@ -48,6 +50,11 @@ struct fixed_string {
 	}
 
 	//constexpr uid size() const { return len; }
+};
+
+template <uid N, uid Align>
+struct alignas(Align) aligned_data {
+	bool data_[N];
 };
 
 template <typename IterBegin, typename IterEnd = IterBegin>

@@ -46,6 +46,13 @@ struct simple_call_deleter {
 	static void close(const_pointer h) { h->deleter_(h); }
 };
 
+template <typename T>
+struct simple_call_deleter_maybe {
+	using const_pointer = const T *;
+
+	static void close(const_pointer h) { if( h ) h->deleter_(h); }
+};
+
 template <typename Cast, bool Const_close = false, template <typename T1> typename Closer = simple_one>
 struct compound_cast {
 	using target = Cast;
@@ -121,14 +128,14 @@ struct with_ref_count {
 	id refs_ = 1;
 
 	void refs_inc() { ++refs_; }
-	bool refs_dec() { --refs_; return refs_ < 1; }
+	bool refs_dec() { return --refs_ < 1; }
 };
 
 struct with_ref_count_mutable {
 	mutable id refs_ = 1;
 
 	void refs_inc() const { ++refs_; }
-	bool refs_dec() const { --refs_; return refs_ < 1; }
+	bool refs_dec() const { return --refs_ < 1; }
 };
 
 template <typename T, template <typename T1> typename Closer = closers::simple_one>
@@ -140,6 +147,8 @@ struct with_deleter {
 };
 
 } // ns bases
+
+// ref trait unique
 
 template <template <typename T1> typename Closer = closers::simple_one>
 struct traits_ref_unique {
@@ -157,6 +166,8 @@ struct traits_ref_unique {
 		static void accept(pointer & to, pointer & from) { std::ranges::swap(to, from); }
 	};
 };
+
+// ref trait cnt
 
 template <bool Check_null, template <typename T1> typename Closer>
 struct traits_ref_cnt {
@@ -185,7 +196,7 @@ struct traits_ref_cnt {
 	};
 };
 
-//
+// ref
 
 template <typename T, typename Traits>
 struct ref :

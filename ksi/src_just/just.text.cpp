@@ -44,7 +44,7 @@ struct impl_text :
 	mutable id refs_ = 1;
 
 	void refs_inc() const override { ++refs_; }
-	tfn_deleter refs_dec() const override { --refs_; return refs_ < 1 ? this->deleter_ : nullptr; }
+	tfn_deleter refs_dec() const override { return --refs_ < 1 ? this->deleter_ : nullptr; }
 
 	impl_text(pointer & s, id len) : base(s = new type[len +1], len) {}
 	~impl_text() { delete [] this->cs_; }

@@ -54,7 +54,10 @@ struct fixed_string {
 
 template <uid N, uid Align>
 struct alignas(Align) aligned_data {
-	bool data_[N];
+	using type = unsigned char;
+
+	// data
+	type data_[N];
 };
 
 template <typename IterBegin, typename IterEnd = IterBegin>

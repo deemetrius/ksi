@@ -9,16 +9,19 @@ enum class pointer_kind { weak, strong };
 
 namespace detail {
 
+// impl
+
 template <typename T, template <typename T1> typename Closer>
 struct impl_pointer {
 	using type = T;
 	using pointer = T *;
 	using t_closer = Closer<T>;
-	using t_deleter = bases::with_deleter< impl_pointer<T, Closer> >;
+	using t_deleter = bases::with_deleter< impl_pointer<T, closers::simple_one> >;
 	using tfn_deleter = t_deleter::tfn_deleter;
 
 	static constexpr pointer_kind
-	kind_some = pointer_kind::strong, kind_other = pointer_kind::weak;
+	kind_some = pointer_kind::strong,
+	kind_other = pointer_kind::weak;
 
 	// data
 	id refs_strong_, refs_weak_;
@@ -29,11 +32,14 @@ struct impl_pointer {
 	impl_pointer(const impl_pointer &) = delete;
 	impl_pointer & operator = (const impl_pointer &) = delete;
 
-	inline void close_only() { t_closer::close(h_); }
+	inline void close_only() {
+		if constexpr( t_closer::can_accept_null ) { t_closer::close(h_); }
+		else if( h_ ) { t_closer::close(h_); }
+	}
 	void close() { close_only(); h_ = nullptr; }
 	inline void init_care(pointer obj) { h_ = obj; }
 	void change_care(pointer obj) { close_only(); h_ = obj; }
-	void change(pointer obj) { if( refs_strong_ ) { close_only(); h_ = obj; } }
+	void change(pointer obj) { if( refs_strong_ ) change_care(obj); }
 
 	id refs_total() const { return refs_strong_ + refs_weak_; }
 
@@ -58,48 +64,41 @@ struct impl_pointer {
 	bool ref_dec(pointer_kind kind) { return (kind == kind_some) ? ref_inc<kind_some>() : ref_inc<kind_other>(); }
 };
 
-} // ns detail
-
-// strong
+// base
 
 template <typename T, template <typename T1> typename Closer>
-struct pointer_strong :
-	public bases::with_handle< detail::impl_pointer<T, Closer> >
-{
+struct pointer_base {
 	using type = T;
 	using pointer = type *;
-	using t_closer = Closer<type>;
 	using t_impl = detail::impl_pointer<type, Closer>;
 	using t_pointer = t_impl *;
-	using base = bases::with_handle<t_impl>;
 
-	static constexpr pointer_kind self_kind = pointer_kind::strong;
+	// data
+	t_pointer h_ = nullptr;
 
-	~pointer_strong() { decrease(); }
+	t_pointer impl() const { return h_; }
+	pointer data() const { return h_->h_; }
+	pointer operator -> () const { return h_->h_; }
+	type & operator * () const { return *h_->h_; }
+	operator bool () const { return h_->h_; }
+	bool operator ! () const { return !h_->h_; }
+};
 
-	// copy
-	pointer_strong(const pointer_strong & ptr) : base{ptr.h_} { increase(); }
-	pointer_strong & operator = (const pointer_strong & ptr) { assign( ptr.impl() ); return *this; }
+// base exact
 
-	// from other
-	pointer_strong(const base & ptr) : base{ptr.h_} { increase(); }
-	pointer_strong & operator = (const base & ptr) { assign( ptr.h_ ); return *this; }
+template <typename T, template <typename T1> typename Closer, pointer_kind Kind>
+struct pointer_exact :
+	public pointer_base<T, Closer>
+{
+	using base = pointer_base<T, Closer>;
+	using t_pointer = base::t_pointer;
+
+	static constexpr pointer_kind self_kind = Kind;
 
 	//
-	pointer_strong() : base{ new t_impl{1, 0} } {}
-	pointer_strong(pointer obj) : pointer_strong() { this->h_->init_care(obj); }
-	pointer_strong & operator = (pointer obj) {
-		this->h_->change_care(obj);
-		return *this;
-	}
+	~pointer_exact() { decrease(); }
 
-	t_pointer impl() const { return this->h_; }
-	pointer data() const { return this->h_->h_; }
-	pointer operator -> () const { return this->h_->h_; }
-	operator bool () const { return this->h_->h_; }
-	bool operator ! () const { return !this->h_->h_; }
-
-private:
+protected:
 	static inline void increase(t_pointer h) { h->template ref_inc<self_kind>(); }
 	inline void increase() { this->h_->template ref_inc<self_kind>(); }
 	inline void decrease() { if( this->h_->template ref_dec<self_kind>() ) this->h_->deleter_(this->h_); }
@@ -110,31 +109,58 @@ private:
 	}
 };
 
+} // ns detail
+
+// strong
+
+template <typename T, template <typename T1> typename Closer>
+struct pointer_strong :
+	public detail::pointer_exact<T, Closer, pointer_kind::strong>
+{
+	using base_exact = detail::pointer_exact<T, Closer, pointer_kind::strong>;
+	using base = base_exact::base;
+	using type = base::type;
+	using pointer = base::pointer;
+	using t_impl = base::t_impl;
+	using t_pointer = base::t_pointer;
+
+	// copy
+	pointer_strong(const pointer_strong & ptr) : base_exact{ptr.h_} { this->increase(); }
+	pointer_strong & operator = (const pointer_strong & ptr) { this->assign( ptr.impl() ); return *this; }
+
+	// from other
+	pointer_strong(const base & ptr) : base_exact{ptr.h_} { this->increase(); }
+	pointer_strong & operator = (const base & ptr) { this->assign( ptr.h_ ); return *this; }
+
+	//
+	pointer_strong() : base_exact{ new t_impl{1, 0} } {}
+	pointer_strong(pointer obj) : pointer_strong() { this->h_->init_care(obj); }
+	pointer_strong & operator = (pointer obj) {
+		this->h_->change_care(obj);
+		return *this;
+	}
+};
+
 // weak
 
 template <typename T, template <typename T1> typename Closer>
 struct pointer_weak :
-	public bases::with_handle< detail::impl_pointer<T, Closer> >
+	public detail::pointer_exact<T, Closer, pointer_kind::weak>
 {
-	using t_strong = pointer_strong<T, Closer>;
-	using type = t_strong::type;
-	using pointer = t_strong::pointer;
-	using t_closer = t_strong::t_closer;
-	using t_impl = t_strong::t_impl;
-	using t_pointer = t_strong::t_pointer;
-	using base = t_strong::base;
-
-	static constexpr pointer_kind self_kind = pointer_kind::weak;
-
-	~pointer_weak() { decrease(); }
+	using base_exact = detail::pointer_exact<T, Closer, pointer_kind::weak>;
+	using base = base_exact::base;
+	using type = base::type;
+	using pointer = base::pointer;
+	using t_impl = base::t_impl;
+	using t_pointer = base::t_pointer;
 
 	// copy
-	pointer_weak(const pointer_weak & ptr) : base{ptr.h_} { increase(); }
-	pointer_weak & operator = (const pointer_weak & ptr) { assign( ptr.impl() ); return *this; }
+	pointer_weak(const pointer_weak & ptr) : base_exact{ptr.h_} { this->increase(); }
+	pointer_weak & operator = (const pointer_weak & ptr) { this->assign( ptr.impl() ); return *this; }
 
 	// from other
-	pointer_weak(const base & ptr) : base{ptr.h_} { increase(); }
-	pointer_weak & operator = (const base & ptr) { assign( ptr.h_ ); return *this; }
+	pointer_weak(const base & ptr) : base_exact{ptr.h_} { this->increase(); }
+	pointer_weak & operator = (const base & ptr) { this->assign( ptr.h_ ); return *this; }
 
 	//
 	pointer_weak() = delete;
@@ -142,38 +168,19 @@ struct pointer_weak :
 		this->h_->change(obj);
 		return *this;
 	}
-
-	t_pointer impl() const { return this->h_; }
-	pointer data() const { return this->h_->h_; }
-	pointer operator -> () const { return this->h_->h_; }
-	operator bool () const { return this->h_->h_; }
-	bool operator ! () const { return !this->h_->h_; }
-
-private:
-	static inline void increase(t_pointer h) { h->template ref_inc<self_kind>(); }
-	inline void increase() { this->h_->template ref_inc<self_kind>(); }
-	inline void decrease() { this->h_->template ref_dec<self_kind>(); }
-	inline void assign(t_pointer h) {
-		increase(h);
-		decrease();
-		this->h_ = h;
-	}
 };
 
 // semi
 
 template <typename T, template <typename T1> typename Closer>
 struct pointer_semi :
-	public bases::with_handle< detail::impl_pointer<T, Closer> >
+	public detail::pointer_base<T, Closer>
 {
-	using t_strong = pointer_strong<T, Closer>;
-	using t_weak = pointer_weak<T, Closer>;
-	using type = t_strong::type;
-	using pointer = t_strong::pointer;
-	using t_closer = t_strong::t_closer;
-	using t_impl = t_strong::t_impl;
-	using t_pointer = t_strong::t_pointer;
-	using base = t_strong::base;
+	using base = detail::pointer_base<T, Closer>;
+	using type = base::type;
+	using pointer = base::pointer;
+	using t_impl = base::t_impl;
+	using t_pointer = base::t_pointer;
 
 	// data
 	pointer_kind kind_ = pointer_kind::strong;
@@ -205,10 +212,10 @@ struct pointer_semi :
 		return *this;
 	}
 
-private:
+protected:
 	inline void increase(t_pointer h) { h->ref_inc(kind_); }
 	inline void increase() { this->h_->ref_inc(kind_); }
-	inline void decrease() { this->h_->ref_dec(kind_); }
+	inline void decrease() { if( this->h_->ref_dec(kind_) ) this->h_->deleter_(this->h_); }
 	inline void assign(t_pointer h) {
 		increase(h);
 		decrease();

@@ -1,6 +1,7 @@
 import just.text.actions;
 import just.compare;
 import just.dict;
+import just.keeper;
 import <compare>;
 import <iostream>;
 
@@ -16,14 +17,18 @@ void print_dict(const Array & arr) {
 	std::wcout << L"\n";
 }
 
+struct b1 { bool x; };
+struct b2 : public b1 { bool y; };
+struct b3 : public b2 { bool z;};
+
 int main() {
 	using namespace just::text_literals;
 	{
-		std::cout << "test compare: " << just::to_underlying(
+		std::cout << "test compare: " << /*just::to_underlying(
 			just::cast_ordering<just::compare_simple>(
 				1.0 <=> 0.0/0.0
 			)
-		) << "\n";
+		)*/ just::sign<int>(1.0 <=> 0.0/0.0, 2) << "\n";
 	}{
 		just::wtext tx = L"hello"_jt;
 		just::text tx2 = "1"_jt;
@@ -44,6 +49,10 @@ int main() {
 		t_dict::add(dict, 1, L"one"_jt);
 		print_dict(dict);
 		std::wcout << L"dict capacity = " << dict->capacity_ << L"\n" << t_dict::contains(dict, 1) << L"\n";
+	}{
+		just::keeper<b1, b2, b3>::t_internal keep;
+		keep.assign(new(&keep.place) b3{true, false, true});
+		std::cout << "x = " << keep->x << "\n";
 	}
 	return 0;
 }

@@ -12,6 +12,7 @@ template <typename Pointer>
 struct dict_find_result {
 	id index_;
 	Pointer element_ = nullptr;
+	bool was_added_ = false;
 
 	operator bool () const { return element_; }
 	bool operator ! () const { return !element_; }
@@ -146,8 +147,11 @@ struct dict :
 		if( res ) {
 			res->value_ = value;
 		} else {
-			just::array_insert_guard ag(to, res.index_);
-			new( res.element_ = ag->place ) t_element{key, value};
+			{
+				just::array_insert_guard ag(to, res.index_);
+				new( res.element_ = ag->place ) t_element{key, value};
+			}
+			res.was_added_ = true;
 		}
 		return res;
 	}
@@ -172,8 +176,11 @@ struct dict_set :
 		if( res ) {
 			*res.element_ = key;
 		} else {
-			just::array_insert_guard ag(to, res.index_);
-			new( res.element_ = ag->place ) t_element(key);
+			{
+				just::array_insert_guard ag(to, res.index_);
+				new( res.element_ = ag->place ) t_element(key);
+			}
+			res.was_added_ = true;
 		}
 		return res;
 	}

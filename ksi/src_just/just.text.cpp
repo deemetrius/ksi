@@ -18,9 +18,13 @@ struct impl_text_base {
 	using type = C;
 	using pointer = type *;
 	using const_pointer = const type *;
-	using t_with = bases::with_deleter<const impl_text_base<C>, closers::compound_cast<const impl_text<C>, true>::template closer>;
+	using t_with = bases::with_deleter<
+		const impl_text_base<C>,
+		closers::compound_cast<const impl_text<C>, true>::template closer
+	>;
 	using tfn_deleter = t_with::tfn_deleter;
 
+	// data
 	const_pointer cs_;
 	id len_;
 
@@ -41,6 +45,7 @@ struct impl_text :
 	using const_pointer = base::const_pointer;
 	using tfn_deleter = base::tfn_deleter;
 
+	// data
 	mutable id refs_ = 1;
 
 	void refs_inc() const override { ++refs_; }
@@ -50,7 +55,26 @@ struct impl_text :
 	~impl_text() { delete [] this->cs_; }
 };
 
-} // ns
+template <typename T> T plain(const T &);
+
+template <fixed_string V>
+struct static_data {
+	using type = decltype( plain(*V.s_) );
+	using t_impl_base = impl_text_base<type>;
+	
+	static constexpr const t_impl_base value{V.s_, V.len};
+};
+
+} // ns detail
+
+namespace text_literals {
+
+template <fixed_string V>
+constexpr auto operator "" _jt () {
+	return &detail::static_data<V>::value;
+}
+
+} // ns text_literals
 
 template <typename C>
 struct basic_text {
@@ -63,10 +87,14 @@ struct basic_text {
 	using pointer = t_impl_base::pointer;
 	using const_pointer = t_impl_base::const_pointer;
 
+	static constexpr const type empty[1]{};
+
 	friend void swap(basic_text & t1, basic_text & t2) { std::ranges::swap(t1.ref_, t2.ref_); }
 
+	// data
 	t_ref ref_;
 
+	basic_text() : basic_text(&detail::static_data<empty>::value) {}
 	basic_text(const t_impl_base * impl) : ref_(impl) {}
 	basic_text & operator = (const t_impl_base * impl) {
 		ref_ = impl;
@@ -77,39 +105,17 @@ struct basic_text {
 
 	//
 	operator bool () const { return *ref_->cs_; }
+	bool operator ! () const { return !*ref_->cs_; }
 	const t_impl_base * operator -> () const { return ref_.h_; }
-	operator std::basic_string_view<C> () const { return {ref_->cs_, ref_->len_}; }
+	operator std::basic_string_view<type> () const { return {ref_->cs_, ref_->len_}; }
 };
 
 template <typename C, typename T>
-std::basic_ostream<C> & operator << (std::basic_ostream<C, T> & os, const basic_text<C> & tx) {
+std::basic_ostream<C, T> & operator << (std::basic_ostream<C, T> & os, const basic_text<C> & tx) {
 	return os << tx->cs_;
 }
 
 using text = basic_text<char>;
 using wtext = basic_text<wchar_t>;
-
-namespace detail {
-
-template <typename T> T plain(const T &);
-
-template <fixed_string V>
-struct static_data {
-	using type = decltype( plain(*V.s_) );
-	using t_impl_base = basic_text<type>::t_impl_base;
-	
-	static constexpr t_impl_base value{V.s_, V.len};
-};
-
-} // ns
-
-namespace text_literals {
-
-template <fixed_string V>
-constexpr auto operator "" _jt () {
-	return &detail::static_data<V>::value;
-}
-
-} // ns text_literals
 
 } // ns just

@@ -61,11 +61,13 @@ struct text_with_case {
 	using t_actions = Actions<type>;
 	using t_ordering = std::strong_ordering;
 
+	// data
 	t_text text_;
 
 	t_ordering operator <=> (const t_text & tx) const {
-		const auto sgn = sign<id>( t_actions::compare(text_, tx) );
-		return sign_to_ordering<t_ordering>::mid[sgn];
+		/*const auto sgn = sign<id>( t_actions::compare(text_, tx) );
+		return sign_to_ordering<t_ordering>::mid[sgn];*/
+		return t_actions::compare(text_, tx) <=> 0;
 	}
 
 	bool operator == (const t_text & tx) const {
@@ -80,11 +82,13 @@ struct text_no_case {
 	using t_actions = Actions<type>;
 	using t_ordering = std::weak_ordering;
 
+	// data
 	t_text text_;
 
 	t_ordering operator <=> (const t_text & tx) const {
-		const auto sgn = sign<id>( t_actions::compare_no_case(text_, tx) );
-		return sign_to_ordering<t_ordering>::mid[sgn];
+		/*const auto sgn = sign<id>( t_actions::compare_no_case(text_, tx) );
+		return sign_to_ordering<t_ordering>::mid[sgn];*/
+		return t_actions::compare_no_case(text_, tx) <=> 0;
 	}
 
 	bool operator == (const t_text & tx) const {

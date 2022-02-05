@@ -19,6 +19,7 @@
 			"each" : [
 				"${workspace_dir}/src_just/just.common.cpp",
 				"${workspace_dir}/src_just/just.compare.cpp",
+				"${workspace_dir}/src_just/just.keeper.cpp",
 				"${workspace_dir}/src_just/just.aux.cpp",
 				"${workspace_dir}/src_just/just.ref.cpp",
 				"${workspace_dir}/src_just/just.pointer.cpp",
@@ -37,6 +38,7 @@
 				"${workspace_dir}/bin/ksi.exe",
 				"${workspace_dir}/obj/src_just/just.common.o",
 				"${workspace_dir}/obj/src_just/just.compare.o",
+				"${workspace_dir}/obj/src_just/just.keeper.o",
 				"${workspace_dir}/obj/src_just/just.aux.o",
 				"${workspace_dir}/obj/src_just/just.ref.o",
 				"${workspace_dir}/obj/src_just/just.pointer.o",

@@ -10,8 +10,6 @@ import <new>;
 
 export namespace just {
 
-namespace closers {
-
 namespace bases {
 
 template <typename Closer>
@@ -21,6 +19,8 @@ struct with_close_range {
 };
 
 } // ns bases
+
+namespace closers {
 
 template <template <typename T1> typename Closer>
 struct range_compound {
@@ -43,6 +43,7 @@ struct impl_array_allocator {
 
 	enum : uid { item_size = sizeof(type) };
 	static constexpr std::align_val_t v_align{alignof(type)};
+	static constexpr bool can_accept_null = false;
 
 	static pointer allocate(id capacity) { return reinterpret_cast<pointer>(new(v_align) char[capacity * item_size]); }
 	static void deallocate(pointer h) { ::operator delete [] (reinterpret_cast<char *>(h), v_align); }
@@ -250,10 +251,9 @@ public:
 	}
 };
 
-template <typename T>
-constexpr T max(T a, T b) { return (a < b) ? b : a; }
-
 } // ns detail
+
+// append
 
 template <typename Array>
 struct array_append_guard :
@@ -290,34 +290,42 @@ public:
 	}
 };
 
+// insert
+
 template <typename Array>
 struct array_insert_guard {
+	using t_add = detail::array_add_guard<Array>;
+	using pointer = t_add *;
+	using const_pointer = const t_add *;
+
 private:
 	using t_append = array_append_guard<Array>;
 	using t_insert = detail::array_insert_guard<Array>;
 	enum : uid {
-		local_size = detail::max(sizeof(t_append), sizeof(t_insert) ),
-		local_align = detail::max(alignof(t_append), alignof(t_insert) )
+		local_size = max(sizeof(t_append), sizeof(t_insert) ),
+		local_align = max(alignof(t_append), alignof(t_insert) )
 	};
 
 	// data
+	alignas(local_align)
 	aligned_data<local_size, local_align> local_data_;
+	pointer h_;
 
 public:
-	using t_add = detail::array_add_guard<Array>;
-
-	const t_add * impl() const { return reinterpret_cast<const t_add *>(&local_data_); }
-	const t_add * operator -> () const { return impl(); }
+	const_pointer impl() const { return h_; }
+	const_pointer operator -> () const { return h_; }
 
 	array_insert_guard(Array & to, id pos, const id n = 1) {
 		if( pos >= to->count_ ) {
-			new(&local_data_) t_append(to, n);
+			h_ = new(&local_data_) t_append(to, n);
 		} else {
-			new(&local_data_) t_insert(to, pos, n);
+			h_ = new(&local_data_) t_insert(to, pos, n);
 		}
 	}
-	~array_insert_guard() { impl()->~t_add(); }
+	~array_insert_guard() { h_->~t_add(); }
 };
+
+// remove
 
 namespace detail {
 
@@ -356,6 +364,8 @@ void array_remove_n(Array & to, id pos, id n = 1) {
 	}
 }
 
+// clear
+
 template <typename Array>
 void array_clear(Array & to) {
 	if constexpr( Array::is_special ) {
@@ -363,6 +373,8 @@ void array_clear(Array & to) {
 	}
 	to->count_ = 0;
 }
+
+// reset
 
 template <typename Array>
 void array_reset(Array & to, id capacity = Array::t_capacity::initial) {

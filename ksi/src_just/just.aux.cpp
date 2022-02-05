@@ -12,6 +12,8 @@ template <typename T>
 struct simple_none {
 	using const_pointer = const T *;
 
+	static constexpr bool can_accept_null = true;
+
 	static void close(const_pointer) {}
 };
 
@@ -20,12 +22,16 @@ struct simple_destructor {
 	using type = T;
 	using const_pointer = const type *;
 
+	static constexpr bool can_accept_null = false;
+
 	static void close(const_pointer h) { h->~type(); }
 };
 
 template <typename T>
 struct simple_one {
 	using const_pointer = const T *;
+
+	static constexpr bool can_accept_null = true;
 
 	static void close(const_pointer h) { delete h; }
 };
@@ -34,6 +40,8 @@ template <typename T>
 struct simple_many {
 	using const_pointer = const T *;
 
+	static constexpr bool can_accept_null = true;
+
 	static void close(const_pointer h) { delete [] h; }
 };
 
@@ -41,12 +49,16 @@ template <typename T>
 struct simple_call_deleter {
 	using const_pointer = const T *;
 
+	static constexpr bool can_accept_null = false;
+
 	static void close(const_pointer h) { h->deleter_(h); }
 };
 
 template <typename T>
 struct simple_call_deleter_maybe {
 	using const_pointer = const T *;
+
+	static constexpr bool can_accept_null = true;
 
 	static void close(const_pointer h) { if( h ) h->deleter_(h); }
 };
@@ -66,6 +78,8 @@ struct compound_cast {
 		using const_pointer = const type *;
 		using t_pass = std::conditional_t<Const_close, const_pointer, pointer>;
 
+		static constexpr bool can_accept_null = t_closer::can_accept_null;
+
 		static void close(t_pass h) { t_closer::close( static_cast<target_pass>(h) ); }
 	};
 };
@@ -79,6 +93,8 @@ struct compound_cnt {
 		using const_pointer = const type *;
 		using t_closer = Closer<type>;
 		using t_pass = std::conditional_t<Const_close, const_pointer, pointer>;
+
+		static constexpr bool can_accept_null = Check_null;
 
 		static void close(t_pass h) {
 			if constexpr ( Check_null ) { if( h && h->refs_dec() ) t_closer::close(h); }
@@ -95,6 +111,8 @@ struct compound_cnt_call_deleter {
 		using pointer = type *;
 		using const_pointer = const type *;
 		//using tfn_deleter = decltype( std::declval<const_pointer>()->refs_dec() );
+
+		static constexpr bool can_accept_null = Check_null;
 
 		static void close(const_pointer h) {
 			if constexpr ( Check_null ) {

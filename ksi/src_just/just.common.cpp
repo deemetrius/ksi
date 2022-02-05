@@ -13,13 +13,6 @@ using uid = std::size_t;
 
 //
 
-template <typename T, bool Can_change = false>
-using arg_passing_t = std::conditional_t<std::is_scalar_v<T>, T,
-	std::conditional_t<Can_change, T &, const T &>
->;
-
-//
-
 template <typename Enum>
 constexpr inline std::underlying_type_t<Enum> to_underlying(Enum val) noexcept {
 	return static_cast< std::underlying_type_t<Enum> >(val);
@@ -27,8 +20,27 @@ constexpr inline std::underlying_type_t<Enum> to_underlying(Enum val) noexcept {
 
 //
 
+template <typename T>
+concept c_scalar = std::is_scalar_v<T>;
+
 template <typename T, typename ... U>
-concept is_any_of = ( std::same_as<T, U> || ... );
+concept c_any_of = ( std::same_as<T, U> || ... );
+
+template <typename T, bool Can_change = false>
+using arg_passing_t = std::conditional_t<std::is_scalar_v<T>, T,
+	std::conditional_t<Can_change, T &, const T &>
+>;
+
+//
+
+template <c_scalar T>
+constexpr T max(T a) { return a; }
+
+template <c_scalar T>
+constexpr T max(T a, T b) { return (a < b) ? b : a; }
+
+template <c_scalar T, c_scalar ... Rest>
+constexpr T max(T a, Rest ... b) { return max( a, max(b ...) ); }
 
 //
 
@@ -45,11 +57,10 @@ struct fixed_string {
 	// data
 	type s_[N];
 
+	constexpr fixed_string() requires(N == 1) { *s_ = 0; }
 	constexpr fixed_string(const type (&s)[N]) {
 		copy_n(s, N, s_);
 	}
-
-	//constexpr uid size() const { return len; }
 };
 
 template <uid N, uid Align>
@@ -59,6 +70,8 @@ struct alignas(Align) aligned_data {
 	// data
 	type data_[N];
 };
+
+//
 
 template <typename IterBegin, typename IterEnd = IterBegin>
 struct range {

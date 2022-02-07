@@ -38,16 +38,13 @@ namespace detail {
 template <typename T>
 struct impl_array_allocator {
 	using type = T;
-	using const_pointer = const type *;
 	using pointer = type *;
 
 	enum : uid { item_size = sizeof(type) };
 	static constexpr std::align_val_t v_align{alignof(type)};
-	static constexpr bool can_accept_null = false;
 
 	static pointer allocate(id capacity) { return reinterpret_cast<pointer>(new(v_align) char[capacity * item_size]); }
 	static void deallocate(pointer h) { ::operator delete [] (reinterpret_cast<char *>(h), v_align); }
-	static void close(pointer h) {}
 
 	using tfn_deallocator = decltype(&deallocate);
 };
@@ -61,37 +58,35 @@ struct impl_array_base_ex :
 	public impl_array_base
 {
 	using t_allocator = impl_array_allocator<T>;
+	using pointer = T *;
 
 	// data
+	pointer h_;
 	t_allocator::tfn_deallocator deallocator_ = t_allocator::deallocate;
+
+	impl_array_base_ex(pointer h, id capacity) : impl_array_base{capacity}, h_{h} {}
 };
 
 template <typename T>
 struct impl_array :
-	public ref<T, traits_ref_unique<impl_array_allocator> >,
 	public impl_array_base_ex<T>
 {
 	using type = T;
-	using const_pointer = const type *;
 	using pointer = type *;
+	using const_pointer = const type *;
 	using base_ex = impl_array_base_ex<type>;
 	using t_allocator = base_ex::t_allocator;
-	using t_ref = ref<T, traits_ref_unique<impl_array_allocator> >;
 
 	// data
 	id desired_next_capacity_ = 0;
-
-	impl_array(id capacity) : t_ref( t_allocator::allocate(capacity) ), base_ex{capacity} {}
-	~impl_array() { this->deallocator_(this->h_); }
 
 	// no copy
 	impl_array(const impl_array &) = delete;
 	impl_array & operator = (const impl_array &) = delete;
 
-	friend void swap(impl_array & r1, impl_array & r2) {
-		std::ranges::swap( static_cast<base_ex &>(r1), static_cast<base_ex &>(r2) );
-		std::ranges::swap( static_cast<t_ref &>(r1), static_cast<t_ref &>(r2) );
-	}
+	//
+	impl_array(id capacity) : base_ex(t_allocator::allocate(capacity), capacity) {}
+	~impl_array() { this->deallocator_(this->h_); }
 
 	// range-for helpers
 	using t_range = range<pointer>;
@@ -180,9 +175,10 @@ struct array {
 	// data
 	t_ref ref_;
 
+	//
 	array(id capacity = t_capacity::initial) : ref_( new t_impl(capacity) ) {}
 
-	t_impl::base & base() const { return *ref_.h_; }
+	t_impl::base_ex & base() const { return *ref_.h_; }
 	t_impl * impl() const { return ref_.h_; }
 	t_impl * operator -> () const { return ref_.h_; }
 	operator bool () const { return ref_->count_; }

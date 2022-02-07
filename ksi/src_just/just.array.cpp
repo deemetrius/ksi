@@ -78,6 +78,9 @@ struct impl_array :
 	using t_allocator = base_ex::t_allocator;
 	using t_ref = ref<T, traits_ref_unique<impl_array_allocator> >;
 
+	// data
+	id desired_next_capacity_ = 0;
+
 	impl_array(id capacity) : t_ref( t_allocator::allocate(capacity) ), base_ex{capacity} {}
 	~impl_array() { this->deallocator_(this->h_); }
 
@@ -209,6 +212,11 @@ constexpr id choose_capacity(id proposed, id exact) {
 	else { return proposed; }
 }
 
+template <c_capacity_more Case_capacity_more>
+constexpr id choose_capacity(id proposed, id exact, id desired) {
+	return (desired > exact) ? desired : choose_capacity<Case_capacity_more>(proposed, exact);
+}
+
 // detail insert
 
 template <typename Array, c_capacity_more Case_capacity_more>
@@ -231,7 +239,9 @@ public:
 		target_(&to),
 		pos_(pos),
 		res_( Array::t_capacity::more(to.impl(), n, new_count_) ),
-		from_(res_ ? choose_capacity<Case_capacity_more>(res_.capacity_, new_count_) : n)
+		from_(res_ ? choose_capacity<Case_capacity_more>(
+			res_.capacity_, new_count_, to->desired_next_capacity_
+		) : n)
 	{
 		this->place = from_.data();
 		if( res_ ) this->place += pos;
@@ -285,7 +295,9 @@ public:
 	{
 		if( result_capacity_more res = Array::t_capacity::more(to.impl(), n, new_count_) ) {
 			// more amount_
-			const id new_capacity = detail::choose_capacity<Case_capacity_more>(res.capacity_, new_count_);
+			const id new_capacity = detail::choose_capacity<Case_capacity_more>(
+				res.capacity_, new_count_, to->desired_next_capacity_
+			);
 			Array from(new_capacity);
 			if( to ) {
 				// copy data

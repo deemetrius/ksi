@@ -142,13 +142,14 @@ struct dict :
 	using t_pass_key = arg_passing_t<t_key>;
 	using t_pass_value = arg_passing_t<t_value>;
 
+	template <c_capacity_more Case_capacity_more = case_default>
 	static t_find_result add(t_internal & to, t_pass_key key, t_pass_value value) {
 		t_find_result res = base::find(to, key);
 		if( res ) {
 			res->value_ = value;
 		} else {
 			{
-				just::array_insert_guard ag(to, res.index_);
+				just::array_insert_guard<t_internal, Case_capacity_more> ag(to, res.index_);
 				new( res.element_ = ag->place ) t_element{key, value};
 			}
 			res.was_added_ = true;
@@ -171,13 +172,14 @@ struct dict_set :
 	using t_key = Key;
 	using t_pass_key = arg_passing_t<t_key>;
 
+	template <c_capacity_more Case_capacity_more = case_default>
 	static t_find_result add(t_internal & to, t_pass_key key) {
 		t_find_result res = base::find(to, key);
 		if( res ) {
 			*res.element_ = key;
 		} else {
 			{
-				just::array_insert_guard ag(to, res.index_);
+				just::array_insert_guard<t_internal, Case_capacity_more> ag(to, res.index_);
 				new( res.element_ = ag->place ) t_element(key);
 			}
 			res.was_added_ = true;

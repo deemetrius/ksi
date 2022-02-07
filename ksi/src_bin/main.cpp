@@ -2,6 +2,7 @@ import just.text.actions;
 import just.compare;
 import just.dict;
 import just.keeper;
+import just.forward_list;
 import <compare>;
 import <iostream>;
 
@@ -22,13 +23,9 @@ struct b2 : public b1 { bool y; };
 struct b3 : public b2 { bool z; };
 
 int main() {
-	using namespace just::text_literals;
+	/*using namespace just::text_literals;
 	{
-		std::cout << "test compare: " << /*just::to_underlying(
-			just::cast_ordering<just::compare_simple>(
-				1.0 <=> 0.0/0.0
-			)
-		)*/ just::sign<int>(1.0 <=> 0.0/0.0, 2) << "\n";
+		std::cout << "test compare: " << just::sign<int>(1.0 <=> 0.0/0.0, 2) << "\n";
 	}{
 		just::wtext tx = L"hello"_jt;
 		just::text tx2 = "1"_jt;
@@ -53,6 +50,15 @@ int main() {
 		just::keeper<b1, b2, b3>::t_internal keep;
 		keep.assign(new(&keep.place) b3{true, false, true});
 		std::cout << "x = " << keep->x << "\n";
+	}*/
+	{
+		using t_list = just::forward_list_alias<int>;
+		t_list lst;
+		lst.prepend( new t_list::t_node{1} );
+		lst.prepend( new t_list::t_node{5} );
+		lst.append( new t_list::t_node{} );
+		for( t_list::pointer it : lst ) { std::cout << it->value_ << " "; }
+		std::cout << "\n";
 	}
 	return 0;
 }

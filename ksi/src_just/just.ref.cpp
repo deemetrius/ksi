@@ -103,6 +103,7 @@ struct ref :
 
 	//
 	operator bool () const { return this->h_; }
+	bool operator ! () const { return !this->h_; }
 	pointer operator -> () const { return this->h_; }
 	T & operator * () const { return *this->h_; }
 };

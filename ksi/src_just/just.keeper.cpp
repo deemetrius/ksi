@@ -23,6 +23,13 @@ struct alignas(Align) keeper {
 	aligned_data<local_size, local_align> place;
 	pointer handle = nullptr;
 
+	// no copy
+	keeper(const keeper &) = delete;
+	keeper & operator = (const keeper &) = delete;
+
+	//
+	keeper() = default;
+
 	keeper & reset() { handle = nullptr; return *this; }
 	void assign(pointer h) { handle = h; }
 
@@ -39,6 +46,7 @@ struct keeper_special :
 	using type = self_base::type;
 	using pointer = self_base::pointer;
 
+	//
 	~keeper_special() { close(); }
 
 	keeper_special & reset() {

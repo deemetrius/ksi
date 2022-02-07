@@ -19,7 +19,7 @@ void print_dict(const Array & arr) {
 
 struct b1 { bool x; };
 struct b2 : public b1 { bool y; };
-struct b3 : public b2 { bool z;};
+struct b3 : public b2 { bool z; };
 
 int main() {
 	using namespace just::text_literals;

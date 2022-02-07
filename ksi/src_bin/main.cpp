@@ -5,7 +5,6 @@ import just.keeper;
 import just.forward_list;
 import <compare>;
 import <iostream>;
-import <tuple>;
 
 template <typename Array>
 void print_items(const Array & arr) {
@@ -61,7 +60,8 @@ int main() {
 		prepend( new t_list::t_node{1} ).
 		prepend( new t_list::t_node{5} ).
 		append( new t_list::t_node{} );
-		just::forward_list_append(lst, std::make_tuple(10, 20), std::make_tuple(5, 5) );
+		just::forward_list_append(lst)(10, 20)(5, 5);
+		just::forward_list_prepend(lst)(1, 1)(2, 2);
 		for( t_list::pointer it : lst ) { std::cout << it->value_.x << ":" << it->value_.y << " "; }
 		std::cout << "\n";
 	}

@@ -4,7 +4,7 @@ export module just.forward_list;
 export import just.aux;
 import <concepts>;
 import <type_traits>;
-import <tuple>;
+import <utility>;
 
 export namespace just {
 
@@ -91,7 +91,7 @@ struct forward_list {
 		head_ = node;
 		return *this;
 	}
-	forward_list & insert_after(pointer node, pointer pos) {
+	forward_list & insert_after(pointer pos, pointer node) {
 		if( !pos->next_ ) last_ = node;
 		node->next_ = pos->next_;
 		pos->next_ = node;
@@ -162,20 +162,28 @@ using forward_list_alias = std::conditional_t<List_cross,
 
 // actions
 
-/*template <typename List>
-auto forward_list_append(List & to);*/
-
-template <typename List, typename ... Params>
-void forward_list_append_one(List & to, Params && ... args) {
-	to.append( new List::t_node{ {std::forward<Params>(args) ...} } );
+template <typename List>
+auto forward_list_append(List & to) {
+	return [to = &to]<typename ... Params>(Params && ... args) {
+		to->append( new List::t_node{ {std::forward<Params>(args) ...} } );
+		return forward_list_append(*to);
+	};
 }
 
-template <typename List, typename ... Params>
-void forward_list_append(List & to, Params && ... args) {
-	auto fn = [&to]<typename ... Local>(Local && ... args) {
-		to.append( new List::t_node{ {std::forward<Local>(args) ...} } );
+template <typename List>
+auto forward_list_prepend(List & to) {
+	return [to = &to]<typename ... Params>(Params && ... args) {
+		to->prepend( new List::t_node{ {std::forward<Params>(args) ...} } );
+		return forward_list_prepend(*to);
 	};
-	(std::apply(fn, std::forward<Params>(args) ), ...);
+}
+
+template <typename List>
+auto forward_list_insert_after(List & to, typename List::pointer pos) {
+	return [to = &to, pos]<typename ... Params>(Params && ... args) {
+		to->insert_after( new List::t_node{ {std::forward<Params>(args) ...} } );
+		return forward_list_insert_after(*to, pos);
+	};
 }
 
 } // ns just

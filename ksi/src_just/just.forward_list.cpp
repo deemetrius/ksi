@@ -4,6 +4,7 @@ export module just.forward_list;
 export import just.aux;
 import <concepts>;
 import <type_traits>;
+import <tuple>;
 
 export namespace just {
 
@@ -29,17 +30,11 @@ template <c_forward_list_node Node>
 struct forward_list_iterator {
 	using type = Node;
 	using pointer = type *;
-	//using const_pointer = const type *;
 
 	// data
-	pointer current_, next_;
+	pointer current_;
 
-	forward_list_iterator(pointer current) : current_{current}, next_{current->next_} {}
-
-	void operator ++ () {
-		current_ = next_;
-		next_ = current_ ? current_->next_ : nullptr;
-	}
+	void operator ++ () { current_ = current_->next_; }
 	pointer operator * () const { return current_; }
 	bool operator != (pointer it) const { return current_ != it; }
 };
@@ -67,13 +62,13 @@ struct forward_list {
 	~forward_list() { clear(); }
 
 	// iteration
-	t_iterator begin() const { return head_; }
+	t_iterator begin() const { return {head_}; }
 	pointer end() const { return nullptr; }
 
 	operator bool () const { return head_; }
 	bool operator ! () const { return !head_; }
 
-	void clear() {
+	forward_list & clear() {
 		pointer next;
 		while( head_ ) {
 			next = head_->next_;
@@ -81,37 +76,43 @@ struct forward_list {
 			head_ = next;
 		}
 		last_ = nullptr;
+		return *this;
 	}
-	void append(pointer node) {
+	forward_list & append(pointer node) {
 		node->next_ = nullptr;
 		if( last_ ) last_->next_ = node;
 		else head_ = node;
 		last_ = node;
+		return *this;
 	}
-	void prepend(pointer node) {
+	forward_list & prepend(pointer node) {
 		if( !head_ ) last_ = node;
 		node->next_ = head_;
 		head_ = node;
+		return *this;
 	}
-	void insert_after(pointer node, pointer pos) {
+	forward_list & insert_after(pointer node, pointer pos) {
 		if( !pos->next_ ) last_ = node;
 		node->next_ = pos->next_;
 		pos->next_ = node;
+		return *this;
 	}
-	void remove_first() {
+	forward_list & remove_first() {
 		if( head_ ) {
 			pointer pos = head_;
 			head_ = pos->next_;
 			if( !head_ ) last_ = nullptr;
 			t_closer::close(pos);
 		}
+		return *this;
 	}
-	void remove_after(pointer pos) {
+	forward_list & remove_after(pointer pos) {
 		if( pointer next = pos->next_ ) {
 			pos->next_ = next->next_;
 			if( !pos->next_ ) last_ = pos;
 			t_closer::close(next);
 		}
+		return *this;
 	}
 };
 
@@ -158,5 +159,23 @@ using forward_list_alias = std::conditional_t<List_cross,
 	detail::forward_list_alias<T, Node_cross, detail::forward_list_cross>,
 	detail::forward_list_alias<T, Node_cross, forward_list>
 >;
+
+// actions
+
+/*template <typename List>
+auto forward_list_append(List & to);*/
+
+template <typename List, typename ... Params>
+void forward_list_append_one(List & to, Params && ... args) {
+	to.append( new List::t_node{ {std::forward<Params>(args) ...} } );
+}
+
+template <typename List, typename ... Params>
+void forward_list_append(List & to, Params && ... args) {
+	auto fn = [&to]<typename ... Local>(Local && ... args) {
+		to.append( new List::t_node{ {std::forward<Local>(args) ...} } );
+	};
+	(std::apply(fn, std::forward<Params>(args) ), ...);
+}
 
 } // ns just

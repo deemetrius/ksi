@@ -5,6 +5,7 @@ import just.keeper;
 import just.forward_list;
 import <compare>;
 import <iostream>;
+import <tuple>;
 
 template <typename Array>
 void print_items(const Array & arr) {
@@ -21,6 +22,8 @@ void print_dict(const Array & arr) {
 struct b1 { bool x; };
 struct b2 : public b1 { bool y; };
 struct b3 : public b2 { bool z; };
+
+struct point { int x, y; point(int px = 0, int py = 0) : x(px), y(py) {} };
 
 int main() {
 	/*using namespace just::text_literals;
@@ -52,12 +55,14 @@ int main() {
 		std::cout << "x = " << keep->x << "\n";
 	}*/
 	{
-		using t_list = just::forward_list_alias<int>;
+		using t_list = just::forward_list_alias<point>;
 		t_list lst;
-		lst.prepend( new t_list::t_node{1} );
-		lst.prepend( new t_list::t_node{5} );
-		lst.append( new t_list::t_node{} );
-		for( t_list::pointer it : lst ) { std::cout << it->value_ << " "; }
+		lst.
+		prepend( new t_list::t_node{1} ).
+		prepend( new t_list::t_node{5} ).
+		append( new t_list::t_node{} );
+		just::forward_list_append(lst, std::make_tuple(10, 20), std::make_tuple(5, 5) );
+		for( t_list::pointer it : lst ) { std::cout << it->value_.x << ":" << it->value_.y << " "; }
 		std::cout << "\n";
 	}
 	return 0;

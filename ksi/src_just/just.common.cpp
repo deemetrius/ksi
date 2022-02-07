@@ -11,6 +11,9 @@ export namespace just {
 using id = std::ptrdiff_t;
 using uid = std::size_t;
 
+struct case_default;
+struct case_exact;
+
 //
 
 template <typename Enum>

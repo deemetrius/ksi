@@ -152,6 +152,9 @@ struct capacity_step {
 	}
 };
 
+template <typename T>
+concept c_capacity_more = c_any_of<T, case_default, case_exact>;
+
 // array
 
 template <typename T, typename Capacity, template <typename T1> typename Closer = closers::simple_none>
@@ -200,13 +203,21 @@ struct array_add_guard {
 	virtual ~array_add_guard() = default;
 };
 
-template <typename Array>
+template <c_capacity_more Case_capacity_more>
+constexpr id choose_capacity(id proposed, id exact) {
+	if constexpr( std::is_same_v<Case_capacity_more, case_exact> ) { return exact; }
+	else { return proposed; }
+}
+
+// detail insert
+
+template <typename Array, c_capacity_more Case_capacity_more>
 struct array_insert_guard :
 	public array_add_guard<Array>
 {
 private:
 	int uncaught_;
-	const Array * target_;
+	Array * target_;
 	id new_count_, pos_;
 	result_capacity_more res_;
 	Array from_;
@@ -220,7 +231,7 @@ public:
 		target_(&to),
 		pos_(pos),
 		res_( Array::t_capacity::more(to.impl(), n, new_count_) ),
-		from_(res_ ? res_.capacity_ : n)
+		from_(res_ ? choose_capacity<Case_capacity_more>(res_.capacity_, new_count_) : n)
 	{
 		this->place = from_.data();
 		if( res_ ) this->place += pos;
@@ -255,13 +266,13 @@ public:
 
 // append
 
-template <typename Array>
+template <typename Array, c_capacity_more Case_capacity_more = case_default>
 struct array_append_guard :
 	public detail::array_add_guard<Array>
 {
 private:
 	int uncaught_;
-	const Array * target_;
+	Array * target_;
 	id new_count_;
 
 public:
@@ -274,7 +285,8 @@ public:
 	{
 		if( result_capacity_more res = Array::t_capacity::more(to.impl(), n, new_count_) ) {
 			// more amount_
-			Array from(res.capacity_);
+			const id new_capacity = detail::choose_capacity<Case_capacity_more>(res.capacity_, new_count_);
+			Array from(new_capacity);
 			if( to ) {
 				// copy data
 				std::memcpy(reinterpret_cast<char *>( from.data() ), to.data(), to.stored_bytes() );
@@ -292,15 +304,15 @@ public:
 
 // insert
 
-template <typename Array>
+template <typename Array, c_capacity_more Case_capacity_more = case_default>
 struct array_insert_guard {
 	using t_add = detail::array_add_guard<Array>;
 	using pointer = t_add *;
 	using const_pointer = const t_add *;
 
 private:
-	using t_append = array_append_guard<Array>;
-	using t_insert = detail::array_insert_guard<Array>;
+	using t_append = array_append_guard<Array, Case_capacity_more>;
+	using t_insert = detail::array_insert_guard<Array, Case_capacity_more>;
 	enum : uid {
 		local_size = max(sizeof(t_append), sizeof(t_insert) ),
 		local_align = max(alignof(t_append), alignof(t_insert) )

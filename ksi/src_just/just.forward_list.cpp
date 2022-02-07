@@ -181,7 +181,7 @@ auto forward_list_prepend(List & to) {
 template <typename List>
 auto forward_list_insert_after(List & to, typename List::pointer pos) {
 	return [to = &to, pos]<typename ... Params>(Params && ... args) {
-		to->insert_after( new List::t_node{ {std::forward<Params>(args) ...} } );
+		to->insert_after( pos, new List::t_node{ {std::forward<Params>(args) ...} } );
 		return forward_list_insert_after(*to, pos);
 	};
 }

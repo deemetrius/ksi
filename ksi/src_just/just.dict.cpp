@@ -175,9 +175,7 @@ struct dict_set :
 	template <c_capacity_more Case_capacity_more = case_default>
 	static t_find_result add(t_internal & to, t_pass_key key) {
 		t_find_result res = base::find(to, key);
-		if( res ) {
-			*res.element_ = key;
-		} else {
+		if( !res ) {
 			{
 				just::array_insert_guard<t_internal, Case_capacity_more> ag(to, res.index_);
 				new( res.element_ = ag->place ) t_element(key);

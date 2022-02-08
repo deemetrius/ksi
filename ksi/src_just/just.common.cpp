@@ -17,9 +17,12 @@ struct case_exact;
 //
 
 template <typename Enum>
-constexpr inline std::underlying_type_t<Enum> to_underlying(Enum val) noexcept {
+constexpr std::underlying_type_t<Enum> to_underlying(Enum val) noexcept {
 	return static_cast< std::underlying_type_t<Enum> >(val);
 }
+
+using byte_underlying = unsigned char;
+enum class byte : byte_underlying { zero };
 
 //
 
@@ -68,7 +71,7 @@ struct fixed_string {
 
 template <uid N, uid Align>
 struct alignas(Align) aligned_data {
-	using type = unsigned char;
+	using type = byte;
 
 	// data
 	type data_[N];

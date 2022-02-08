@@ -22,10 +22,10 @@ struct b1 { bool x; };
 struct b2 : public b1 { bool y; };
 struct b3 : public b2 { bool z; };
 
-struct point { int x, y; point(int px = 0, int py = 0) : x(px), y(py) {} };
+struct point /*: public just::bases::forward_list_node<point>*/ { int x, y; point(int px = 0, int py = 0) : x(px), y(py) {} };
 
 int main() {
-	/*using namespace just::text_literals;
+	using namespace just::text_literals;
 	{
 		std::cout << "test compare: " << just::sign<int>(1.0 <=> 0.0/0.0, 2) << "\n";
 	}{
@@ -52,16 +52,15 @@ int main() {
 		just::keeper<b1, b2, b3>::t_internal keep;
 		keep.assign(new(&keep.place) b3{true, false, true});
 		std::cout << "x = " << keep->x << "\n";
-	}*/
-	{
+	}{
 		using t_list = just::forward_list_alias<point>;
+		//using t_list = just::forward_list<point>;
 		t_list lst;
-		lst.
-		prepend( new t_list::t_node{1} ).
-		prepend( new t_list::t_node{5} ).
-		append( new t_list::t_node{} );
-		just::forward_list_append(lst)(10, 20)(5, 5);
-		just::forward_list_prepend(lst)(1, 1)(2, 2);
+		lst.prepend( new t_list::t_node{-2} )( new t_list::t_node{-1} );
+		lst.append( new t_list::t_node{} )( new t_list::t_node{1} )( new t_list::t_node{point{2, 2}} );
+		lst.insert_after( lst.last_, new t_list::t_node{3} )( new t_list::t_node{4} );
+		just::forward_list_insert_after(lst, lst.head_)()(10, 10)(20, 20);
+		//just::forward_list_insert_after(lst, lst.last_)(0)(10, 20)(5, 5)();
 		for( t_list::pointer it : lst ) { std::cout << it->value_.x << ":" << it->value_.y << " "; }
 		std::cout << "\n";
 	}

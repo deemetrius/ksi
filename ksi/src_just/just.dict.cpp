@@ -2,6 +2,7 @@ module;
 
 export module just.dict;
 export import just.array;
+import just.compare;
 import <compare>;
 import <type_traits>;
 import <numeric>;
@@ -35,6 +36,7 @@ struct dict_base {
 	using t_key = Key;
 	using t_pass_key = arg_passing_t<t_key>;
 	using t_ordering = std::compare_three_way_result_t<t_key>;
+	using t_helper = compare_helper<t_ordering>;
 	//
 	using t_internal = Container;
 	using pointer = t_internal::pointer;
@@ -49,15 +51,15 @@ struct dict_base {
 		id right = to->count_ -1;
 		pointer begin = to.data(), current = begin + right;
 		t_ordering order = key <=> traits_key::get_key(current);
-		if( order == t_ordering::greater ) return {to->count_};
-		if( order == t_ordering::equivalent ) return {right, current};
+		if( order == t_helper::greater ) return {to->count_};
+		if( order == t_helper::equal ) return {right, current};
 		// count 1
 		if( !right ) return {0};
 		// first
 		current = begin;
 		order = key <=> traits_key::get_key(current);
-		if( order == t_ordering::less ) return {0};
-		if( order == t_ordering::equivalent ) return {0, current};
+		if( order == t_helper::less ) return {0};
+		if( order == t_helper::equal ) return {0, current};
 		// count 2
 		if( right == 1 ) return {1};
 		--right;
@@ -66,8 +68,8 @@ struct dict_base {
 			mid = std::midpoint(left, right);
 			current = begin + mid;
 			order = key <=> traits_key::get_key(current);
-			if( order == t_ordering::greater ) left = mid + 1;
-			else if( order == t_ordering::less ) right = mid - 1;
+			if( order == t_helper::greater ) left = mid + 1;
+			else if( order == t_helper::less ) right = mid - 1;
 			else return {mid, current};
 		} while( left <= right );
 		return {mid + (order > 0 ? 1 : 0)};

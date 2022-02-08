@@ -3,35 +3,73 @@ module;
 export module just.compare;
 export import just.common;
 import <compare>;
-import <concepts>;
-import <type_traits>;
 
 export namespace just {
 
 template <typename Result, std::unsigned_integral T>
-constexpr inline Result sign(T val) {
+constexpr Result sign(T val) {
 	return val > 0;
 }
 
 template <typename Result, std::signed_integral T>
-constexpr inline Result sign(T val) {
+constexpr Result sign(T val) {
 	return (val > 0) - (val < 0);
 }
 
 template <typename Result, std::floating_point T>
-constexpr inline Result sign(T val, Result on_nan = {}) {
-	return (val == val) ? (val > 0.0) - (val < 0.0) : on_nan;
+constexpr Result sign(T val, Result on_nan = {}) {
+	return (val != val) ? on_nan : (val > 0.0) - (val < 0.0);
 }
 
 template <typename Result, c_any_of<std::strong_ordering, std::weak_ordering> T>
-constexpr inline Result sign(T val) {
+constexpr Result sign(T val) {
 	return (val > 0) - (val < 0);
 }
 
 template <typename Result>
-constexpr inline Result sign(std::partial_ordering val, Result on_unordered) {
+constexpr Result sign(std::partial_ordering val, Result on_unordered) {
 	return (val == std::partial_ordering::unordered) ? on_unordered : ((val > 0) - (val < 0));
 }
+
+//
+
+using compare_result = int;
+enum n_compare : compare_result { cmp_less = -1, cmp_equal = 0, cmp_greater = +1 };
+
+template <typename Ordering = compare_result>
+struct compare_helper;
+
+template <>
+struct compare_helper<compare_result> {
+	using t_ordering = compare_result;
+	enum : t_ordering { less = cmp_less, equal = cmp_equal, greater = cmp_greater };
+};
+
+namespace detail {
+
+template <typename Ordering>
+struct compare_helper {
+	using t_ordering = Ordering;
+
+	static constexpr t_ordering
+	less	= t_ordering::less,
+	equal	= t_ordering::equivalent,
+	greater	= t_ordering::greater;
+};
+
+} // ns detail
+
+template <>
+struct compare_helper<std::strong_ordering> : public detail::compare_helper<std::strong_ordering> {};
+template <>
+struct compare_helper<std::weak_ordering> : public detail::compare_helper<std::weak_ordering> {};
+template <>
+struct compare_helper<std::partial_ordering> : public detail::compare_helper<std::partial_ordering> {
+	using base = detail::compare_helper<std::partial_ordering>;
+
+	static constexpr base::t_ordering
+	unordered = base::t_ordering::unordered;
+};
 
 //
 
@@ -84,28 +122,6 @@ constexpr Result cast_ordering(std::partial_ordering from) {
 	return t_helper::mid[sign<id>(from, +2)];
 }
 */
-
-/*
-template <typename Result, Result Equal = Result::equal_strong>
-constexpr Result cast_ordering(std::strong_ordering from) {
-	using t_helper = sign_to_custom<Result, Result::less, Equal, Result::greater>;
-	return t_helper::mid[sign<id>(from)];
-}
-
-template <typename Result, Result Equal = Result::equal_weak>
-constexpr Result cast_ordering(std::weak_ordering from) {
-	using t_helper = sign_to_custom<Result, Result::less, Equal, Result::greater>;
-	return t_helper::mid[sign<id>(from)];
-}
-
-template <typename Result, Result Equal = Result::equal_partial, Result Unordered = Result::unordered>
-constexpr Result cast_ordering(std::partial_ordering from) {
-	using t_helper = sign_to_custom<Result, Result::less, Equal, Result::greater, Unordered>;
-	return t_helper::mid[sign<id>(from, +2)];
-}
-*/
-
-//
 
 /*
 enum class compare_strict {

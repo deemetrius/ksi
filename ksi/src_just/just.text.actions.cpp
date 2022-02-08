@@ -59,19 +59,18 @@ struct text_with_case {
 	using type = C;
 	using t_text = basic_text<type>;
 	using t_actions = Actions<type>;
-	using t_ordering = std::strong_ordering;
+	using t_ordering = compare_result; //std::strong_ordering;
 
 	// data
 	t_text text_;
 
 	t_ordering operator <=> (const t_text & tx) const {
-		/*const auto sgn = sign<id>( t_actions::compare(text_, tx) );
-		return sign_to_ordering<t_ordering>::mid[sgn];*/
-		return t_actions::compare(text_, tx) <=> 0;
+		//return t_actions::compare(text_, tx) <=> 0;
+		return sign<t_ordering>( t_actions::compare(text_, tx) );
 	}
 
 	bool operator == (const t_text & tx) const {
-		return !t_actions::compare(text_, tx);
+		return (text_->len_ == tx->len_) && !t_actions::compare(text_, tx);
 	}
 };
 
@@ -80,19 +79,18 @@ struct text_no_case {
 	using type = C;
 	using t_text = basic_text<type>;
 	using t_actions = Actions<type>;
-	using t_ordering = std::weak_ordering;
+	using t_ordering = compare_result; //std::weak_ordering;
 
 	// data
 	t_text text_;
 
 	t_ordering operator <=> (const t_text & tx) const {
-		/*const auto sgn = sign<id>( t_actions::compare_no_case(text_, tx) );
-		return sign_to_ordering<t_ordering>::mid[sgn];*/
-		return t_actions::compare_no_case(text_, tx) <=> 0;
+		//return t_actions::compare_no_case(text_, tx) <=> 0;
+		return sign<t_ordering>( t_actions::compare_no_case(text_, tx) );
 	}
 
 	bool operator == (const t_text & tx) const {
-		return !t_actions::compare_no_case(text_, tx);
+		return (text_->len_ == tx->len_) && !t_actions::compare_no_case(text_, tx);
 	}
 };
 

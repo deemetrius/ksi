@@ -39,6 +39,19 @@ struct forward_list_iterator {
 	bool operator != (pointer it) const { return current_ != it; }
 };
 
+template <typename List>
+auto forward_list_append(List * to) {
+	return [to](auto node) { to->append(node); return forward_list_append(to); };
+}
+template <typename List>
+auto forward_list_insert_after(List * to, typename List::pointer pos) {
+	return [to, pos](auto node) { to->insert_after(pos, node); return forward_list_insert_after(to, node); };
+}
+/*template <typename List>
+auto forward_list_prepend(List * to) {
+	return [to](auto node) { to->prepend(node); return forward_list_insert_after(to, node); };
+}*/
+
 } // ns detail
 
 // list
@@ -49,6 +62,8 @@ struct forward_list {
 	using pointer = t_node *;
 	using t_closer = Closer<t_node>;
 	using t_iterator = detail::forward_list_iterator<t_node>;
+
+	static constexpr bool is_node_custom = std::is_base_of_v<bases::forward_list_node<t_node>, t_node>;
 
 	// data
 	pointer head_ = nullptr, last_ = nullptr;
@@ -69,33 +84,34 @@ struct forward_list {
 	bool operator ! () const { return !head_; }
 
 	forward_list & clear() {
-		pointer next;
 		while( head_ ) {
-			next = head_->next_;
+			pointer next = head_->next_;
 			t_closer::close(head_);
 			head_ = next;
 		}
 		last_ = nullptr;
 		return *this;
 	}
-	forward_list & append(pointer node) {
+	auto append(pointer node) {
 		node->next_ = nullptr;
 		if( last_ ) last_->next_ = node;
 		else head_ = node;
 		last_ = node;
-		return *this;
+		return detail::forward_list_append(this);
 	}
-	forward_list & prepend(pointer node) {
+	auto prepend(pointer node) {
 		if( !head_ ) last_ = node;
 		node->next_ = head_;
 		head_ = node;
-		return *this;
+		return detail::forward_list_insert_after(this, node);
 	}
-	forward_list & insert_after(pointer pos, pointer node) {
-		if( !pos->next_ ) last_ = node;
-		node->next_ = pos->next_;
-		pos->next_ = node;
-		return *this;
+	auto insert_after(pointer pos, pointer node) {
+		if( pos ) {
+			if( !pos->next_ ) last_ = node;
+			node->next_ = pos->next_;
+			pos->next_ = node;
+		} else prepend(node);
+		return detail::forward_list_insert_after(this, node);
 	}
 	forward_list & remove_first() {
 		if( head_ ) {
@@ -164,25 +180,37 @@ using forward_list_alias = std::conditional_t<List_cross,
 
 template <typename List>
 auto forward_list_append(List & to) {
-	return [to = &to]<typename ... Params>(Params && ... args) {
-		to->append( new List::t_node{ {std::forward<Params>(args) ...} } );
-		return forward_list_append(*to);
+	return [h = &to]<typename ... Params>(Params && ... args) {
+		if constexpr( List::is_node_custom ) {
+			h->append( new List::t_node{std::forward<Params>(args) ...} );
+		} else {
+			h->append( new List::t_node{ {std::forward<Params>(args) ...} } );
+		}
+		return forward_list_append(*h);
 	};
 }
-
-template <typename List>
-auto forward_list_prepend(List & to) {
-	return [to = &to]<typename ... Params>(Params && ... args) {
-		to->prepend( new List::t_node{ {std::forward<Params>(args) ...} } );
-		return forward_list_prepend(*to);
-	};
-}
-
 template <typename List>
 auto forward_list_insert_after(List & to, typename List::pointer pos) {
-	return [to = &to, pos]<typename ... Params>(Params && ... args) {
-		to->insert_after( pos, new List::t_node{ {std::forward<Params>(args) ...} } );
-		return forward_list_insert_after(*to, pos);
+	return [h = &to, pos]<typename ... Params>(Params && ... args) {
+		typename List::pointer node;
+		if constexpr( List::is_node_custom ) {
+			h->insert_after( pos, node = new List::t_node{std::forward<Params>(args) ...} );
+		} else {
+			h->insert_after( pos, node = new List::t_node{ {std::forward<Params>(args) ...} } );
+		}
+		return forward_list_insert_after(*h, node);
+	};
+}
+template <typename List>
+auto forward_list_prepend(List & to) {
+	return [h = &to]<typename ... Params>(Params && ... args) {
+		typename List::pointer node;
+		if constexpr( List::is_node_custom ) {
+			h->prepend( node = new List::t_node{std::forward<Params>(args) ...} );
+		} else {
+			h->prepend( node = new List::t_node{ {std::forward<Params>(args) ...} } );
+		}
+		return forward_list_insert_after(*h, node);
 	};
 }
 

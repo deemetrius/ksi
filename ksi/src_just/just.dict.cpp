@@ -136,8 +136,8 @@ struct dict :
 	using t_element = helper::t_element;
 	using t_internal =  helper::t_internal;
 	using base = helper::use_base;
-	using pointer = base::pointer;
-	using t_find_result = base::t_find_result;
+	using typename base::pointer;
+	using typename base::t_find_result;
 	//
 	using t_key = Key;
 	using t_value = Value;
@@ -168,8 +168,8 @@ struct dict_set :
 	using t_element = helper::t_element;
 	using t_internal =  helper::t_internal;
 	using base = helper::use_base;
-	using pointer = base::pointer;
-	using t_find_result = base::t_find_result;
+	using typename base::pointer;
+	using typename base::t_find_result;
 	//
 	using t_key = Key;
 	using t_pass_key = arg_passing_t<t_key>;

@@ -43,8 +43,8 @@ struct keeper_special :
 	public keeper<Base, Size, Align>
 {
 	using self_base = keeper<Base, Size, Align>;
-	using type = self_base::type;
-	using pointer = self_base::pointer;
+	using typename self_base::type;
+	using typename self_base::pointer;
 
 	//
 	~keeper_special() { close(); }

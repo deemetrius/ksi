@@ -41,9 +41,9 @@ struct impl_text :
 {
 	using type = C;
 	using base = impl_text_base<type>;
-	using pointer = base::pointer;
-	using const_pointer = base::const_pointer;
-	using tfn_deleter = base::tfn_deleter;
+	using typename base::pointer;
+	using typename base::const_pointer;
+	using typename base::tfn_deleter;
 
 	// data
 	mutable id refs_ = 1;

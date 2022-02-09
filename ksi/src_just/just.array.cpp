@@ -75,7 +75,7 @@ struct impl_array :
 	using pointer = type *;
 	using const_pointer = const type *;
 	using base_ex = impl_array_base_ex<type>;
-	using t_allocator = base_ex::t_allocator;
+	using typename base_ex::t_allocator;
 
 	// data
 	id desired_next_capacity_ = 0;

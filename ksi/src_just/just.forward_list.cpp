@@ -136,9 +136,11 @@ struct forward_list {
 
 namespace detail {
 
-template <typename T, typename Target = void>
+template <typename T, typename Target = case_default>
 struct forward_list_node {
-	using pointer = std::conditional_t<std::is_same_v<Target, void>, forward_list_node *, Target *>;
+	using pointer = std::conditional_t<std::is_same_v<Target, case_default>, forward_list_node *, Target *>;
+	
+	// data
 	T value_;
 	pointer next_;
 };

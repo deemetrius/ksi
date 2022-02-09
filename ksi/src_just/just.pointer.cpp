@@ -91,7 +91,7 @@ struct pointer_exact :
 	public pointer_base<T, Closer>
 {
 	using base = pointer_base<T, Closer>;
-	using t_pointer = base::t_pointer;
+	using typename base::t_pointer;
 
 	static constexpr pointer_kind self_kind = Kind;
 
@@ -118,11 +118,11 @@ struct pointer_strong :
 	public detail::pointer_exact<T, Closer, pointer_kind::strong>
 {
 	using base_exact = detail::pointer_exact<T, Closer, pointer_kind::strong>;
-	using base = base_exact::base;
-	using type = base::type;
-	using pointer = base::pointer;
-	using t_impl = base::t_impl;
-	using t_pointer = base::t_pointer;
+	using typename base_exact::base;
+	using typename base::type;
+	using typename base::pointer;
+	using typename base::t_impl;
+	using typename base::t_pointer;
 
 	// copy
 	pointer_strong(const pointer_strong & ptr) : base_exact{ptr.h_} { this->increase(); }
@@ -148,11 +148,11 @@ struct pointer_weak :
 	public detail::pointer_exact<T, Closer, pointer_kind::weak>
 {
 	using base_exact = detail::pointer_exact<T, Closer, pointer_kind::weak>;
-	using base = base_exact::base;
-	using type = base::type;
-	using pointer = base::pointer;
-	using t_impl = base::t_impl;
-	using t_pointer = base::t_pointer;
+	using typename base_exact::base;
+	using typename base::type;
+	using typename base::pointer;
+	using typename base::t_impl;
+	using typename base::t_pointer;
 
 	// copy
 	pointer_weak(const pointer_weak & ptr) : base_exact{ptr.h_} { this->increase(); }
@@ -177,10 +177,10 @@ struct pointer_semi :
 	public detail::pointer_base<T, Closer>
 {
 	using base = detail::pointer_base<T, Closer>;
-	using type = base::type;
-	using pointer = base::pointer;
-	using t_impl = base::t_impl;
-	using t_pointer = base::t_pointer;
+	using typename base::type;
+	using typename base::pointer;
+	using typename base::t_impl;
+	using typename base::t_pointer;
 
 	// data
 	pointer_kind kind_ = pointer_kind::strong;

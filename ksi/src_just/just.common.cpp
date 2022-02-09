@@ -1,7 +1,6 @@
 module;
 
 export module just.common;
-import <compare>;
 import <type_traits>;
 import <concepts>;
 import <cstddef>;
@@ -31,6 +30,11 @@ concept c_scalar = std::is_scalar_v<T>;
 
 template <typename T, typename ... U>
 concept c_any_of = ( std::same_as<T, U> || ... );
+
+template <typename T, typename Left>
+concept c_inequal_comparable_with_left = requires(const T & target, const Left & left) {
+	static_cast<bool>(left != target);
+};
 
 template <typename T, bool Can_change = false>
 using arg_passing_t = std::conditional_t<std::is_scalar_v<T>, T,
@@ -79,26 +83,35 @@ struct alignas(Align) aligned_data {
 
 //
 
-template <typename IterBegin, typename IterEnd = IterBegin>
+template <typename Iter_begin, typename Iter_end = Iter_begin>
 struct range {
-	IterBegin begin_;
-	IterEnd end_;
+	Iter_begin begin_;
+	Iter_end end_;
 
-	constexpr IterBegin begin() const { return begin_; }
-	constexpr IterEnd end() const { return end_; }
+	constexpr Iter_begin begin() const { return begin_; }
+	constexpr Iter_end end() const { return end_; }
 };
 
 template <typename Iter>
 struct reverse_iterator {
 	using t_iter = Iter;
 
+	// data
 	t_iter it_;
 
 	constexpr reverse_iterator(t_iter it) : it_(it) {}
 	constexpr auto & operator * () const { return *it_; }
 	constexpr reverse_iterator & operator ++ () { --it_; return *this; }
 
-	template <std::three_way_comparable_with<t_iter> Iterator2>
+	constexpr bool operator != (const reverse_iterator & it2) const {
+		return it_ != it2.it_;
+	}
+	template <c_inequal_comparable_with_left<t_iter> Iterator2>
+	constexpr bool operator != (const Iterator2 & it2) const {
+		return it_ != it2;
+	}
+
+	/*template <std::three_way_comparable_with<t_iter> Iterator2>
 	constexpr std::compare_three_way_result_t<t_iter, Iterator2>
 	operator <=> (const reverse_iterator<Iterator2> & it2) const {
 		return it_ <=> it2.it_;
@@ -106,7 +119,7 @@ struct reverse_iterator {
 	template <typename Iterator2>
 	constexpr bool operator == (const reverse_iterator<Iterator2> & it2) const {
 		return it_ == it2.it_;
-	}
+	}*/
 };
 
 } // ns

@@ -2,8 +2,8 @@ module;
 
 export module just.keeper;
 export import just.common;
-import <concepts>;
 import <type_traits>;
+import <concepts>;
 
 export namespace just {
 

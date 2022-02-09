@@ -2,8 +2,8 @@ module;
 
 export module just.array;
 export import just.ref;
-import <concepts>;
 import <type_traits>;
+import <concepts>;
 import <cstring>;
 import <exception>;
 import <new>;
@@ -91,7 +91,7 @@ struct impl_array :
 	// range-for helpers
 	using t_range = range<pointer>;
 	using t_reverse_iterator = reverse_iterator<pointer>;
-	using t_reverse_range = range<t_reverse_iterator>;
+	using t_reverse_range = range<t_reverse_iterator, pointer>;
 
 	t_range get_range() const { return {this->h_, this->h_ + this->count_}; }
 	t_range get_range(id from) const { return {this->h_ + from, this->h_ + this->count_}; }

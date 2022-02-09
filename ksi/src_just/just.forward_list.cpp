@@ -2,7 +2,6 @@ module;
 
 export module just.forward_list;
 export import just.aux;
-import <concepts>;
 import <type_traits>;
 import <utility>;
 
@@ -62,11 +61,12 @@ struct forward_list {
 	using pointer = t_node *;
 	using t_closer = Closer<t_node>;
 	using t_iterator = detail::forward_list_iterator<t_node>;
+	using t_sentinel = pointer;
 
 	static constexpr bool is_node_custom = std::is_base_of_v<bases::forward_list_node<t_node>, t_node>;
 
 	// data
-	pointer head_ = nullptr, last_ = nullptr;
+	pointer head_ = nullptr, tail_ = nullptr;
 
 	// no copy
 	forward_list(const forward_list &) = delete;
@@ -78,7 +78,7 @@ struct forward_list {
 
 	// iteration
 	t_iterator begin() const { return {head_}; }
-	pointer end() const { return nullptr; }
+	t_sentinel end() const { return nullptr; }
 
 	operator bool () const { return head_; }
 	bool operator ! () const { return !head_; }
@@ -89,25 +89,25 @@ struct forward_list {
 			t_closer::close(head_);
 			head_ = next;
 		}
-		last_ = nullptr;
+		tail_ = nullptr;
 		return *this;
 	}
 	auto append(pointer node) {
 		node->next_ = nullptr;
-		if( last_ ) last_->next_ = node;
+		if( tail_ ) tail_->next_ = node;
 		else head_ = node;
-		last_ = node;
+		tail_ = node;
 		return detail::forward_list_append(this);
 	}
 	auto prepend(pointer node) {
-		if( !head_ ) last_ = node;
+		if( !head_ ) tail_ = node;
 		node->next_ = head_;
 		head_ = node;
 		return detail::forward_list_insert_after(this, node);
 	}
 	auto insert_after(pointer pos, pointer node) {
 		if( pos ) {
-			if( !pos->next_ ) last_ = node;
+			if( !pos->next_ ) tail_ = node;
 			node->next_ = pos->next_;
 			pos->next_ = node;
 		} else prepend(node);
@@ -117,7 +117,7 @@ struct forward_list {
 		if( head_ ) {
 			pointer pos = head_;
 			head_ = pos->next_;
-			if( !head_ ) last_ = nullptr;
+			if( !head_ ) tail_ = nullptr;
 			t_closer::close(pos);
 		}
 		return *this;
@@ -125,7 +125,7 @@ struct forward_list {
 	forward_list & remove_after(pointer pos) {
 		if( pointer next = pos->next_ ) {
 			pos->next_ = next->next_;
-			if( !pos->next_ ) last_ = pos;
+			if( !pos->next_ ) tail_ = pos;
 			t_closer::close(next);
 		}
 		return *this;

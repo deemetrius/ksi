@@ -58,9 +58,9 @@ int main() {
 		t_list lst;
 		lst.prepend( new t_list::t_node{-2} )( new t_list::t_node{-1} );
 		lst.append( new t_list::t_node{} )( new t_list::t_node{1} )( new t_list::t_node{point{2, 2}} );
-		lst.insert_after( lst.last_, new t_list::t_node{3} )( new t_list::t_node{4} );
+		lst.insert_after( lst.tail_, new t_list::t_node{3} )( new t_list::t_node{4} );
 		just::forward_list_insert_after(lst, lst.head_)()(10, 10)(20, 20);
-		//just::forward_list_insert_after(lst, lst.last_)(0)(10, 20)(5, 5)();
+		//just::forward_list_insert_after(lst, lst.tail_)(0)(10, 20)(5, 5)();
 		for( t_list::pointer it : lst ) { std::cout << it->value_.x << ":" << it->value_.y << " "; }
 		std::cout << "\n";
 	}

@@ -17,6 +17,7 @@ struct alignas(Align) keeper {
 		local_size = Size,
 		local_align = Align
 	};
+	static constexpr bool is_special = false;
 
 	// data
 	alignas(local_align)
@@ -46,6 +47,8 @@ struct keeper_special :
 	using typename self_base::type;
 	using typename self_base::pointer;
 
+	static constexpr bool is_special = true;
+
 	//
 	~keeper_special() { close(); }
 
@@ -72,6 +75,11 @@ struct keeper {
 		!std::is_trivially_destructible_v<type> :
 		max(false, !std::is_trivially_destructible_v<Options> ...)
 	;
+	static constexpr bool is_base_with_virtual_destructor = std::has_virtual_destructor_v<type>;
+	static_assert(is_only || is_base_with_virtual_destructor || !is_special,
+		"just::keeper ~ Base should contain virtual destructor when either of Options has non trivial destructor (or Options should be empty)!"
+	);
+
 	using t_internal = std::conditional_t<is_special,
 		detail::keeper_special<type, local_size, local_align>,
 		detail::keeper<type, local_size, local_align>

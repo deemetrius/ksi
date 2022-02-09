@@ -33,6 +33,8 @@ struct forward_list_iterator {
 	// data
 	pointer current_;
 
+	forward_list_iterator(pointer node) : current_(node) {}
+
 	void operator ++ () { current_ = current_->next_; }
 	pointer operator * () const { return current_; }
 	bool operator != (pointer it) const { return current_ != it; }
@@ -77,7 +79,7 @@ struct forward_list {
 	~forward_list() { clear(); }
 
 	// iteration
-	t_iterator begin() const { return {head_}; }
+	t_iterator begin() const { return head_; }
 	t_sentinel end() const { return nullptr; }
 
 	operator bool () const { return head_; }
@@ -114,11 +116,10 @@ struct forward_list {
 		return detail::forward_list_insert_after(this, node);
 	}
 	forward_list & remove_first() {
-		if( head_ ) {
-			pointer pos = head_;
-			head_ = pos->next_;
+		if( pointer it = head_ ) {
+			head_ = it->next_;
 			if( !head_ ) tail_ = nullptr;
-			t_closer::close(pos);
+			t_closer::close(it);
 		}
 		return *this;
 	}

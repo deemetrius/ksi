@@ -3,6 +3,7 @@ import just.compare;
 import just.dict;
 import just.keeper;
 import just.forward_list;
+import just.list;
 import <compare>;
 import <iostream>;
 
@@ -18,9 +19,29 @@ void print_dict(const Array & arr) {
 	std::wcout << L"\n";
 }
 
-struct b1 { bool x; };
-struct b2 : public b1 { bool y; };
-struct b3 : public b2 { bool z; };
+struct hold_base { virtual just::wtext name() const { using namespace just::text_literals; return L"hold_base"_jt; }
+	//virtual ~hold_base() = default;
+};
+template <typename T, just::fixed_string Name>
+struct hold : public hold_base {
+	T value;
+	hold(const T & v = T{}) : value(v) {}
+	just::wtext name() const override {
+		//return &just::detail::static_data<Name>::value;
+		return just::text_literals::operator "" _jt<Name> ();
+	}
+};
+struct b1 { bool x; /*virtual just::wtext name() const { using namespace just::text_literals; return L"b1"_jt; }*/
+	using tt = hold<b1, L"b1">;
+};
+struct b2 : public b1 { bool y; /*just::wtext name() const override { using namespace just::text_literals; return L"b2"_jt; }*/
+	using tt = hold<b2, L"b2">;
+};
+struct b3 : public b2 { bool z; /*just::wtext name() const override { using namespace just::text_literals; return L"b3"_jt; }*/
+	using tt = hold<b3, L"b3">;
+	~b3() = default;
+	//b3(bool cx, bool cy, bool cz) { x = cx; y = cy; z = cz; }
+};
 
 struct point /*: public just::bases::forward_list_node<point>*/ { int x, y; point(int px = 0, int py = 0) : x(px), y(py) {} };
 
@@ -49,9 +70,10 @@ int main() {
 		print_dict(dict);
 		std::wcout << L"dict capacity = " << dict->capacity_ << L"\n" << t_dict::contains(dict, 1) << L"\n";
 	}{
-		just::keeper<b1, b2, b3>::t_internal keep;
-		keep.assign(new(&keep.place) b3{true, false, true});
-		std::cout << "x = " << keep->x << "\n";
+		using t_keep = just::keeper<hold_base, b1::tt, b2::tt, b3::tt>::t_internal;
+		t_keep keep;
+		keep.assign( new(&keep.place) b3::tt({true, false, true}) );
+		std::wcout << keep->name() /*<< ".x = " << keep->x*/ << " " << keep.is_special << "\n";
 	}{
 		using t_list = just::forward_list_alias<point>;
 		//using t_list = just::forward_list<point>;
@@ -62,6 +84,15 @@ int main() {
 		just::forward_list_insert_after(lst, lst.head_)()(10, 10)(20, 20);
 		//just::forward_list_insert_after(lst, lst.tail_)(0)(10, 20)(5, 5)();
 		for( t_list::pointer it : lst ) { std::cout << it->value_.x << ":" << it->value_.y << " "; }
+		std::cout << "\n";
+	}{
+		using t_list = just::list_alias<point>;
+		t_list lst;
+		lst.prepend( new t_list::t_node{-2} )( new t_list::t_node{-1} );
+		lst.append( new t_list::t_node{} )( new t_list::t_node{1} )( new t_list::t_node{point{2, 2}} );
+		lst.insert_before( lst.tail_, new t_list::t_node{2} )( new t_list::t_node{{2, 1}} );
+		just::list_insert_after(lst, lst.tail_)(0)(10, 20)(5, 5)();
+		for( t_list::pointer it : lst.get_reverse_range() ) { std::cout << it->value_.x << ":" << it->value_.y << " "; }
 		std::cout << "\n";
 	}
 	return 0;

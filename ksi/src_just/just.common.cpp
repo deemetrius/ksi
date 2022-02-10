@@ -4,6 +4,7 @@ export module just.common;
 import <type_traits>;
 import <concepts>;
 import <cstddef>;
+import <utility>;
 
 export namespace just {
 
@@ -54,10 +55,10 @@ constexpr T max(T a, Rest ... b) { return max( a, max(b ...) ); }
 
 //
 
-template <typename From, typename To>
+/*template <typename From, typename To>
 constexpr void copy_n(From from, uid n, To to) {
 	for( uid i{}; i < n; ++i, ++from, ++to ) *to = *from;
-}
+}*/
 
 template <typename C, uid N>
 struct fixed_string {
@@ -67,10 +68,12 @@ struct fixed_string {
 	// data
 	type s_[N];
 
-	constexpr fixed_string() requires(N == 1) { *s_ = 0; }
-	constexpr fixed_string(const type (&s)[N]) {
-		copy_n(s, N, s_);
-	}
+	constexpr fixed_string() requires(N == 1) : s_{0} {}
+
+	template <uid ... I>
+	constexpr fixed_string(const type (&s)[N], std::index_sequence<I ...>) : s_{s[I] ...} {}
+
+	constexpr fixed_string(const type (&s)[N]) : fixed_string( s, std::make_index_sequence<N>() ) {}
 };
 
 template <uid N, uid Align>

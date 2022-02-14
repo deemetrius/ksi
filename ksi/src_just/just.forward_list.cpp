@@ -12,6 +12,9 @@ concept c_forward_list_node = requires(Node * nd) {
 	nd = nd->next_;
 };
 
+template <typename T>
+concept c_forward_list_node_close_case = c_any_of<T, case_default, case_cross, case_none>;
+
 namespace bases {
 
 template <typename Target>
@@ -64,8 +67,10 @@ struct forward_list {
 	using t_closer = Closer<t_node>;
 	using t_iterator = detail::forward_list_iterator<t_node>;
 	using t_sentinel = pointer;
+	using t_range = range<t_iterator, t_sentinel>;
 
 	static constexpr bool is_node_custom = std::is_base_of_v<bases::forward_list_node<t_node>, t_node>;
+	static constexpr bool is_special = ! std::is_same_v< t_closer, closers::simple_none<t_node> >;
 
 	// data
 	pointer head_ = nullptr, tail_ = nullptr;
@@ -76,21 +81,26 @@ struct forward_list {
 
 	//
 	forward_list() = default;
-	~forward_list() { clear(); }
+	~forward_list() requires(is_special) { clear(); }
+	~forward_list() requires(!is_special) = default;
 
 	// iteration
 	t_iterator begin() const { return head_; }
 	t_sentinel end() const { return nullptr; }
+	t_range get_range() const { return {head_, nullptr}; }
+	static t_range get_range(pointer from) { return {from, nullptr}; }
+	static t_range get_range(pointer from, pointer to) { return {from, to->next_}; }
 
 	operator bool () const { return head_; }
 	bool operator ! () const { return !head_; }
 
 	forward_list & clear() {
+		if constexpr( is_special )
 		while( head_ ) {
 			pointer next = head_->next_;
 			t_closer::close(head_);
 			head_ = next;
-		}
+		} else head_ = nullptr;
 		tail_ = nullptr;
 		return *this;
 	}
@@ -119,7 +129,7 @@ struct forward_list {
 		if( pointer it = head_ ) {
 			head_ = it->next_;
 			if( !head_ ) tail_ = nullptr;
-			t_closer::close(it);
+			if constexpr( is_special ) t_closer::close(it);
 		}
 		return *this;
 	}
@@ -127,13 +137,13 @@ struct forward_list {
 		if( pointer next = pos->next_ ) {
 			pos->next_ = next->next_;
 			if( !pos->next_ ) tail_ = pos;
-			t_closer::close(next);
+			if constexpr( is_special ) t_closer::close(next);
 		}
 		return *this;
 	}
 };
 
-//
+// simple/cross/none detail
 
 namespace detail {
 
@@ -152,13 +162,14 @@ struct forward_list_node_cross :
 	public bases::with_deleter< forward_list_node_cross<T> >
 {};
 
-template <typename T, bool Node_cross,
+template <typename T, c_forward_list_node_close_case Node_close_case,
 	template <c_forward_list_node Node1, template <typename T1> typename Closer1> typename List
 >
-using forward_list_alias = std::conditional_t<Node_cross,
-	List< forward_list_node_cross<T>, closers::simple_call_deleter >,
-	List< forward_list_node<T>, closers::simple_one >
->;
+using forward_list_alias = std::conditional_t<std::is_same_v<Node_close_case, case_default>,
+	List<forward_list_node<T>, closers::simple_one>, std::conditional_t<std::is_same_v<Node_close_case, case_none>,
+	List<forward_list_node<T>, closers::simple_none>,
+	List<forward_list_node_cross<T>, closers::simple_call_deleter>
+> >;
 
 template <c_forward_list_node Node, template <typename T1> typename Closer>
 struct forward_list_cross :
@@ -171,12 +182,12 @@ struct forward_list_cross :
 
 } // ns detail
 
-// simple & cross
+// simple/cross/none
 
-template <typename T, bool List_cross = false, bool Node_cross = false>
+template <typename T, bool List_cross = false, c_forward_list_node_close_case Node_close_case = case_default>
 using forward_list_alias = std::conditional_t<List_cross,
-	detail::forward_list_alias<T, Node_cross, detail::forward_list_cross>,
-	detail::forward_list_alias<T, Node_cross, forward_list>
+	detail::forward_list_alias<T, Node_close_case, detail::forward_list_cross>,
+	detail::forward_list_alias<T, Node_close_case, forward_list>
 >;
 
 // actions

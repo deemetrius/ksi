@@ -10,6 +10,9 @@ import <new>;
 
 export namespace just {
 
+template <typename T>
+concept c_capacity_more = c_any_of<T, case_default, case_exact>;
+
 namespace bases {
 
 template <typename Closer>
@@ -150,9 +153,6 @@ struct capacity_step {
 	}
 };
 
-template <typename T>
-concept c_capacity_more = c_any_of<T, case_default, case_exact>;
-
 // array
 
 template <typename T, typename Capacity, template <typename T1> typename Closer = closers::simple_none>
@@ -177,6 +177,10 @@ struct array {
 
 	//
 	array(id capacity = t_capacity::initial) : ref_( new t_impl(capacity) ) {}
+
+	// iteration
+	pointer begin() const { return ref_->h_; }
+	pointer end() const { return ref_->h_ + ref_->count_; }
 
 	t_impl::base_ex & base() const { return *ref_.h_; }
 	t_impl * impl() const { return ref_.h_; }

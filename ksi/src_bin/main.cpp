@@ -9,7 +9,7 @@ import <iostream>;
 
 template <typename Array>
 void print_items(const Array & arr) {
-	for( auto it : arr->get_range() ) std::wcout << it << L" ";
+	for( auto it : arr ) std::wcout << it << L" ";
 	std::wcout << L"\n";
 }
 
@@ -19,7 +19,8 @@ void print_dict(const Array & arr) {
 	std::wcout << L"\n";
 }
 
-struct hold_base { virtual just::wtext name() const { using namespace just::text_literals; return L"hold_base"_jt; }
+struct hold_base {
+	virtual just::wtext name() const { using namespace just::text_literals; return L"hold_base"_jt; }
 	//virtual ~hold_base() = default;
 };
 template <typename T, just::fixed_string Name>
@@ -31,17 +32,9 @@ struct hold : public hold_base {
 		return just::text_literals::operator "" _jt<Name> ();
 	}
 };
-struct b1 { bool x; /*virtual just::wtext name() const { using namespace just::text_literals; return L"b1"_jt; }*/
-	using tt = hold<b1, L"b1">;
-};
-struct b2 : public b1 { bool y; /*just::wtext name() const override { using namespace just::text_literals; return L"b2"_jt; }*/
-	using tt = hold<b2, L"b2">;
-};
-struct b3 : public b2 { bool z; /*just::wtext name() const override { using namespace just::text_literals; return L"b3"_jt; }*/
-	using tt = hold<b3, L"b3">;
-	~b3() = default;
-	//b3(bool cx, bool cy, bool cz) { x = cx; y = cy; z = cz; }
-};
+struct b1 { bool x; using tt = hold<b1, L"b1">; };
+struct b2 : public b1 { bool y; using tt = hold<b2, L"b2">; };
+struct b3 : public b2 { bool z; using tt = hold<b3, L"b3">; ~b3() = default; };
 
 struct point /*: public just::bases::forward_list_node<point>*/ { int x, y; point(int px = 0, int py = 0) : x(px), y(py) {} };
 
@@ -75,7 +68,8 @@ int main() {
 		keep.assign( new(&keep.place) b3::tt({true, false, true}) );
 		std::wcout << keep->name() /*<< ".x = " << keep->x*/ << " " << keep.is_special << "\n";
 	}{
-		using t_list = just::forward_list_alias<point>;
+		using t_list = just::forward_list_alias<point/*, false, just::case_none*/>;
+		std::cout << "~list() triviality: " << std::is_trivially_destructible_v<t_list> << "\n";
 		//using t_list = just::forward_list<point>;
 		t_list lst;
 		lst.prepend( new t_list::t_node{-2} )( new t_list::t_node{-1} );

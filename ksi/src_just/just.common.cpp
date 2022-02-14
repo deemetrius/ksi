@@ -12,7 +12,9 @@ using id = std::ptrdiff_t;
 using uid = std::size_t;
 
 struct case_default;
+struct case_none;
 struct case_exact;
+struct case_cross;
 
 //
 
@@ -44,14 +46,14 @@ using arg_passing_t = std::conditional_t<std::is_scalar_v<T>, T,
 
 //
 
-template <c_scalar T>
-constexpr T max(T a) { return a; }
+/*template <c_scalar T>
+constexpr T max(T a) { return a; }*/
 
 template <c_scalar T>
-constexpr T max(T a, T b) { return (a < b) ? b : a; }
+constexpr T max(T a, std::type_identity_t<T> b) { return (a < b) ? b : a; }
 
 template <c_scalar T, c_scalar ... Rest>
-constexpr T max(T a, Rest ... b) { return max( a, max(b ...) ); }
+constexpr T max(T a, std::type_identity_t<T> b, Rest ... rest) { return max( a, max(b, rest ...) ); }
 
 //
 

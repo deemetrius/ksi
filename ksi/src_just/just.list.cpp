@@ -13,6 +13,9 @@ concept c_list_node = requires(Node * nd) {
 	nd = nd->prev_;
 };
 
+template <typename T>
+concept c_list_node_close_case = c_any_of<T, case_default, case_cross, case_none>;
+
 namespace bases {
 
 template <typename Target>
@@ -85,6 +88,7 @@ struct list {
 	using t_reverse_range = range<t_reverse_iterator, t_sentinel>;
 
 	static constexpr bool is_node_custom = std::is_base_of_v<bases::list_node<t_node>, t_node>;
+	static constexpr bool is_special = ! std::is_same_v< t_closer, closers::simple_none<t_node> >;
 
 	// data
 	pointer head_ = nullptr, tail_ = nullptr;
@@ -95,22 +99,29 @@ struct list {
 
 	//
 	list() = default;
-	~list() { clear(); }
+	~list() requires(is_special) { clear(); }
+	~list() requires(!is_special) = default;
 
 	// iteration
 	t_iterator begin() const { return head_; }
 	t_sentinel end() const { return nullptr; }
+	t_range get_range() const { return {head_, nullptr}; }
 	t_reverse_range get_reverse_range() const { return {tail_, nullptr}; }
+	static t_range get_range(pointer from) { return {from, nullptr}; }
+	static t_range get_range(pointer from, pointer to) { return {from, to->next_}; }
+	static t_reverse_range get_reverse_range(pointer from) { return {from, nullptr}; }
+	static t_reverse_range get_reverse_range(pointer from, pointer to) { return {from, to->prev_}; }
 
 	operator bool () const { return head_; }
 	bool operator ! () const { return !head_; }
 
 	list & clear() {
+		if constexpr( is_special )
 		while( tail_ ) {
 			pointer prev = tail_->prev_;
 			t_closer::close(tail_);
 			tail_ = prev;
-		}
+		} else tail_ = nullptr;
 		head_ = nullptr;
 		return *this;
 	}
@@ -149,7 +160,7 @@ struct list {
 			head_ = it->next_;
 			if( head_ ) head_->prev_ = nullptr;
 			else tail_ = nullptr;
-			t_closer::close(it);
+			if constexpr( is_special ) t_closer::close(it);
 		}
 		return *this;
 	}
@@ -158,7 +169,7 @@ struct list {
 			tail_ = it->prev_;
 			if( tail_ ) tail_->next_ = nullptr;
 			else head_ = nullptr;
-			t_closer::close(it);
+			if constexpr( is_special ) t_closer::close(it);
 		}
 		return *this;
 	}
@@ -166,7 +177,7 @@ struct list {
 		if( pointer it = pos->next_ ) {
 			if( pointer next = it->next_ ) t_helper::connect(pos, next);
 			else { tail_ = pos; pos->next_ = nullptr; }
-			t_closer::close(it);
+			if constexpr( is_special ) t_closer::close(it);
 		}
 		return *this;
 	}
@@ -174,7 +185,7 @@ struct list {
 		if( pointer it = pos->prev_ ) {
 			if( pointer prev = it->prev_ ) t_helper::connect(prev, pos);
 			else { head_ = pos; pos->prev_ = nullptr; }
-			t_closer::close(it);
+			if constexpr( is_special ) t_closer::close(it);
 		}
 		return *this;
 	}
@@ -188,12 +199,12 @@ struct list {
 			if( next ) next->prev_ = nullptr;
 			else tail_ = nullptr;
 		}
-		t_closer::close(pos);
+		if constexpr( is_special ) t_closer::close(pos);
 		return *this;
 	}
 };
 
-//
+// simple/cross/none detail
 
 namespace detail {
 
@@ -212,13 +223,14 @@ struct list_node_cross :
 	public bases::with_deleter< list_node_cross<T> >
 {};
 
-template <typename T, bool Node_cross,
+template <typename T, c_list_node_close_case Node_close_case,
 	template <c_list_node Node1, template <typename T1> typename Closer1> typename List
 >
-using list_alias = std::conditional_t<Node_cross,
-	List< list_node_cross<T>, closers::simple_call_deleter >,
-	List< list_node<T>, closers::simple_one >
->;
+using list_alias = std::conditional_t<std::is_same_v<Node_close_case, case_default>,
+	List<list_node<T>, closers::simple_one>, std::conditional_t<std::is_same_v<Node_close_case, case_none>,
+	List<list_node<T>, closers::simple_none>,
+	List<list_node_cross<T>, closers::simple_call_deleter>
+> >;
 
 template <c_list_node Node, template <typename T1> typename Closer>
 struct list_cross :
@@ -231,12 +243,12 @@ struct list_cross :
 
 } // ns detail
 
-// simple & cross
+// simple/cross/none
 
-template <typename T, bool List_cross = false, bool Node_cross = false>
+template <typename T, bool List_cross = false, c_list_node_close_case Node_close_case = case_default>
 using list_alias = std::conditional_t<List_cross,
-	detail::list_alias<T, Node_cross, detail::list_cross>,
-	detail::list_alias<T, Node_cross, list>
+	detail::list_alias<T, Node_close_case, detail::list_cross>,
+	detail::list_alias<T, Node_close_case, list>
 >;
 
 // actions

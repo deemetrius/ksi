@@ -98,11 +98,7 @@ struct dict_pair_key_helper {
 template <typename Key, typename Value, typename Capacity>
 struct dict_pair_helper {
 	using t_element = dict_pair<Key, Value>;
-	using t_internal = std::conditional_t<
-		std::is_trivially_destructible_v<t_element>,
-		array<t_element, Capacity>,
-		array<t_element, Capacity, closers::simple_destructor>
-	>;
+	using t_internal = array_alias<t_element, Capacity>;
 	using use_base = dict_base<t_internal, Key, dict_pair_key_helper>;
 };
 
@@ -118,11 +114,7 @@ struct dict_set_key_helper {
 template <typename Key, typename Capacity>
 struct dict_set_helper {
 	using t_element = Key;
-	using t_internal = std::conditional_t<
-		std::is_trivially_destructible_v<t_element>,
-		array<t_element, Capacity>,
-		array<t_element, Capacity, closers::simple_destructor>
-	>;
+	using t_internal = array_alias<t_element, Capacity>;
 	using use_base = dict_base<t_internal, Key, dict_set_key_helper>;
 };
 

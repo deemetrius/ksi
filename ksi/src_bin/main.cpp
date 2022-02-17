@@ -47,7 +47,7 @@ int main() {
 		just::text tx2 = "1"_jt;
 		std::wcout << L"test text: " << (just::text_no_case{tx} == L"hEllo"_jt ? L'y' : L'n') << L"\n";
 	}{
-		just::array<bool, just::capacity_step<3, 4> > arr;
+		just::array_alias<bool, just::capacity_step<3, 4> > arr;
 		{ just::array_append_guard ag(arr, 2); new( ag.place ) bool[ag.quantity]{true, false}; }
 		print_items(arr);
 		{ just::array_insert_guard ag(arr, 1, 2); new( ag->place ) bool[ag->quantity]{true}; }

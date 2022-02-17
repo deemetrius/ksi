@@ -193,6 +193,14 @@ struct array {
 	id stored_bytes() const { return stored_bytes(ref_->count_); }
 };
 
+//
+
+template <typename T, typename Capacity>
+using array_alias = std::conditional_t<std::is_trivially_destructible_v<T>,
+	array<T, Capacity>,
+	array<T, Capacity, closers::simple_destructor>
+>;
+
 // actions
 
 namespace detail {

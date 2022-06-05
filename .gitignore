@@ -1,3 +1,6 @@
-/ksi/bin/**
-/ksi/obj/**
-/ksi/.vscode/how_build.config.json
+/_about
+/_prev.2022-05-14
+/_prev.2022-06-05
+/ksi/.vs
+/ksi/prj_ksi/x64
+/ksi/x64/**

@@ -6,14 +6,23 @@ export module ksi.function;
 
 export import <vector>;
 export import just.text;
-export import ksi.log;
+export import ksi.var;
 
 export namespace ksi {
 	
 	struct space;
 	struct context {};
 	struct call_stack {};
-	struct stack {};
+	struct stack {
+		using t_items = std::vector<var::any_var>;
+
+		// data
+		t_items		m_items;
+
+		stack() {
+			m_items.reserve(16);
+		}
+	};
 
 	struct instr_data {
 		using const_reference = const instr_data &;

@@ -8,7 +8,6 @@ import <concepts>;
 export import just.common;
 export import just.aux;
 export import just.list;
-export import just.output;
 export import ksi.log;
 
 export namespace ksi {
@@ -41,9 +40,11 @@ export namespace ksi {
 
 		struct any;
 		using any_pointer = any *;
+		using any_const_pointer = const any *;
 
 		struct any_var;
 		using var_pointer = any_var *;
+		using var_const_pointer = const any_var *;
 
 		struct any_link;
 		using link_pointer = any_link *;
@@ -54,14 +55,15 @@ export namespace ksi {
 			// data
 			bool	m_is_compound = false;
 
-			virtual compound_pointer	var_owner(var_pointer p_var) = 0;
+			virtual compound_pointer	var_owner(var_const_pointer p_var) = 0;
 			virtual void				var_owner_set(var_pointer p_var, compound_pointer p_owner) = 0;
 			virtual link_pointer		link_make_maybe(var_pointer p_var) = 0;
 			virtual any_pointer			any_get(var_pointer p_var) = 0;
+			virtual any_const_pointer	any_get_const(var_const_pointer p_var) = 0;
 			virtual void				any_close(any_pointer p_any) = 0;
-			virtual void				var_change(var_pointer p_to, any_pointer p_from) = 0;
+			virtual void				var_change(var_pointer p_to, any_const_pointer p_from) = 0;
 			//
-			virtual bool				write(any_pointer p_any, output_pointer p_out) { return true; }
+			virtual bool write(any_const_pointer p_any, output_pointer p_out) { return true; }
 		};
 
 		using type_pointer = type_base *;
@@ -69,19 +71,20 @@ export namespace ksi {
 		struct type_link :
 			public type_base
 		{
-			compound_pointer	var_owner(var_pointer p_var) override;
-			void				var_owner_set(var_pointer p_var, compound_pointer p_owner) override;
-			link_pointer		link_make_maybe(var_pointer p_var) override;
-			any_pointer			any_get(var_pointer p_var) override;
-			void				any_close(any_pointer p_any) override;
-			void				var_change(var_pointer p_to, any_pointer p_from) override;
-			bool				write(any_pointer p_any, output_pointer p_out) override;
+			auto var_owner(var_const_pointer p_var) -> compound_pointer override;
+			void var_owner_set(var_pointer p_var, compound_pointer p_owner) override;
+			auto link_make_maybe(var_pointer p_var) -> link_pointer override;
+			auto any_get(var_pointer p_var) -> any_pointer override;
+			auto any_get_const(var_const_pointer p_var) -> any_const_pointer override;
+			void any_close(any_pointer p_any) override;
+			void var_change(var_pointer p_to, any_const_pointer p_from) override;
+			bool write(any_const_pointer p_any, output_pointer p_out) override;
 		};
 
 		struct type_ref :
 			public type_link
 		{
-			void var_change(var_pointer p_to, any_pointer p_from) override;
+			void var_change(var_pointer p_to, any_const_pointer p_from) override;
 		};
 
 		// simple
@@ -89,12 +92,13 @@ export namespace ksi {
 		struct type_simple :
 			public type_base
 		{
-			compound_pointer	var_owner(var_pointer p_var) override;
-			void				var_owner_set(var_pointer p_var, compound_pointer p_owner) override;
-			link_pointer		link_make_maybe(var_pointer p_var) override;
-			any_pointer			any_get(var_pointer p_var) override;
-			void				any_close(any_pointer p_any) override;
-			void				var_change(var_pointer p_to, any_pointer p_from) override;
+			auto var_owner(var_const_pointer p_var) -> compound_pointer override;
+			void var_owner_set(var_pointer p_var, compound_pointer p_owner) override;
+			auto link_make_maybe(var_pointer p_var) -> link_pointer override;
+			auto any_get(var_pointer p_var) -> any_pointer override;
+			auto any_get_const(var_const_pointer p_var) -> any_const_pointer override;
+			void any_close(any_pointer p_any) override;
+			void var_change(var_pointer p_to, any_const_pointer p_from) override;
 		};
 
 		struct type_null :
@@ -104,19 +108,19 @@ export namespace ksi {
 		struct type_bool :
 			public type_simple
 		{
-			bool write(any_pointer p_any, output_pointer p_out) override;
+			bool write(any_const_pointer p_any, output_pointer p_out) override;
 		};
 
 		struct type_int :
 			public type_simple
 		{
-			bool write(any_pointer p_any, output_pointer p_out) override;
+			bool write(any_const_pointer p_any, output_pointer p_out) override;
 		};
 
 		struct type_float :
 			public type_simple
 		{
-			bool write(any_pointer p_any, output_pointer p_out) override;
+			bool write(any_const_pointer p_any, output_pointer p_out) override;
 		};
 
 		// compound
@@ -128,12 +132,13 @@ export namespace ksi {
 				m_is_compound = true;
 			}
 
-			compound_pointer	var_owner(var_pointer p_var) override;
-			void				var_owner_set(var_pointer p_var, compound_pointer p_owner) override;
-			link_pointer		link_make_maybe(var_pointer p_var) override;
-			any_pointer			any_get(var_pointer p_var) override;
-			void				any_close(any_pointer p_any) override;
-			void				var_change(var_pointer p_to, any_pointer p_from) override;
+			auto var_owner(var_const_pointer p_var) -> compound_pointer override;
+			void var_owner_set(var_pointer p_var, compound_pointer p_owner) override;
+			auto link_make_maybe(var_pointer p_var) -> link_pointer override;
+			auto any_get(var_pointer p_var) -> any_pointer override;
+			auto any_get_const(var_const_pointer p_var) -> any_const_pointer override;
+			void any_close(any_pointer p_any) override;
+			void var_change(var_pointer p_to, any_const_pointer p_from) override;
 		};
 
 		struct type_array :
@@ -212,10 +217,12 @@ export namespace ksi {
 			}
 
 			void close() { m_type->any_close(this); }
-			bool write(output_pointer p_out = g_config->m_out) { return m_type->write(this, p_out); }
+			bool write(output_pointer p_out = g_config->m_out) const {
+				return m_type->write(this, p_out);
+			}
 		};
 
-		inline just::output_base & operator , (just::output_base & p_out, any_pointer p_value) {
+		inline just::output_base & operator , (just::output_base & p_out, any_const_pointer p_value) {
 			p_value->write(&p_out);
 			return p_out;
 		}
@@ -228,35 +235,34 @@ export namespace ksi {
 			// data
 			union {
 				compound_pointer	m_owner = nullptr;
-				owner_node_pointer		m_owner_node;
+				owner_node_pointer	m_owner_node;
 			};
 
 			any_var() = default;
 
-			any_var(const any_var &) = delete; // no copy
+			any_var(const any_var & p_other) : any() { // copy
+				any_const_pointer v_from = p_other.any_get_const();
+				v_from->m_type->var_change(this, v_from);
+			}
 			any_var(any_var && p_other) : any() { // move
 				p_other.m_type->var_change(this, &p_other);
 			}
-			any_var(any_var & p_other) : any() {
-				any_pointer v_from = p_other.any_get();
-				v_from->m_type->var_change(this, v_from);
-			}
 
-			any_var & operator = (const any_var &) = delete; // no copy assign
+			any_var & operator = (const any_var & p_other) { // copy assign
+				any_const_pointer v_from = p_other.any_get_const();
+				v_from->m_type->var_change(this, v_from);
+				return *this;
+			}
 			any_var & operator = (any_var && p_other) { // move assign
 				p_other.m_type->var_change(this, &p_other);
 				return *this;
 			}
-			any_var & operator = (any_var & p_other) {
-				any_pointer v_from = p_other.any_get();
-				v_from->m_type->var_change(this, v_from);
-				return *this;
-			}
 
-			compound_pointer var_owner() { return m_type->var_owner(this); }
+			auto var_owner() -> compound_pointer { return m_type->var_owner(this); }
 			void var_owner_set(compound_pointer p_owner) { m_type->var_owner_set(this, p_owner); }
-			any_pointer any_get() { return m_type->any_get(this); }
-			link_pointer link_make_maybe() { return m_type->link_make_maybe(this); }
+			auto any_get() -> any_pointer { return m_type->any_get(this); }
+			auto any_get_const() const -> any_const_pointer { return m_type->any_get_const(this); }
+			auto link_make_maybe() -> link_pointer { return m_type->link_make_maybe(this); }
 
 			template <bool C_is_ref = false>
 			void link_to(var_pointer p_var) {
@@ -275,6 +281,13 @@ export namespace ksi {
 		{
 			// data
 			owner_node::t_node	m_owners;
+
+			any_link() = default;
+
+			any_link(const any_link &) = delete; // no copy
+			any_link(any_link &&) = delete; // no move
+			any_link & operator = (const any_link &) = delete; // no copy assign
+			any_link & operator = (any_link &&) = delete; // no move assign
 
 			compound_pointer link_owner() {
 				return m_owners.m_next->node_get_target()->m_owner;
@@ -321,15 +334,15 @@ export namespace ksi {
 
 		// var_owner()
 
-		compound_pointer type_link::var_owner(var_pointer p_var) {
+		compound_pointer type_link::var_owner(var_const_pointer p_var) {
 			return p_var->m_owner_node->m_owner;
 		}
 
-		compound_pointer type_simple::var_owner(var_pointer p_var) {
+		compound_pointer type_simple::var_owner(var_const_pointer p_var) {
 			return p_var->m_owner;
 		}
 
-		compound_pointer type_compound::var_owner(var_pointer p_var) {
+		compound_pointer type_compound::var_owner(var_const_pointer p_var) {
 			using namespace just::text_literals;
 			g_config->m_log->add({g_config->m_path,
 				"system bad case: var_owner() was called for compound type."_jt
@@ -401,6 +414,24 @@ export namespace ksi {
 			return p_var;
 		}
 
+		// any_get_const()
+
+		any_const_pointer type_link::any_get_const(var_const_pointer p_var) {
+			return p_var->m_value.m_link;
+		}
+
+		any_const_pointer type_simple::any_get_const(var_const_pointer p_var) {
+			return p_var;
+		}
+
+		any_const_pointer type_compound::any_get_const(var_const_pointer p_var) {
+			using namespace just::text_literals;
+			g_config->m_log->add({g_config->m_path,
+				"system bad case: any_get_const() was called for compound type."_jt
+			});
+			return p_var;
+		}
+
 		// any_close()
 
 		void type_link::any_close(any_pointer p_any) {
@@ -450,12 +481,12 @@ export namespace ksi {
 
 		// var_change()
 
-		void type_link::var_change(var_pointer p_to, any_pointer p_from) {
+		void type_link::var_change(var_pointer p_to, any_const_pointer p_from) {
 			link_pointer v_link = p_from->m_value.m_link;
 			v_link->m_type->var_change(p_to, v_link);
 		}
 
-		void type_ref::var_change(var_pointer p_to, any_pointer p_from) {
+		void type_ref::var_change(var_pointer p_to, any_const_pointer p_from) {
 			p_to->close();
 			link_pointer v_link = p_from->m_value.m_link;
 			// update var
@@ -466,14 +497,14 @@ export namespace ksi {
 			v_link->m_owners.m_prev->node_attach(p_to->m_owner_node);
 		}
 
-		void type_simple::var_change(var_pointer p_to, any_pointer p_from) {
+		void type_simple::var_change(var_pointer p_to, any_const_pointer p_from) {
 			any_pointer v_any = p_to->any_get();
 			v_any->close();
 			v_any->m_value = p_from->m_value;
 			v_any->m_type = p_from->m_type;
 		}
 
-		void type_compound::var_change(var_pointer p_to, any_pointer p_from) {
+		void type_compound::var_change(var_pointer p_to, any_const_pointer p_from) {
 			link_pointer v_link = p_to->link_make_maybe();
 			v_link->close();
 			compound_pointer v_compound = p_from->m_value.m_compound;
@@ -484,19 +515,19 @@ export namespace ksi {
 
 		// write()
 
-		bool type_link::write(any_pointer p_any, output_pointer p_out) {
+		bool type_link::write(any_const_pointer p_any, output_pointer p_out) {
 			return p_any->m_value.m_link->write(p_out);
 		}
 
-		bool type_bool::write(any_pointer p_any, output_pointer p_out) {
+		bool type_bool::write(any_const_pointer p_any, output_pointer p_out) {
 			return p_out->write(p_any->m_value.m_bool ? 1 : 0);
 		}
 
-		bool type_int::write(any_pointer p_any, output_pointer p_out) {
+		bool type_int::write(any_const_pointer p_any, output_pointer p_out) {
 			return p_out->write(p_any->m_value.m_int);
 		}
 
-		bool type_float::write(any_pointer p_any, output_pointer p_out) {
+		bool type_float::write(any_const_pointer p_any, output_pointer p_out) {
 			return p_out->write(p_any->m_value.m_float);
 		}
 

@@ -26,6 +26,8 @@ export namespace just {
 		virtual bool write(unsigned int p_value)		{ return false; }
 		virtual bool write(t_diff p_value)				{ return false; }
 		virtual bool write(t_size p_value)				{ return false; }
+		virtual bool write(double p_value)				{ return false; }
+		virtual bool write(long double p_value)			{ return false; }
 	};
 	
 	struct output_file :
@@ -99,6 +101,22 @@ export namespace just {
 			}
 			return false;
 		}
+
+		bool write(double p_value) override {
+			if( std::fprintf(m_handle, "%g", p_value) < 0 ) {
+				++m_errors;
+				return true;
+			}
+			return false;
+		}
+
+		bool write(long double p_value) override {
+			if( std::fprintf(m_handle, "%Lg", p_value) < 0 ) {
+				++m_errors;
+				return true;
+			}
+			return false;
+		}
 	};
 
 	output_file g_console;
@@ -108,7 +126,8 @@ export namespace just {
 		char, wchar_t,
 		t_plain_text, t_plain_text_wide,
 		int, unsigned int,
-		t_diff, t_size
+		t_diff, t_size,
+		double, long double
 	> T>
 	output_base & operator , (output_base & p_out, T p_value) {
 		p_out.write(p_value);

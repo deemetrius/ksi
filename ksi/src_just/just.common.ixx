@@ -25,8 +25,64 @@ export namespace just {
 	using t_plain_text = const char *;
 	using t_plain_text_wide = const wchar_t *;
 	
+	//
+
 	template <typename T, typename ... U>
 	concept c_any_of = ( std::same_as<T, U> || ... );
+
+	template <typename T, typename T_left>
+	concept c_inequal_comparable_with_left = requires(const T & p_target, const T_left & p_left) {
+		static_cast<bool>(p_left != p_target);
+	};
+
+	template <typename T, typename T_left>
+	concept c_equal_comparable_with_left = requires(const T & p_target, const T_left & p_left) {
+		static_cast<bool>(p_left == p_target);
+	};
+
+	//
+
+	template <typename T_iterator, typename T_sentinel = T_iterator>
+	struct range_for {
+		using iterator = T_iterator;
+		using sentinel = T_sentinel;
+
+		// data
+		iterator	m_begin;
+		sentinel	m_end;
+
+		iterator begin() const { return m_begin; }
+		sentinel end() const { return m_end; }
+	};
+
+	template <typename T_iterator>
+	struct reverse_iterator {
+		using iterator = T_iterator;
+
+		// data
+		iterator	m_it;
+
+		reverse_iterator(iterator p_it) : m_it{p_it} {}
+
+		decltype(*m_it) operator * () { return *m_it; }
+		reverse_iterator & operator ++ () { --m_it; return *this; }
+
+		bool operator != (const reverse_iterator & p_other) const {
+			return m_it != p_other.m_it;
+		}
+		template <c_inequal_comparable_with_left<iterator> T_other_iterator>
+		constexpr bool operator != (const T_other_iterator & p_other) const {
+			return m_it != p_other;
+		}
+
+		bool operator == (const reverse_iterator & p_other) const {
+			return m_it == p_other.m_it;
+		}
+		template <c_equal_comparable_with_left<iterator> T_other_iterator>
+		constexpr bool operator == (const T_other_iterator & p_other) const {
+			return m_it == p_other;
+		}
+	};
 
 } // ns
 

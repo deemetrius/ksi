@@ -6,6 +6,7 @@ export module ksi.function;
 
 export import <vector>;
 export import just.text;
+export import just.array;
 export import ksi.var;
 
 export namespace ksi {
@@ -14,14 +15,10 @@ export namespace ksi {
 	struct context {};
 	struct call_stack {};
 	struct stack {
-		using t_items = std::vector<var::any_var>;
+		using t_items = just::array_alias<var::any_var, just::capacity_step<16, 16> >;
 
 		// data
 		t_items		m_items;
-
-		stack() {
-			m_items.reserve(16);
-		}
 	};
 
 	struct instr_data {
@@ -53,17 +50,17 @@ export namespace ksi {
 	};
 
 	struct instr_group {
-		using t_vector = std::vector<instr>;
+		using t_instructions = std::vector<instr>;
 
 		// data
-		t_vector	m_instructions;
+		t_instructions	m_instructions;
 	};
 
 	struct function_body {
-		using t_vector = std::vector<instr_group>;
+		using t_groups = std::vector<instr_group>;
 
 		// data
-		t_vector	m_groups;
+		t_groups	m_groups;
 	};
 
 } // ns

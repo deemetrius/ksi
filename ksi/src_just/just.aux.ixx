@@ -12,6 +12,25 @@ export namespace just {
 	namespace closers {
 
 		template <typename T>
+		struct simple_none {
+			using const_pointer = const T *;
+
+			static constexpr bool s_can_accept_null = true;
+
+			static void close(const_pointer p_handle) {}
+		};
+
+		template <typename T>
+		struct simple_destructor {
+			using type = T;
+			using const_pointer = const T *;
+
+			static constexpr bool s_can_accept_null = false;
+
+			static void close(const_pointer p_handle) { p_handle->~type(); }
+		};
+
+		template <typename T>
 		struct simple_delete {
 			using const_pointer = const T *;
 
@@ -27,6 +46,15 @@ export namespace just {
 			static constexpr bool s_can_accept_null = true;
 
 			static void close(const_pointer p_handle) { delete [] p_handle; }
+		};
+
+		template <typename T>
+		struct simple_call_deleter {
+			using const_pointer = const T *;
+
+			static constexpr bool s_can_accept_null = false;
+
+			static void close(const_pointer p_handle) { p_handle->m_deleter(p_handle); }
 		};
 
 		template <typename T_cast, bool C_const_close = false,

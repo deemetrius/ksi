@@ -163,8 +163,8 @@ export namespace ksi {
 			type_array		m_array;
 
 			static config * instance() {
-				static config inst;
-				return &inst;
+				static config v_inst;
+				return &v_inst;
 			}
 		};
 

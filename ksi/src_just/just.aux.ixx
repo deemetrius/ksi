@@ -23,87 +23,89 @@ export namespace just {
 		template <typename T>
 		struct simple_destructor {
 			using type = T;
-			using const_pointer = const T *;
 
 			static constexpr bool s_can_accept_null = false;
 
-			static void close(const_pointer p_handle) { p_handle->~type(); }
+			static void close(type & p_value) { p_value.~type(); }
 		};
 
 		template <typename T>
+		requires ( std::is_pointer_v<T> )
 		struct simple_delete {
-			using const_pointer = const T *;
+			using type = T;
 
 			static constexpr bool s_can_accept_null = true;
 
-			static void close(const_pointer p_handle) { delete p_handle; }
+			static void close(type p_value) { delete p_value; }
 		};
 
 		template <typename T>
+		requires ( std::is_pointer_v<T> )
 		struct simple_delete_array {
-			using const_pointer = const T *;
+			using type = T;
 
 			static constexpr bool s_can_accept_null = true;
 
-			static void close(const_pointer p_handle) { delete [] p_handle; }
+			static void close(type p_value) { delete [] p_value; }
 		};
 
-		template <typename T>
-		struct simple_call_deleter {
-			using const_pointer = const T *;
+		template <bool C_can_accept_null = false>
+		struct compound_call_deleter {
+			template <typename T>
+			requires ( std::is_pointer_v<T> )
+			struct t_closer {
+				using type = T;
 
-			static constexpr bool s_can_accept_null = false;
+				static constexpr bool s_can_accept_null = C_can_accept_null;
 
-			static void close(const_pointer p_handle) { p_handle->m_deleter(p_handle); }
+				static void close(type p_handle) {
+					if constexpr( C_can_accept_null ) {
+						if( p_handle ) p_handle->m_deleter(p_handle);
+					} else {
+						p_handle->m_deleter(p_handle);
+					}
+				}
+			};
 		};
 
-		template <typename T_cast, bool C_const_close = false,
+		template <
+			typename T_cast,
 			template <typename T1> typename T_closer = simple_delete
 		>
 		struct compound_cast {
 			using t_target = T_cast;
-			using t_target_pointer = t_target *;
-			using t_target_const_pointer = const t_target *;
-			using t_target_pass = std::conditional_t<C_const_close,
-				t_target_const_pointer, t_target_pointer
-			>;
 			using t_target_closer = T_closer<t_target>;
 
 			template <typename T>
 			struct t_closer {
 				using type = T;
-				using pointer = type *;
-				using const_pointer = const type *;
-				using t_pass = std::conditional_t<C_const_close, const_pointer, pointer>;
 
 				static constexpr bool s_can_accept_null = t_target_closer::s_can_accept_null;
 
-				static void close(t_pass p_handle) {
-					t_target_closer::close( static_cast<t_target_pass>(p_handle) );
+				static void close(type p_handle) {
+					t_target_closer::close( static_cast<t_target>(p_handle) );
 				}
 			};
 		};
 
 		template <
 			bool C_check_null,
-			bool C_const_close = false,
 			template <typename T1> typename T_closer = simple_delete
 		>
 		struct compound_count {
 			template <typename T>
 			struct t_closer {
 				using type = T;
-				using pointer = type *;
-				using const_pointer = const type *;
 				using t_target_closer = T_closer<type>;
-				using t_pass = std::conditional_t<C_const_close, const_pointer, pointer>;
 
 				static constexpr bool s_can_accept_null = C_check_null;
 
-				static void close(t_pass p_handle) {
+				static void close(type p_handle) {
 					if constexpr ( C_check_null ) {
 						if( p_handle && p_handle->refs_dec() ) t_target_closer::close(p_handle);
-					} else { if( p_handle->refs_dec() ) t_target_closer::close(p_handle); }
+					} else {
+						if( p_handle->refs_dec() ) t_target_closer::close(p_handle);
+					}
 				}
 			};
 		};
@@ -111,17 +113,20 @@ export namespace just {
 		template <bool C_check_null>
 		struct compound_count_call_deleter {
 			template <typename T>
+			requires ( std::is_pointer_v<T> )
 			struct t_closer {
-				using const_pointer = const T *;
+				using type = T;
 
 				static constexpr bool s_can_accept_null = C_check_null;
 
-				static void close(const_pointer p_handle) {
+				static void close(type p_handle) {
 					if constexpr ( C_check_null ) {
 						if( p_handle ) {
 							if( auto v_deleter = p_handle->refs_dec() ) v_deleter(p_handle);
 						}
-					} else { if( auto v_deleter = p_handle->refs_dec() ) v_deleter(p_handle); }
+					} else {
+						if( auto v_deleter = p_handle->refs_dec() ) v_deleter(p_handle);
+					}
 				}
 			};
 		};

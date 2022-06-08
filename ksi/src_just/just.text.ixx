@@ -40,8 +40,8 @@ export namespace just {
 			using pointer = type *;
 			using const_pointer = const type *;
 			using t_with = bases::with_deleter<
-				const impl_text_base<type>,
-				closers::compound_cast<const impl_text<type>, true>::template t_closer
+				const impl_text_base<type> *,
+				closers::compound_cast<const impl_text<type> *>::template t_closer
 			>;
 			using t_deleter = t_with::t_deleter;
 			using t_length = t_int_max;

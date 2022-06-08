@@ -121,7 +121,7 @@ export namespace just {
 		template <typename T>
 		struct impl_array_simple :
 			public impl_array<T>,
-			public bases::with_deleter< impl_array_simple<T> >,
+			public bases::with_deleter<impl_array_simple<T> *>,
 			public bases::with_ref_count
 		{
 			using base = impl_array<T>;
@@ -132,7 +132,7 @@ export namespace just {
 		template <typename T, template <typename T1> typename T_closer>
 		struct impl_array_special :
 			public impl_array<T>,
-			public bases::with_deleter< impl_array_special<T, T_closer> >,
+			public bases::with_deleter<impl_array_special<T, T_closer> *>,
 			public bases::with_ref_count
 		{
 			using t_closer = T_closer<T>;
@@ -142,7 +142,7 @@ export namespace just {
 
 			template <typename T_range>
 			static void close_range(const T_range & p_range) {
-				for( auto & v_it : p_range ) t_closer::close(&v_it);
+				for( auto & v_it : p_range ) t_closer::close(v_it);
 			}
 
 			~impl_array_special() { close_range( this->get_reverse_range() ); }
@@ -192,8 +192,10 @@ export namespace just {
 			detail::impl_array_simple<type>
 		>;
 		using t_ref = ref<t_impl,
-			ref_traits_count<false, closers::compound_count<false, false,
-				closers::simple_call_deleter>::template t_closer
+			ref_traits_count<false,
+				closers::compound_count<false,
+					closers::compound_call_deleter<false>::template t_closer
+				>::template t_closer
 			>
 		>;
 

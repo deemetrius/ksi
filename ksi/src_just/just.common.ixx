@@ -64,7 +64,7 @@ export namespace just {
 
 		reverse_iterator(iterator p_it) : m_it{p_it} {}
 
-		decltype(*m_it) operator * () { return *m_it; }
+		/*decltype(*m_it)*/ auto & operator * () { return *m_it; }
 		reverse_iterator & operator ++ () { --m_it; return *this; }
 
 		bool operator != (const reverse_iterator & p_other) const {

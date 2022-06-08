@@ -31,7 +31,7 @@ export namespace ksi {
 		struct owner_node :
 			public with_owner,
 			public just::node_list<owner_node>,
-			public just::bases::with_deleter<owner_node>
+			public just::bases::with_deleter<owner_node *>
 		{
 			using t_node = just::node_list<owner_node>;
 		};
@@ -277,7 +277,7 @@ export namespace ksi {
 		struct any_link :
 			public any,
 			public just::node_list<any_link>,
-			public just::bases::with_deleter<any_link>
+			public just::bases::with_deleter<any_link *>
 		{
 			// data
 			owner_node::t_node	m_owners;
@@ -300,7 +300,7 @@ export namespace ksi {
 		// compound_base
 
 		struct compound_base :
-			public just::bases::with_deleter<compound_base>
+			public just::bases::with_deleter<compound_base *>
 		{
 			using t_node = just::node_list<any_link>;
 			// data

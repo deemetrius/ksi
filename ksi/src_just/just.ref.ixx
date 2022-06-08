@@ -56,11 +56,11 @@ export namespace just {
 		template <typename T>
 		requires ( C_check_null == false || T_closer<T>::s_can_accept_null )
 		struct t_inner :
-			public T_closer<T>
+			public T_closer<T *>
 		{
 			using t_ref_base = bases::with_handle<T>;
 			using pointer = T *;
-			using t_closer = T_closer<T>;
+			using t_closer = T_closer<pointer>;
 			
 			static constexpr bool s_allow_default = C_check_null;
 			static constexpr bool s_allow_move = C_check_null;

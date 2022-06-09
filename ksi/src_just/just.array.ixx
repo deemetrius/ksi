@@ -242,4 +242,57 @@ export namespace just {
 		}
 	}
 
+	template <typename T_array>
+	void array_remove_from_end(T_array & p_array, t_count p_count_from_end) {
+		t_count v_from = p_array->m_count - p_count_from_end;
+		if constexpr( T_array::s_is_special ) {
+			T_array::t_impl::close_range( p_array->get_reverse_range(v_from) );
+		}
+		p_array->m_count = v_from;
+	}
+
+	template <typename T_array, typename ... T_args>
+	void array_insert(T_array & p_array, t_count p_position, T_args && ... p_args) {
+		if( p_position >= p_array->m_count ) {
+			array_append(p_array, std::forward<T_args>(p_args) ...);
+			return;
+		}
+		aligned_as<T_array::type> v_data;
+		new(&v_data) T_array::type{std::forward<T_args>(p_args) ...};
+		t_count v_new_count, v_rest = p_array->m_count - p_position;
+		if( result_capacity_more v_res = T_array::t_capacity::more(p_array.impl(), 1, v_new_count) ) {
+			T_array v_array{v_res.m_capacity};
+			if( p_position ) {
+				std::memcpy(v_array.data(), p_array.data(), sizeof(T_array::type) * p_position);
+			}
+			std::memcpy(v_array.data() + p_position, &v_data, sizeof(T_array::type) );
+			std::memcpy(v_array.data() + p_position +1, p_array.data() + p_position,
+				sizeof(T_array::type) * v_rest
+			);
+			v_array->m_count = v_new_count;
+			p_array->m_count = 0;
+			std::ranges::swap(p_array.base(), v_array.base() );
+		} else {
+			std::memmove(p_array.data() + p_position +1, p_array.data() + p_position,
+				sizeof(T_array::type) * v_rest
+			);
+			std::memcpy(p_array.data() + p_position, &v_data, sizeof(T_array::type) );
+			p_array->m_count = v_new_count;
+		}
+	}
+
+	template <typename T_array>
+	void array_remove(T_array & p_array, t_count p_from, t_count p_count = 1) {
+		if constexpr( T_array::s_is_special ) {
+			T_array::t_impl::close_range( p_array->get_reverse_range(p_from, p_count) );
+		}
+		t_count v_rest = p_array->m_count - p_from - p_count;
+		if( v_rest ) {
+			std::memmove(p_array.data() + p_from, p_array.data() + p_from + p_count,
+				sizeof(T_array::type) * v_rest
+			);
+		}
+		p_array->m_count -= p_count;
+	}
+
 } // ns

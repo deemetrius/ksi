@@ -4,7 +4,7 @@ module;
 
 export module ksi.space;
 
-//import <utility>;
+export import <set>;
 export import just.ref;
 export import just.hive;
 import just.files;
@@ -70,7 +70,10 @@ export namespace ksi {
 	struct space :
 		public with_hive<folder>
 	{
-		//using typename with_hive<folder>::t_hive;
+		using t_files = std::set<fs::path>;
+
+		// data
+		t_files		m_files;
 	};
 	
 	enum class load_status { already_loaded, just_loaded, not_loaded };

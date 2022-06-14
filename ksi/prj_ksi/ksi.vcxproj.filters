@@ -65,5 +65,8 @@
     <ClCompile Include="..\src_just\just.aux.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\src_ksi\ksi.ast.ixx">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

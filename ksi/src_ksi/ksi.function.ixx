@@ -7,6 +7,7 @@ export module ksi.function;
 export import <vector>;
 export import just.text;
 export import just.array;
+export import just.hive;
 export import ksi.var;
 
 export namespace ksi {
@@ -19,6 +20,13 @@ export namespace ksi {
 
 		// data
 		t_items		m_items;
+	};
+
+	struct module_base {
+		using t_types = just::hive<just::text, var::type_pointer, just::text_less>;
+
+		// data
+		t_types		m_types;
 	};
 
 	struct instr_data {

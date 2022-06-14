@@ -6,6 +6,8 @@ export module just.text;
 
 import <utility>;
 export import just.ref;
+import <cstring>;
+import <cwchar>;
 
 export namespace just {
 	
@@ -144,4 +146,28 @@ export namespace just {
 	using text = basic_text<char>;
 	using Text_wide = basic_text<wchar_t>;
 	
+	template <typename T_char>
+	struct text_traits;
+
+	template <>
+	struct text_traits<char> {
+		static int cmp(t_plain_text p_1, t_plain_text p_2) {
+			return std::strcmp(p_1, p_2);
+		}
+	};
+
+	template <>
+	struct text_traits<wchar_t> {
+		static int cmp(t_plain_text_wide p_1, t_plain_text_wide p_2) {
+			return std::wcscmp(p_1, p_2);
+		}
+	};
+
+	struct text_less {
+		template <typename T_char>
+		bool operator () (const basic_text<T_char> & p_1, const basic_text<T_char> & p_2) const {
+			return text_traits<T_char>::cmp(p_1->m_text, p_2->m_text) < 0;
+		}
+	};
+
 } // ns

@@ -6,11 +6,13 @@ export module ksi.var;
 
 import <concepts>;
 export import just.common;
-export import just.aux;
 export import just.list;
+export import just.text;
 export import ksi.log;
 
 export namespace ksi {
+
+	using t_index = just::t_diff;
 
 	namespace var {
 
@@ -53,7 +55,8 @@ export namespace ksi {
 
 		struct type_base {
 			// data
-			bool	m_is_compound = false;
+			bool		m_is_compound = false;
+			just::text	m_name;
 
 			virtual compound_pointer	var_owner(var_const_pointer p_var) = 0;
 			virtual void				var_owner_set(var_pointer p_var, compound_pointer p_owner) = 0;
@@ -71,6 +74,11 @@ export namespace ksi {
 		struct type_link :
 			public type_base
 		{
+			type_link() {
+				using namespace just::text_literals;
+				m_name = "$link"_jt;
+			}
+
 			auto var_owner(var_const_pointer p_var) -> compound_pointer override;
 			void var_owner_set(var_pointer p_var, compound_pointer p_owner) override;
 			auto link_make_maybe(var_pointer p_var) -> link_pointer override;
@@ -84,6 +92,11 @@ export namespace ksi {
 		struct type_ref :
 			public type_link
 		{
+			type_ref() {
+				using namespace just::text_literals;
+				m_name = "$ref"_jt;
+			}
+
 			void var_change(var_pointer p_to, any_const_pointer p_from) override;
 		};
 
@@ -103,23 +116,43 @@ export namespace ksi {
 
 		struct type_null :
 			public type_simple
-		{};
+		{
+			type_null() {
+				using namespace just::text_literals;
+				m_name = "$null"_jt;
+			}
+		};
 
 		struct type_bool :
 			public type_simple
 		{
+			type_bool() {
+				using namespace just::text_literals;
+				m_name = "$bool"_jt;
+			}
+
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
 		};
 
 		struct type_int :
 			public type_simple
 		{
+			type_int() {
+				using namespace just::text_literals;
+				m_name = "$int"_jt;
+			}
+
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
 		};
 
 		struct type_float :
 			public type_simple
 		{
+			type_float() {
+				using namespace just::text_literals;
+				m_name = "$float"_jt;
+			}
+
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
 		};
 
@@ -143,7 +176,12 @@ export namespace ksi {
 
 		struct type_array :
 			public type_compound
-		{};
+		{
+			type_array() {
+				using namespace just::text_literals;
+				m_name = "$array"_jt;
+			}
+		};
 
 		// config
 
@@ -262,6 +300,7 @@ export namespace ksi {
 			void var_owner_set(compound_pointer p_owner) { m_type->var_owner_set(this, p_owner); }
 			auto any_get() -> any_pointer { return m_type->any_get(this); }
 			auto any_get_const() const -> any_const_pointer { return m_type->any_get_const(this); }
+			auto type_get() const -> type_pointer { return any_get_const()->m_type; }
 			auto link_make_maybe() -> link_pointer { return m_type->link_make_maybe(this); }
 
 			template <bool C_is_ref = false>

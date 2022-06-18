@@ -7,14 +7,13 @@ export module ksi.space;
 export import <set>;
 export import just.ref;
 export import just.hive;
-import just.files;
-export import ksi.log;
+export import ksi.function;
 
 export namespace ksi {
 	
 	//namespace fs = std::filesystem;
 
-	struct with_path {
+	/*struct with_path {
 		using t_path_const_pointer = const fs::path *;
 		
 		// data
@@ -74,11 +73,18 @@ export namespace ksi {
 
 		// data
 		t_files		m_files;
+	};*/
+
+	struct space {
+		using t_files = std::set<fs::path>;
+
+		// data
+		t_files		m_files;
 	};
+
+	/*enum class load_status { already_loaded, just_loaded, not_loaded };
 	
-	enum class load_status { already_loaded, just_loaded, not_loaded };
-	
-	load_status load_folder(space & p_space, const fs::path & p_path, log_base::base_pointer p_log) {
+	load_status load_folder(space & p_space, const fs::path & p_path, log_base::pointer p_log) {
 		using namespace just::text_literals;
 		if( space::t_hive::t_find_position res = p_space.m_hive.find_position(p_path); res.first ) {
 			return load_status::already_loaded;
@@ -101,6 +107,6 @@ export namespace ksi {
 			p_space.add_to_hive(v_it);
 		}
 		return load_status::just_loaded;
-	}
+	}*/
 	
 } // ns

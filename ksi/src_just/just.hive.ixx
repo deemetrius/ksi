@@ -5,6 +5,7 @@ module;
 export module just.hive;
 
 import <utility>;
+import <concepts>;
 export import <vector>;
 export import <map>;
 export import <functional>;
@@ -100,6 +101,11 @@ export namespace just {
 		
 		iterator begin() { return {m_map.begin(), &m_vector}; }
 		iterator end() { return {m_map.end(), &m_vector}; }
+
+		friend void swap(hive & p_1, hive & p_2) {
+			std::ranges::swap(p_1.m_map, p_2.m_map);
+			std::ranges::swap(p_1.m_vector, p_2.m_vector);
+		}
 	};
 	
 } // ns

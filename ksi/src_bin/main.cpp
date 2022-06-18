@@ -3,7 +3,7 @@
 import <new>;
 import just.output;
 import ksi.var;
-import ksi.space;
+import ksi.ast;
 
 int main(int p_args_count, char * p_args[], char * p_env[]) {
 	//using namespace just::text_literals;
@@ -16,7 +16,8 @@ int main(int p_args_count, char * p_args[], char * p_env[]) {
 		ksi::log_list v_log;
 		ksi::var::log_switcher v_log_change{&v_log};
 		ksi::space v_space;
-		if( ksi::load_folder(v_space, p_args[1], &v_log) == ksi::load_status::not_loaded ) {
+		ksi::prepare_data v_data(&v_space);
+		if( ksi::load_folder(v_data, p_args[1], &v_log) != ksi::file_status::loaded ) {
 			just::g_console, "error: Unable to load path: ", p_args[1], just::g_new_line;
 			v_log.out(just::g_console);
 		}

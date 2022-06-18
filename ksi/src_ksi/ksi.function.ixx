@@ -39,7 +39,7 @@ export namespace ksi {
 
 	struct instr_type {
 		static void do_nothing(space * p_space, call_stack * p_call, stack * p_stack,
-			log_base * p_log, instr_data::const_reference p_data
+			log_base::pointer p_log, instr_data::const_reference p_data
 		) {}
 
 		using t_fn = decltype(&do_nothing);
@@ -49,6 +49,7 @@ export namespace ksi {
 		// data
 		t_text	m_name;
 		t_fn	m_fn;
+		bool	m_nothing = false;
 	};
 
 	struct instr {

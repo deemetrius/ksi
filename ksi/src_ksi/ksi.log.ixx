@@ -28,7 +28,7 @@ export namespace ksi {
 	};
 	
 	struct log_base {
-		using base_pointer = log_base *;
+		using pointer = log_base *;
 		
 		virtual ~log_base() = default;
 		

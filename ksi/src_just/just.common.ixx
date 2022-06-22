@@ -24,6 +24,8 @@ export namespace just {
 	
 	using t_plain_text = const char *;
 	using t_plain_text_wide = const wchar_t *;
+	using t_text = char *;
+	using t_text_wide = wchar_t *;
 	
 	//
 

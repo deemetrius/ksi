@@ -125,6 +125,7 @@ export namespace just {
 	template <c_any_of<
 		char, wchar_t,
 		t_plain_text, t_plain_text_wide,
+		t_text, t_text_wide,
 		int, unsigned int,
 		t_diff, t_size,
 		double, long double

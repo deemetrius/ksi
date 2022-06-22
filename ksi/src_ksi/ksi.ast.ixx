@@ -11,6 +11,28 @@ import just.files;
 
 export namespace ksi {
 
+	using file_read_result = just::result<just::text>;
+
+	file_read_result file_read(const fs::path & p_path, log_base::pointer p_log) {
+		using namespace just::text_literals;
+		just::file_read_status v_read_status;
+		file_read_result v_ret{false, just::file_read(p_path, v_read_status)};
+		switch( v_read_status ) {
+		case just::file_read_status::fail_get_size :
+			p_log->add({p_path, "error: Unable to get file size."_jt});
+			break;
+		case just::file_read_status::fail_open :
+			p_log->add({p_path, "error: Unable to open file."_jt});
+			break;
+		case just::file_read_status::fail_read :
+			p_log->add({p_path, "error: Unable to read file."_jt});
+			break;
+		default:
+			v_ret.m_nice = true;
+		}
+		return v_ret;
+	}
+
 	struct module_extension :
 		public module_base
 	{
@@ -61,9 +83,26 @@ export namespace ksi {
 		}
 
 		file_status load_folder(const fs::path & p_path, log_base::pointer p_log);
+		file_status load_file(const fs::path & p_path, log_base::pointer p_log);
 	};
 
 	//enum class load_status { already_loaded, just_loaded, not_loaded };
+
+	bool check_char(char p_char) {
+		switch( p_char ) {
+		case '\t'	: return false;
+		case '"'	: return false;
+		case ':'	: return false;
+		case '/'	: return false;
+		case '\\'	: return false;
+		case '*'	: return false;
+		case '?'	: return false;
+		case '<'	: return false;
+		case '>'	: return false;
+		case '|'	: return false;
+		}
+		return true;
+	}
 
 	file_status prepare_data::load_folder(const fs::path & p_path, log_base::pointer p_log) {
 		using namespace just::text_literals;
@@ -75,7 +114,7 @@ export namespace ksi {
 			++m_error_count;
 			file_status v_ret = (v_file_type == fs::file_type::not_found) ? file_status::absent : file_status::with_error;
 			m_files.insert_or_assign(v_path, v_ret);
-			p_log->add(log_message{ v_path, "error: Given path should be directory."_jt });
+			p_log->add({ v_path, "error: Given path should be directory."_jt });
 			return v_ret;
 		}
 		fs::path v_priority_path = v_path;
@@ -85,15 +124,52 @@ export namespace ksi {
 			file_status v_ret = (v_file_type == fs::file_type::not_found) ? file_status::absent : file_status::with_error;
 			m_files.insert_or_assign(v_priority_path, v_ret);
 			m_files.insert_or_assign(v_path, file_status::with_error);
-			p_log->add(log_message{ v_priority_path, "error: Given file should exists."_jt });
+			p_log->add({ v_priority_path, "error: Given file should exists."_jt });
 			return v_ret;
 		}
 		m_files.insert_or_assign(v_path, file_status::in_process);
 		m_files.insert_or_assign(v_priority_path, file_status::in_process);
 		//
+		file_read_result v_file_res = file_read(v_priority_path, p_log);
+		if( ! v_file_res ) {
+			m_files.insert_or_assign(v_path, file_status::with_error);
+			m_files.insert_or_assign(v_priority_path, file_status::with_error);
+			return file_status::with_error;
+		}
+		just::text v_ext = ".define"_jt;
+		just::t_plain_text v_text = v_file_res.m_value->m_text;
+		just::g_console, v_text, just::g_new_line;
+		just::t_plain_text v_start_line = v_text;
+		do {
+			if( *v_text == '\n' || *v_text == 0 ) {
+				if( v_text - v_start_line > 0 ) {
+					just::text v_name{v_start_line, v_text};
+					v_name = just::implode({v_name, v_ext});
+					fs::path v_file_path = v_path;
+					v_file_path.append(v_name->m_text);
+					load_file(v_file_path, p_log);
+					if( *v_text == 0 ) { break; }
+				}
+				++v_text;
+				v_start_line = v_text;
+				continue;
+			}
+			if( ! check_char(*v_text) ) {
+				p_log->add({ v_priority_path, "error: Wrong character was found."_jt, {1, v_text - v_start_line +1} });
+				m_files.insert_or_assign(v_path, file_status::with_error);
+				m_files.insert_or_assign(v_priority_path, file_status::with_error);
+				return file_status::with_error;
+			}
+			++v_text;
+		} while( true );
 		//
 		m_files.insert_or_assign(v_path, file_status::loaded);
 		m_files.insert_or_assign(v_priority_path, file_status::loaded);
+		return file_status::loaded;
+	}
+
+	file_status prepare_data::load_file(const fs::path & p_path, log_base::pointer p_log) {
+		just::g_console, p_path.c_str(), just::g_new_line;
 		return file_status::loaded;
 	}
 

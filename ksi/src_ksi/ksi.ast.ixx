@@ -138,24 +138,50 @@ export namespace ksi {
 		}
 		just::text v_ext = ".define"_jt;
 		just::t_plain_text v_text = v_file_res.m_value->m_text;
-		just::g_console, v_text, just::g_new_line;
 		just::t_plain_text v_start_line = v_text;
+		just::t_int v_line = 1;
+		just::text::t_const_pointer v_cmd_ext = "ext: \""_jt;
 		do {
-			if( *v_text == '\n' || *v_text == 0 ) {
+			if(
+				v_text == v_start_line &&
+				just::text_traits::cmp_n(v_text, v_cmd_ext->m_text, v_cmd_ext->m_length) == 0
+			) {
+				v_text += v_cmd_ext->m_length;
+				v_start_line = v_text;
+				while( *v_text != '"' ) {
+					if( *v_text == 0 ) {
+						p_log->add({ v_priority_path, "error: Unexpected end of file."_jt, {v_line, v_text - v_start_line +1} });
+						m_files.insert_or_assign(v_path, file_status::with_error);
+						m_files.insert_or_assign(v_priority_path, file_status::with_error);
+						return file_status::with_error;
+					}
+					++v_text;
+				}
+				v_ext = just::text_traits::from_range(v_start_line, v_text);
+				++v_text;
+				v_start_line = v_text;
+			}
+			if(
+				*v_text == '\r' ||
+				*v_text == '\n' ||
+				*v_text == 0
+			) {
 				if( v_text - v_start_line > 0 ) {
-					just::text v_name{v_start_line, v_text};
+					just::text v_name = just::text_traits::from_range(v_start_line, v_text);
 					v_name = just::implode({v_name, v_ext});
 					fs::path v_file_path = v_path;
 					v_file_path.append(v_name->m_text);
 					load_file(v_file_path, p_log);
-					if( *v_text == 0 ) { break; }
 				}
-				++v_text;
+				if( *v_text == 0 ) { break; }
+				if( *v_text == '\r' && v_text[1] == '\n' ) { v_text += 2; }
+				else { ++v_text; }
 				v_start_line = v_text;
+				++v_line;
 				continue;
 			}
 			if( ! check_char(*v_text) ) {
-				p_log->add({ v_priority_path, "error: Wrong character was found."_jt, {1, v_text - v_start_line +1} });
+				p_log->add({ v_priority_path, "error: Wrong character was found."_jt, {v_line, v_text - v_start_line +1} });
 				m_files.insert_or_assign(v_path, file_status::with_error);
 				m_files.insert_or_assign(v_priority_path, file_status::with_error);
 				return file_status::with_error;

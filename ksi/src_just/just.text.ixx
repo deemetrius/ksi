@@ -124,6 +124,7 @@ export namespace just {
 	struct basic_text {
 		using type = T_char;
 		using t_impl_base = detail::impl_text_base<type>;
+		using t_const_pointer = const t_impl_base *;
 		using t_impl = detail::impl_text<type>;
 		using t_ref = ref<const t_impl_base,
 			ref_traits_count<false, closers::compound_count_call_deleter<false>::t_closer>
@@ -140,7 +141,7 @@ export namespace just {
 		t_ref m_ref;
 		
 		basic_text() : basic_text(&detail::static_data<s_empty>::s_value) {}
-		basic_text(const t_impl_base * p_impl) : m_ref(p_impl) {}
+		basic_text(t_const_pointer p_impl) : m_ref(p_impl) {}
 		basic_text & operator = (const t_impl_base * p_impl) {
 			m_ref = p_impl;
 			return *this;
@@ -150,9 +151,9 @@ export namespace just {
 			m_ref( new t_impl(p_text, p_length) )
 		{ *p_text = 0; }
 
-		basic_text(const_pointer p_begin, const_pointer p_end, pointer p_text = nullptr, t_length p_length = 0) :
+		/* basic_text(const_pointer p_begin, const_pointer p_end, pointer p_text = nullptr, t_length p_length = 0) :
 			m_ref( new t_impl(p_text, p_length = p_end - p_begin) )
-		{ std::memcpy(p_text, p_begin, p_length); p_text[p_length] = 0; }
+		{ std::memcpy(p_text, p_begin, p_length); p_text[p_length] = 0; } */
 		
 		//
 		operator bool () const { return *m_ref->m_text; }
@@ -162,29 +163,41 @@ export namespace just {
 	};
 	
 	using text = basic_text<char>;
-	using Text_wide = basic_text<wchar_t>;
+	using text_wide = basic_text<wchar_t>;
 	
-	template <typename T_char>
 	struct text_traits;
 
-	template <>
-	struct text_traits<char> {
-		static int cmp(t_plain_text p_1, t_plain_text p_2) {
+	struct text_traits {
+		template <c_any_of<char, wchar_t> T_char>
+		static text from_range(const T_char * p_begin, const T_char * p_end) {
+			using t_ret = basic_text<T_char>;
+			typename t_ret::t_length v_length = p_end - p_begin;
+			typename t_ret::pointer v_text;
+			t_ret v_ret{v_length, v_text};
+			std::memcpy(v_text, p_begin, v_length * sizeof(T_char) );
+			v_text[v_length] = 0;
+			return v_ret;
+		}
+
+		static int cmp(text::const_pointer p_1, text::const_pointer p_2) {
 			return std::strcmp(p_1, p_2);
 		}
-	};
-
-	template <>
-	struct text_traits<wchar_t> {
-		static int cmp(t_plain_text_wide p_1, t_plain_text_wide p_2) {
+		static int cmp(text_wide::const_pointer p_1, text_wide::const_pointer p_2) {
 			return std::wcscmp(p_1, p_2);
+		}
+
+		static int cmp_n(text::const_pointer p_1, text::const_pointer p_2, t_size p_count) {
+			return std::strncmp(p_1, p_2, p_count);
+		}
+		static int cmp_n(text_wide::const_pointer p_1, text_wide::const_pointer p_2, t_size p_count) {
+			return std::wcsncmp(p_1, p_2, p_count);
 		}
 	};
 
 	struct text_less {
 		template <typename T_char>
 		bool operator () (const basic_text<T_char> & p_1, const basic_text<T_char> & p_2) const {
-			return text_traits<T_char>::cmp(p_1->m_text, p_2->m_text) < 0;
+			return text_traits::cmp(p_1->m_text, p_2->m_text) < 0;
 		}
 	};
 

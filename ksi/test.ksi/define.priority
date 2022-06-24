@@ -1,1 +1,5 @@
+ext: ".define"
 point
+
+ext: ".ksi"
+test

@@ -7,6 +7,7 @@ export module just.common;
 import <cstdint>;
 import <cstddef>;
 import <concepts>;
+//import <type_traits>;
 
 export namespace just {
 	
@@ -41,6 +42,18 @@ export namespace just {
 	concept c_equal_comparable_with_left = requires(const T & p_target, const T_left & p_left) {
 		static_cast<bool>(p_left == p_target);
 	};
+
+	//
+
+	template <typename T, typename T_value>
+	bool is_one_of(T p_value, T_value p_first) {
+		return p_value == p_first;
+	}
+
+	template <typename T, typename T_value, typename ... T_args>
+	bool is_one_of(T p_value, T_value p_first, T_args ... p_args) {
+		return p_value == p_first || is_one_of(p_value, p_args ...);
+	}
 
 	//
 

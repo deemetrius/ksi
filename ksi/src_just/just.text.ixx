@@ -9,6 +9,7 @@ export import just.ref;
 import <cstring>;
 import <cwchar>;
 export import <initializer_list>;
+export import <string_view>;
 
 export namespace just {
 	
@@ -159,7 +160,9 @@ export namespace just {
 		operator bool () const { return *m_ref->m_text; }
 		bool operator ! () const { return !*m_ref->m_text; }
 		const t_impl_base * operator -> () const { return m_ref.m_handle; }
-		//operator std::basic_string_view<type> () const { return {m_ref->m_text, m_ref->m_length}; }
+		operator std::basic_string_view<type> () const {
+			return {m_ref->m_text, static_cast<std::string_view::size_type>(m_ref->m_length)};
+		}
 	};
 	
 	using text = basic_text<char>;
@@ -201,39 +204,45 @@ export namespace just {
 		}
 	};
 
-	text implode(std::initializer_list<text> p_list, const text & p_separator = text{}) {
-		text::t_length v_length = 0;
-		for( const text & v_it : p_list ) {
-			v_length += v_it->size();
+	template <typename T_char>
+	text implode(
+		std::initializer_list<std::basic_string_view<T_char> > p_list,
+		const std::basic_string_view<T_char> & p_separator = std::basic_string_view<T_char>{}
+	) {
+		using t_text = basic_text<T_char>;
+		using t_view = std::basic_string_view<T_char>;
+		typename t_text::t_length v_length = 0;
+		for( const t_view & v_it : p_list ) {
+			v_length += v_it.size();
 		}
-		if( p_separator ) {
-			v_length += p_separator->size() * (p_list.size() -1);
-			text::pointer v_text;
-			text v_ret{v_length, v_text};
+		if( p_separator.size() ) {
+			v_length += p_separator.size() * (p_list.size() -1);
+			typename t_text::pointer v_text;
+			t_text v_ret{v_length, v_text};
 			v_text[v_length] = 0;
 			bool v_first = true;
-			text::t_length v_part_length;
-			for( const text & v_it : p_list ) {
+			typename t_text::t_length v_part_length;
+			for( const t_view & v_it : p_list ) {
 				if( v_first ) {
 					v_first = false;
 				} else {
-					v_part_length = p_separator->size();
-					std::memcpy(v_text, p_separator->m_text, v_part_length);
+					v_part_length = p_separator.size();
+					std::memcpy(v_text, p_separator.data(), v_part_length * sizeof(t_text::type) );
 					v_text += v_part_length;
 				}
-				v_part_length = v_it->size();
-				std::memcpy(v_text, v_it->m_text, v_part_length);
+				v_part_length = v_it.size();
+				std::memcpy(v_text, v_it.data(), v_part_length);
 				v_text += v_part_length;
 			}
 			return v_ret;
 		}
-		text::pointer v_text;
-		text v_ret{v_length, v_text};
+		typename t_text::pointer v_text;
+		t_text v_ret{v_length, v_text};
 		v_text[v_length] = 0;
-		text::t_length v_part_length;
-		for( const text & v_it : p_list ) {
-			v_part_length = v_it->size();
-			std::memcpy(v_text, v_it->m_text, v_part_length);
+		typename t_text::t_length v_part_length;
+		for( const t_view & v_it : p_list ) {
+			v_part_length = v_it.size();
+			std::memcpy(v_text, v_it.data(), v_part_length * sizeof(t_text::type) );
 			v_text += v_part_length;
 		}
 		return v_ret;

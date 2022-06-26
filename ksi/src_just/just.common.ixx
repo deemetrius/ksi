@@ -46,12 +46,12 @@ export namespace just {
 	//
 
 	template <typename T, typename T_value>
-	bool is_one_of(T p_value, T_value p_first) {
+	inline bool is_one_of(T p_value, T_value p_first) {
 		return p_value == p_first;
 	}
 
 	template <typename T, typename T_value, typename ... T_args>
-	bool is_one_of(T p_value, T_value p_first, T_args ... p_args) {
+	inline bool is_one_of(T p_value, T_value p_first, T_args ... p_args) {
 		return p_value == p_first || is_one_of(p_value, p_args ...);
 	}
 

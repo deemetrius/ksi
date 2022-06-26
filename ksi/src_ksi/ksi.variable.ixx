@@ -5,6 +5,7 @@ module;
 export module ksi.var;
 
 import <concepts>;
+export import <map>;
 export import just.common;
 export import just.list;
 export import just.text;
@@ -172,6 +173,7 @@ export namespace ksi {
 			auto any_get_const(var_const_pointer p_var) -> any_const_pointer override;
 			void any_close(any_pointer p_any) override;
 			void var_change(var_pointer p_to, any_const_pointer p_from) override;
+			static void link_change(link_pointer p_to, any_const_pointer p_from);
 		};
 
 		struct type_array :
@@ -180,6 +182,26 @@ export namespace ksi {
 			type_array() {
 				using namespace just::text_literals;
 				m_name = "$array#"_jt;
+			}
+		};
+
+		struct type_struct :
+			public type_compound
+		{
+			using t_map = std::map<just::text, t_index, just::text_less>;
+			using t_insert = std::pair<t_map::iterator, bool>;
+
+			// data
+			t_map	m_props;
+
+			type_struct(const just::text & p_name) {
+				m_name = p_name;
+			}
+
+			bool prop_add(const just::text & p_prop_name) {
+				t_index v_index = std::ssize(m_props);
+				t_insert v_res = m_props.insert({p_prop_name, v_index});
+				return v_res.second;
 			}
 		};
 
@@ -199,11 +221,12 @@ export namespace ksi {
 			type_int		m_int;
 			type_float		m_float;
 			type_array		m_array;
+			//
+			var_pointer		m_zero_var;
 
-			static config * instance() {
-				static config v_inst;
-				return &v_inst;
-			}
+			config(var_pointer p_zero_var) : m_zero_var(p_zero_var) {}
+
+			static config * instance();
 		};
 
 		using config_pointer = config *;
@@ -241,6 +264,10 @@ export namespace ksi {
 
 			any(const any &) = delete;
 			any(any &&) = delete;
+
+			any & operator = (const any &) = delete;
+			any & operator = (any &&) = delete;
+
 			~any() { close(); }
 
 			any() : m_type{&g_config->m_null} {}
@@ -312,6 +339,12 @@ export namespace ksi {
 				}
 			}
 		};
+
+		config * config::instance() {
+			static any_var v_zero_var;
+			static config v_inst(&v_zero_var);
+			return &v_inst;
+		}
 
 		struct any_link :
 			public any,
@@ -487,7 +520,10 @@ export namespace ksi {
 					v_link->m_type->m_is_compound &&
 					v_owner_node->m_owner != v_link->link_owner()
 				) {
-					v_link->close();
+					// rebind compound
+					any_var v_tmp;
+					v_link->m_type->var_change(&v_tmp, v_link);
+					type_compound::link_change(v_link, v_tmp.m_value.m_link);
 				}
 			}
 			v_owner_node->m_deleter(v_owner_node);
@@ -534,6 +570,8 @@ export namespace ksi {
 			// owner_node
 			p_to->m_owner_node = new owner_node{p_to->m_owner};
 			v_link->m_owners.m_prev->node_attach(p_to->m_owner_node);
+			// close zero var
+			g_config->m_zero_var->close();
 		}
 
 		void type_simple::var_change(var_pointer p_to, any_const_pointer p_from) {
@@ -545,11 +583,15 @@ export namespace ksi {
 
 		void type_compound::var_change(var_pointer p_to, any_const_pointer p_from) {
 			link_pointer v_link = p_to->link_make_maybe();
-			v_link->close();
+			link_change(v_link, p_from);
+		}
+
+		void type_compound::link_change(link_pointer p_link, any_const_pointer p_from) {
+			p_link->close();
 			compound_pointer v_compound = p_from->m_value.m_compound;
-			v_link->m_value.m_compound = v_compound;
-			v_compound->link(v_link);
-			v_link->m_type = p_from->m_type;
+			p_link->m_value.m_compound = v_compound;
+			v_compound->link(p_link);
+			p_link->m_type = p_from->m_type;
 		}
 
 		// write()

@@ -19,7 +19,23 @@ export namespace ksi {
 		using t_items = just::array_alias<var::any_var, just::capacity_step<16, 16> >;
 
 		// data
-		t_items		m_items;
+		t_items				m_items;
+		var::var_pointer	m_var;
+
+		var::any_var * last() { return m_items.end() -1; }
+
+		void var_set(var::var_pointer p_var) {
+			m_var = p_var;
+		}
+
+		void var_put() {
+			just::array_append(m_items, *m_var);
+		}
+
+		void var_put_link() {
+			just::array_append(m_items);
+			last()->link_to<true>(m_var);
+		}
 	};
 
 	struct module_base {

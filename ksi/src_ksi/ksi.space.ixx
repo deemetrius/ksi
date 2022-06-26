@@ -82,31 +82,4 @@ export namespace ksi {
 		t_files		m_files;
 	};
 
-	/*enum class load_status { already_loaded, just_loaded, not_loaded };
-	
-	load_status load_folder(space & p_space, const fs::path & p_path, log_base::pointer p_log) {
-		using namespace just::text_literals;
-		if( space::t_hive::t_find_position res = p_space.m_hive.find_position(p_path); res.first ) {
-			return load_status::already_loaded;
-		}
-		if( just::file_type(p_path) != fs::file_type::directory ) {
-			p_log->add(log_message{p_path, "error: Given path should be directory."_jt });
-			return load_status::not_loaded;
-		}
-		fs::path v_priority = p_path;
-		v_priority.append("define.priority");
-		if( just::file_type(v_priority) != fs::file_type::regular ) {
-			p_log->add(log_message{v_priority, "error: Given file should exists."_jt });
-			return load_status::not_loaded;
-		}
-		space v_space;
-		//space::t_hive_find_result res =
-		v_space.add_to_hive(p_path);
-		//
-		for( space::t_ref & v_it : v_space.m_hive.m_vector ) {
-			p_space.add_to_hive(v_it);
-		}
-		return load_status::just_loaded;
-	}*/
-	
 } // ns

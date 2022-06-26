@@ -132,60 +132,95 @@ export namespace ksi {
 		just::t_plain_text v_start_line = v_text;
 		just::t_int v_line = 1;
 		just::text::t_const_pointer v_cmd_ext = "ext: \""_jt;
+		fs::path v_file_path;
 		do {
 			if( v_text == v_start_line ) {
 				if( just::text_traits::cmp_n(v_text, v_cmd_ext->m_text, v_cmd_ext->m_length) == 0 ) {
 					// ext: ""
 					v_text += v_cmd_ext->m_length;
-					v_start_line = v_text;
+					just::t_plain_text v_start_text = v_text;
 					while( *v_text != '"' ) {
-						if( *v_text == 0 ) {
+						if( *v_text == '\0' ) {
 							return folder_fail(file_status::with_error, v_path, v_priority_path, p_log,
 								"error: Unexpected end of file."_jt, v_line, v_text - v_start_line +1
 							);
 						}
+						if( just::is_one_of(*v_text, '\r', '\n') ) {
+							return folder_fail(file_status::with_error, v_path, v_priority_path, p_log,
+								"error: Unexpected end of line."_jt, v_line, v_text - v_start_line +1
+							);
+						}
 						++v_text;
 					}
-					v_ext = just::text_traits::from_range(v_start_line, v_text);
+					v_ext = just::text_traits::from_range(v_start_text, v_text);
 					++v_text;
 					v_start_line = v_text;
-				} else if( just::is_one_of(*v_text, ' ', '\t') ) {
+				} else if( *v_text == ':' ) {
 					// comment
 					++v_text;
-					while( !just::is_one_of(*v_text, '\r', '\n', '\0') ) {
+					while( ! just::is_one_of(*v_text, '\r', '\n', '\0') ) {
 						++v_text;
 					}
+					v_start_line = v_text;
+				} else if( *v_text == '"' ) {
+					// quoted path
+					++v_text;
+					just::t_plain_text v_start_text = v_text;
+					while( *v_text != '"' ) {
+						if( *v_text == '\0' ) {
+							return folder_fail(file_status::with_error, v_path, v_priority_path, p_log,
+								"error: Unexpected end of file."_jt, v_line, v_text - v_start_line +1
+							);
+						}
+						if( just::is_one_of(*v_text, '\r', '\n') ) {
+							return folder_fail(file_status::with_error, v_path, v_priority_path, p_log,
+								"error: Unexpected end of line."_jt, v_line, v_text - v_start_line +1
+							);
+						}
+						++v_text;
+					}
+					just::text v_file = just::text_traits::from_range(v_start_text, v_text);
+					v_file_path += static_cast<std::string_view>(v_file);
+					if( v_file_path.is_relative() ) {
+						fs::path v_quoted_path = v_file_path;
+						v_file_path = v_path;
+						v_file_path /= v_quoted_path;
+					}
+					v_file_path = fs::weakly_canonical(v_file_path);
+					++v_text;
 					v_start_line = v_text;
 				}
 			}
-			if( just::is_one_of(*v_text, '\r', '\n', '\0') ) {
-				// file
-				if( v_text - v_start_line > 0 ) {
-					just::text v_name = just::text_traits::from_range(v_start_line, v_text);
-					v_name = just::implode<char>({v_name, v_ext});
-					fs::path v_file_path = v_path;
-					v_file_path.append(v_name->m_text);
-					file_status v_file_status = load_file(v_file_path, p_log);
-					switch( v_file_status ) {
-					case file_status::absent :
-						{
-							std::string v_file_string = v_file_path.string();
-							just::text v_msg = "error: Given file is absent: "_jt;
-							return folder_fail(file_status::with_error, v_path, v_priority_path, p_log,
-								just::implode<char>({v_msg, v_file_string}), v_line, 1
-							);
-						}
-					case file_status::with_error :
-						{
-							std::string v_file_string = v_file_path.string();
-							just::text v_msg = "error: Given file contains error: "_jt;
-							return folder_fail(file_status::with_error, v_path, v_priority_path, p_log,
-								just::implode<char>({v_msg, v_file_string}), v_line, 1
-							);
-						}
+			if( just::is_one_of(*v_text, '\r', '\n', '\0') && (v_text > v_start_line) ) {
+				just::text v_name = just::text_traits::from_range(v_start_line, v_text);
+				v_file_path = v_path;
+				v_file_path /= static_cast<std::string_view>(v_name);
+				v_file_path += static_cast<std::string_view>(v_ext);
+			}
+			if( ! v_file_path.empty() ) {
+				file_status v_file_status = load_file(v_file_path, p_log);
+				switch( v_file_status ) {
+				case file_status::absent :
+					{
+						just::text v_msg = "error: Given file is absent: "_jt;
+						std::string v_file_string = v_file_path.string();
+						return folder_fail(file_status::with_error, v_path, v_priority_path, p_log,
+							just::implode<char>({v_msg, v_file_string}), v_line, 1
+						);
+					}
+				case file_status::with_error :
+					{
+						just::text v_msg = "error: Given file contains error: "_jt;
+						std::string v_file_string = v_file_path.string();
+						return folder_fail(file_status::with_error, v_path, v_priority_path, p_log,
+							just::implode<char>({v_msg, v_file_string}), v_line, 1
+						);
 					}
 				}
-				if( *v_text == '\0' ) { break; }
+				v_file_path.clear();
+			}
+			if( *v_text == '\0' ) { break; }
+			if( just::is_one_of(*v_text, '\r', '\n') ) {
 				if( *v_text == '\r' && v_text[1] == '\n' ) {
 					v_text += 2;
 				} else {

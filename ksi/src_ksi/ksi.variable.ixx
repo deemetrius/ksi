@@ -76,7 +76,7 @@ export namespace ksi {
 		{
 			type_link() {
 				using namespace just::text_literals;
-				m_name = "$link"_jt;
+				m_name = "$link#"_jt;
 			}
 
 			auto var_owner(var_const_pointer p_var) -> compound_pointer override;
@@ -94,7 +94,7 @@ export namespace ksi {
 		{
 			type_ref() {
 				using namespace just::text_literals;
-				m_name = "$ref"_jt;
+				m_name = "$ref#"_jt;
 			}
 
 			void var_change(var_pointer p_to, any_const_pointer p_from) override;
@@ -119,7 +119,7 @@ export namespace ksi {
 		{
 			type_null() {
 				using namespace just::text_literals;
-				m_name = "$null"_jt;
+				m_name = "$null#"_jt;
 			}
 		};
 
@@ -128,7 +128,7 @@ export namespace ksi {
 		{
 			type_bool() {
 				using namespace just::text_literals;
-				m_name = "$bool"_jt;
+				m_name = "$bool#"_jt;
 			}
 
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
@@ -139,7 +139,7 @@ export namespace ksi {
 		{
 			type_int() {
 				using namespace just::text_literals;
-				m_name = "$int"_jt;
+				m_name = "$int#"_jt;
 			}
 
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
@@ -150,7 +150,7 @@ export namespace ksi {
 		{
 			type_float() {
 				using namespace just::text_literals;
-				m_name = "$float"_jt;
+				m_name = "$float#"_jt;
 			}
 
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
@@ -179,7 +179,7 @@ export namespace ksi {
 		{
 			type_array() {
 				using namespace just::text_literals;
-				m_name = "$array"_jt;
+				m_name = "$array#"_jt;
 			}
 		};
 

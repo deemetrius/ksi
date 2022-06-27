@@ -20,17 +20,19 @@ export namespace ksi {
 
 		using t_integer = just::t_int_max;
 		using t_floating = double;
-		using t_text = just::text;
-		using t_text_pointer = t_text *;
+		using t_text_value = just::text;
+		using t_text_value_pointer = t_text_value *;
 
 		using log_pointer = log_base *;
 		using output_pointer = just::output_base *;
 
 		struct compound_base;
 		struct compound_text;
+		struct compound_array;
 		struct compound_struct;
 		using compound_pointer = compound_base *;
 		using compound_text_pointer = compound_text *;
+		using compound_array_pointer = compound_array *;
 		using compound_struct_pointer = compound_struct *;
 
 		struct with_owner {
@@ -65,7 +67,7 @@ export namespace ksi {
 			// data
 			bool		m_is_compound	= false;
 			bool		m_is_struct		= false;
-			t_text		m_name;
+			t_text_value		m_name;
 
 			virtual compound_pointer	var_owner(var_const_pointer p_var) = 0;
 			virtual void				var_owner_set(var_pointer p_var, compound_pointer p_owner) = 0;
@@ -77,6 +79,7 @@ export namespace ksi {
 			//
 			virtual bool write(any_const_pointer p_any, output_pointer p_out) { return true; }
 			virtual var_pointer element(any_pointer p_any, const any & p_key, bool & p_wrong_key);
+			virtual var_pointer element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key);
 		};
 
 		using type_pointer = type_base *;
@@ -192,6 +195,8 @@ export namespace ksi {
 				using namespace just::text_literals;
 				m_name = "$text#"_jt;
 			}
+
+			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
 		};
 
 		struct type_array :
@@ -201,31 +206,35 @@ export namespace ksi {
 				using namespace just::text_literals;
 				m_name = "$array#"_jt;
 			}
+
+			auto element(any_pointer p_any, const any & p_key, bool & p_wrong_key) -> var_pointer override;
+			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
 		};
 
 		struct type_struct :
 			public type_compound
 		{
-			using t_map = std::map<t_text, t_index, just::text_less>;
+			using t_map = std::map<t_text_value, t_integer, just::text_less>;
 			using t_insert = std::pair<t_map::iterator, bool>;
 
 			// data
 			t_map	m_props;
 
-			type_struct(const t_text & p_name) {
+			type_struct(const t_text_value & p_name) {
 				m_is_struct = true;
 				m_name = p_name;
 			}
 
-			bool prop_add(const t_text & p_prop_name) {
-				t_index v_index = props_count();
+			bool prop_add(const t_text_value & p_prop_name) {
+				t_integer v_index = props_count();
 				t_insert v_res = m_props.insert({p_prop_name, v_index});
 				return v_res.second;
 			}
 
-			t_index props_count() const { return std::ssize(m_props); }
+			t_integer props_count() const { return std::ssize(m_props); }
 
 			auto element(any_pointer p_any, const any & p_key, bool & p_wrong_key) -> var_pointer override;
+			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
 		};
 
 		using type_struct_pointer = type_struct *;
@@ -249,15 +258,13 @@ export namespace ksi {
 			type_text		m_text;
 			type_array		m_array;
 			//
-			var_pointer		m_zero_var;
-
-			config(var_pointer p_zero_var) : m_zero_var(p_zero_var) {}
+			var_pointer		m_zero_var = nullptr;
 
 			static config * instance();
 		};
 
 		using config_pointer = config *;
-		config_pointer g_config = config::instance();
+		config_pointer g_config = nullptr;
 
 		struct log_switcher {
 			// data
@@ -298,6 +305,7 @@ export namespace ksi {
 			~any() { close(); }
 
 			any() : m_type{&g_config->m_null} {}
+			any(type_null * p_type_null) : m_type{p_type_null} {}
 			any(bool p_value) : m_type{&g_config->m_bool} {
 				m_value.m_bool = p_value;
 			}
@@ -334,7 +342,7 @@ export namespace ksi {
 			};
 
 			any_var() = default;
-			any_var(const t_text & p_text);
+			any_var(const t_text_value & p_text);
 
 			any_var(const any_var & p_other) : any() { // copy
 				any_const_pointer v_from = p_other.any_get_const();
@@ -368,12 +376,6 @@ export namespace ksi {
 			}
 		};
 
-		config * config::instance() {
-			static any_var v_zero_var;
-			static config v_inst(&v_zero_var);
-			return &v_inst;
-		}
-
 		struct any_link :
 			public any,
 			public just::node_list<any_link>,
@@ -397,6 +399,15 @@ export namespace ksi {
 		using link_node = just::node_list<any_link>;
 		using link_node_pointer = link_node *;
 
+		config * config::instance() {
+			static config v_inst;
+			static any_var v_zero_var(&v_inst.m_null);
+			if( v_inst.m_zero_var == nullptr ) {
+				v_inst.m_zero_var = &v_zero_var;
+			}
+			return &v_inst;
+		}
+
 		// compound_base
 
 		struct compound_base :
@@ -408,8 +419,9 @@ export namespace ksi {
 
 			virtual ~compound_base() = default;
 
-			compound_text_pointer get_text();
-			compound_struct_pointer get_struct();
+			compound_text_pointer	get_text();
+			compound_array_pointer	get_array();
+			compound_struct_pointer	get_struct();
 
 			bool link_is_primary(link_pointer v_link) { return m_links_strong.m_next == v_link; }
 
@@ -441,19 +453,22 @@ export namespace ksi {
 			public compound_base
 		{
 			// data
-			t_text	m_text;
+			t_text_value	m_text;
+			any_var			m_count;
 
-			compound_text(const t_text & p_text) : m_text(p_text) {}
+			compound_text(const t_text_value & p_text) : m_text(p_text) {}
 
 			void link_text(link_pointer p_link) {
 				// strong link
 				m_links_strong.m_prev->node_attach(p_link);
 			}
+
+			t_integer count() { return m_text->size(); }
 		};
 
 		inline compound_text_pointer compound_base::get_text() { return static_cast<compound_text_pointer>(this); }
 
-		any_var::any_var(const t_text & p_text) : any{} {
+		any_var::any_var(const t_text_value & p_text) : any{} {
 			link_pointer v_link = link_make_maybe();
 			v_link->m_type = &g_config->m_text;
 			compound_text_pointer v_compound_text;
@@ -462,6 +477,33 @@ export namespace ksi {
 		}
 
 		// compound_array
+
+		struct compound_array :
+			public compound_base
+		{
+			using t_items = std::vector<any_var>;
+
+			// data
+			t_items		m_items;
+			any_var		m_count;
+
+			compound_array(t_integer p_count) {
+				if( p_count ) {
+					{
+						t_items v_items(p_count);
+						std::ranges::swap(m_items, v_items);
+					}
+					for( any_var & v_it : m_items ) {
+						v_it.var_owner_set(this);
+					}
+				}
+			}
+
+			t_integer count() { return std::ssize(m_items); }
+		};
+
+		inline compound_array_pointer compound_base::get_array() { return static_cast<compound_array_pointer>(this); }
+
 		// compound_struct
 
 		struct compound_struct :
@@ -471,9 +513,10 @@ export namespace ksi {
 
 			// data
 			t_items		m_items;
+			any_var		m_count;
 
 			compound_struct(type_pointer p_type) {
-				t_index v_count = 0;
+				t_integer v_count = 0;
 				if( p_type->m_is_struct ) {
 					type_struct_pointer v_type_struct = static_cast<type_struct_pointer>(p_type);
 					v_count = v_type_struct->props_count();
@@ -707,25 +750,84 @@ export namespace ksi {
 			return g_config->m_zero_var;
 		}
 
+		var_pointer type_array::element(any_pointer p_any, const any & p_key, bool & p_wrong_key) {
+			compound_array_pointer v_array = p_any->m_value.m_compound->get_array();
+			if( t_integer v_count = v_array->count() ) {
+				if( p_key.m_type == &g_config->m_int ) { // int key
+					t_integer v_key = p_key.m_value.m_int;
+					if( v_key >= 0 && v_key < v_count ) {
+						p_wrong_key = false;
+						return v_array->m_items.data() + v_key;
+					}
+				} else if( p_key.m_type == &g_config->m_text ) { // text key
+					t_text_value_pointer v_key = &p_key.m_value.m_compound->get_text()->m_text;
+					if( just::text_traits::cmp((*v_key)->m_text, "last") == 0 ) { // last
+						p_wrong_key = false;
+						return v_array->m_items.data() + v_count -1;
+					}
+				}
+			}
+			p_wrong_key = true;
+			return g_config->m_zero_var;
+		}
+
 		var_pointer type_struct::element(any_pointer p_any, const any & p_key, bool & p_wrong_key) {
 			if( m_props.size() ) {
 				compound_struct_pointer v_struct = p_any->m_value.m_compound->get_struct();
-				if( p_key.m_type == &g_config->m_int ) {
-					// int key
+				if( p_key.m_type == &g_config->m_int ) { // int key
 					t_integer v_key = p_key.m_value.m_int;
 					if( v_key >= 0 && v_key < props_count() ) {
 						p_wrong_key = false;
 						return v_struct->m_items.data() + v_key;
 					}
-				} else if( p_key.m_type == &g_config->m_text ) {
-					// text key
-					t_text_pointer v_key = &p_key.m_value.m_compound->get_text()->m_text;
+				} else if( p_key.m_type == &g_config->m_text ) { // text key
+					t_text_value_pointer v_key = &p_key.m_value.m_compound->get_text()->m_text;
 					typename t_map::iterator v_it = m_props.find(*v_key);
 					if( v_it != m_props.end() ) {
 						p_wrong_key = false;
 						return v_struct->m_items.data() + (*v_it).second;
 					}
 				}
+			}
+			p_wrong_key = true;
+			return g_config->m_zero_var;
+		}
+
+		// element_const()
+
+		var_pointer type_base::element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) {
+			p_wrong_key = true;
+			return g_config->m_zero_var;
+		}
+
+		var_pointer type_text::element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) {
+			compound_text_pointer v_compound = p_any->m_value.m_compound->get_text();
+			if( just::text_traits::cmp(p_key->m_text, "count#") == 0 ) { // count
+				v_compound->m_count = v_compound->count();
+				p_wrong_key = false;
+				return &v_compound->m_count;
+			}
+			p_wrong_key = true;
+			return g_config->m_zero_var;
+		}
+
+		var_pointer type_array::element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) {
+			compound_array_pointer v_compound = p_any->m_value.m_compound->get_array();
+			if( just::text_traits::cmp(p_key->m_text, "count#") == 0 ) { // count
+				v_compound->m_count = v_compound->count();
+				p_wrong_key = false;
+				return &v_compound->m_count;
+			}
+			p_wrong_key = true;
+			return g_config->m_zero_var;
+		}
+
+		var_pointer type_struct::element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) {
+			compound_struct_pointer v_compound = p_any->m_value.m_compound->get_struct();
+			if( just::text_traits::cmp(p_key->m_text, "count#") == 0 ) { // count
+				v_compound->m_count = props_count();
+				p_wrong_key = false;
+				return &v_compound->m_count;
 			}
 			p_wrong_key = true;
 			return g_config->m_zero_var;

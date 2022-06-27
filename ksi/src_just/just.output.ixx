@@ -135,27 +135,7 @@ export namespace just {
 		return p_out;
 	}
 
-	/*output_base & operator , (output_base & p_out, t_plain_text p_value) {
-		p_out.write(p_value);
-		return p_out;
-	}
-
-	output_base & operator , (output_base & p_out, t_plain_text_wide p_value) {
-		p_out.write(p_value);
-		return p_out;
-	}*/
-
 	template <typename T>
 	constexpr bool g_always_false = false;
-
-	/*template <typename T>
-	output_base & operator , (output_base & p_out, T p_value) {
-		static_assert(g_always_false<T>, "Unable to output given type.");
-	}*/
-	
-	/*output_base & operator , (output_base & p_out, bool p_value) {
-		p_out.write(p_value ? "true" : "false");
-		return p_out;
-	}*/
 
 } // ns

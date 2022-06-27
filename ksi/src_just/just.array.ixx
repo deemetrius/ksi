@@ -47,7 +47,7 @@ export namespace just {
 
 		struct impl_array_base {
 			// data
-			t_count		m_capacity, m_count = 0;
+			t_count		m_capacity, m_count = 0, m_from = 0;
 		};
 
 		template <typename T>
@@ -145,7 +145,7 @@ export namespace just {
 				for( auto & v_it : p_range ) t_closer::close(v_it);
 			}
 
-			~impl_array_special() { close_range( this->get_reverse_range() ); }
+			~impl_array_special() { close_range( this->get_reverse_range(this->m_from) ); }
 		};
 
 	} // ns
@@ -229,7 +229,7 @@ export namespace just {
 		t_count v_new_count;
 		if( result_capacity_more v_res = T_array::t_capacity::more(p_array.impl(), 1, v_new_count) ) {
 			T_array v_array(v_res.m_capacity);
-			new( v_array.data() + v_new_count ) T_array::type{std::forward<T_args>(p_args) ...};
+			new( v_array.data() + p_array->m_count ) T_array::type{std::forward<T_args>(p_args) ...};
 			if( p_array ) {
 				std::memcpy(v_array.data(), p_array.data(), sizeof(T_array::type) * p_array->m_count);
 				p_array->m_count = 0;
@@ -239,6 +239,31 @@ export namespace just {
 		} else {
 			new( p_array.end() ) T_array::type{std::forward<T_args>(p_args) ...};
 			p_array->m_count = v_new_count;
+		}
+	}
+
+	template <typename T_array, typename ... T_args>
+	void array_append_n(T_array & p_array, t_count p_count, const T_args & ... p_args) {
+		t_count v_new_count;
+		if( result_capacity_more v_res = T_array::t_capacity::more(p_array.impl(), p_count, v_new_count) ) {
+			T_array v_array(v_res.m_capacity);
+			v_array->m_from = p_array->m_count;
+			v_array->m_count = p_array->m_count;
+			for( t_count v_index = p_array->m_count; v_index < v_new_count; ++v_index ) {
+				new( v_array.data() + v_index ) T_array::type{p_args ...};
+				++v_array->m_count;
+			}
+			if( p_array ) {
+				std::memcpy(v_array.data(), p_array.data(), sizeof(T_array::type) * p_array->m_count);
+				p_array->m_count = 0;
+				v_array->m_from = 0;
+			}
+			std::ranges::swap( p_array.base(), v_array.base() );
+		} else {
+			for( t_count v_index = p_array->m_count; v_index < v_new_count; ++v_index ) {
+				new( p_array.data() + v_index ) T_array::type{p_args ...};
+				++p_array->m_count;
+			}
 		}
 	}
 

@@ -10,6 +10,7 @@ export import <map>;
 export import just.common;
 export import just.list;
 export import just.text;
+export import just.array;
 export import ksi.log;
 
 export namespace ksi {
@@ -481,7 +482,8 @@ export namespace ksi {
 		struct compound_array :
 			public compound_base
 		{
-			using t_items = std::vector<any_var>;
+			//using t_items = std::vector<any_var>;
+			using t_items = just::array_alias<var::any_var, just::capacity_step<8, 8> >;
 
 			// data
 			t_items		m_items;
@@ -489,17 +491,18 @@ export namespace ksi {
 
 			compound_array(t_integer p_count) {
 				if( p_count ) {
-					{
+					/*{
 						t_items v_items(p_count);
 						std::ranges::swap(m_items, v_items);
-					}
+					}*/
+					just::array_append_n(m_items, p_count);
 					for( any_var & v_it : m_items ) {
 						v_it.var_owner_set(this);
 					}
 				}
 			}
 
-			t_integer count() { return std::ssize(m_items); }
+			t_integer count() { return m_items->m_count; }
 		};
 
 		inline compound_array_pointer compound_base::get_array() { return static_cast<compound_array_pointer>(this); }

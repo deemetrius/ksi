@@ -36,14 +36,17 @@ export namespace ksi {
 	struct module_extension :
 		public module_base
 	{
-		void types_add_from_module(module_base & p_module) {
-			for (var::type_pointer v_it : p_module.m_types.m_vector) {
-				m_types.maybe_emplace(v_it->m_name, v_it);
+		void init(t_module & p_module) {
+			for( var::type_pointer v_it : p_module.m_types_used.m_vector ) {
+				m_types_used.maybe_emplace(v_it->m_name, v_it);
 			}
 		}
 
-		void types_put_to_module(module_base & p_module) {
-			std::ranges::swap(m_types, p_module.m_types);
+		void apply(t_module & p_module) {
+			std::ranges::swap(m_types_used, p_module.m_types_used);
+			m_types_used.clear();
+			init(p_module);
+			p_module.m_structs.splice(m_structs);
 		}
 	};
 
@@ -58,6 +61,7 @@ export namespace ksi {
 	struct prepare_data {
 		using t_files = std::map<fs::path, file_status>;
 		using t_space_pointer = space *;
+		using t_modules_map = just::hive<var::t_text_value, module_extension, just::text_less>;
 
 		// data
 		t_space_pointer		m_space;

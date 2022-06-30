@@ -5,6 +5,7 @@ module;
 export module just.list;
 
 import <type_traits>;
+export import just.aux;
 
 export namespace just {
 	
@@ -81,31 +82,44 @@ export namespace just {
 		}
 	};
 	
-	template <typename T_target>
+	template <typename T_target, template <typename T1> typename T_closer = closers::simple_delete>
 	struct list_forward {
 		using t_node = node_forward<T_target>;
+		using t_closer = T_closer<T_target *>;
 		
 		// data
 		t_node	m_zero;
 		
 		~list_forward() {
 			m_zero.apply_to_others([](t_node::forward_pointer p_node, t_node::forward_pointer p_first){
-				delete p_node->node_get_target();
+				t_closer::close(p_node->node_get_target() );
 			});
 		}
 	};
 	
-	template <typename T_target>
+	template <typename T_target, template <typename T1> typename T_closer = closers::simple_delete>
 	struct list {
 		using t_node = node_list<T_target>;
+		using t_closer = T_closer<T_target *>;
 		
 		// data
 		t_node	m_zero;
 		
 		~list() {
 			m_zero.apply_to_others([](t_node::forward_pointer p_node, t_node::forward_pointer p_first){
-				delete p_node->node_get_target();
+				t_closer::close(p_node->node_get_target() );
 			});
+		}
+
+		void splice(list & p_other) {
+			if( p_other.m_zero.node_empty() ) return;
+			typename t_node::node_pointer v_last = m_zero.m_prev;
+			v_last->m_next = p_other.m_zero.m_next;
+			v_last->m_next->m_prev = v_last;
+			v_last = p_other.m_zero.m_prev;
+			v_last->m_next = &m_zero;
+			m_zero.m_prev = v_last;
+			p_other.m_zero.node_reset();
 		}
 	};
 	

@@ -4,6 +4,7 @@ module;
 
 export module ksi.var;
 
+import <cstddef>;
 import <concepts>;
 export import <vector>;
 export import <map>;
@@ -137,6 +138,15 @@ export namespace ksi {
 			}
 		};
 
+		struct type_type :
+			public type_simple
+		{
+			type_type() {
+				using namespace just::text_literals;
+				m_name = "$type#"_jt;
+			}
+		};
+
 		struct type_bool :
 			public type_simple
 		{
@@ -213,7 +223,9 @@ export namespace ksi {
 		};
 
 		struct type_struct :
-			public type_compound
+			public type_compound,
+			public just::node_list<type_struct>,
+			public just::bases::with_deleter<type_struct *>
 		{
 			using t_map = std::map<t_text_value, t_integer, just::text_less>;
 			using t_insert = std::pair<t_map::iterator, bool>;
@@ -253,6 +265,7 @@ export namespace ksi {
 			type_null		m_null;
 			type_link		m_link;
 			type_ref		m_ref;
+			type_type		m_type;
 			type_bool		m_bool;
 			type_int		m_int;
 			type_float		m_float;
@@ -288,6 +301,7 @@ export namespace ksi {
 			t_integer			m_int;
 			t_floating			m_float;
 			bool				m_bool;
+			type_pointer		m_type;
 			link_pointer		m_link;
 			compound_pointer	m_compound;
 		};
@@ -306,7 +320,7 @@ export namespace ksi {
 			~any() { close(); }
 
 			any() : m_type{&g_config->m_null} {}
-			any(type_null * p_type_null) : m_type{p_type_null} {}
+			any(std::nullptr_t, type_null * p_type_null) : m_type{p_type_null} {}
 			any(bool p_value) : m_type{&g_config->m_bool} {
 				m_value.m_bool = p_value;
 			}
@@ -315,6 +329,9 @@ export namespace ksi {
 			}
 			any(t_floating p_value) : m_type{&g_config->m_float} {
 				m_value.m_float = p_value;
+			}
+			any(type_pointer p_value) : m_type{&g_config->m_type} {
+				m_value.m_type = p_value;
 			}
 
 			auto any_get() -> any_pointer { return m_type->any_get(this); }
@@ -402,7 +419,7 @@ export namespace ksi {
 
 		config * config::instance() {
 			static config v_inst;
-			static any_var v_zero_var(&v_inst.m_null);
+			static any_var v_zero_var(nullptr, &v_inst.m_null);
 			if( v_inst.m_zero_var == nullptr ) {
 				v_inst.m_zero_var = &v_zero_var;
 			}

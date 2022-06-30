@@ -99,6 +99,11 @@ export namespace just {
 			return {v_position, &(*res.first).first, m_vector.data() + v_position, res.second};
 		}
 		
+		void clear() {
+			m_map.clear();
+			m_vector.clear();
+		}
+
 		iterator begin() { return {m_map.begin(), &m_vector}; }
 		iterator end() { return {m_map.end(), &m_vector}; }
 

@@ -75,6 +75,10 @@ export namespace ksi {
 		t_files		m_files;
 	};*/
 
+	struct t_module :
+		public module_base
+	{};
+
 	struct space {
 		using t_files = std::set<fs::path>;
 

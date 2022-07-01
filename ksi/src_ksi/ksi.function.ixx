@@ -32,9 +32,10 @@ export namespace ksi {
 			just::array_append(m_items, *m_var);
 		}
 
+		template <bool C_is_ref>
 		void var_put_link() {
 			just::array_append(m_items);
-			last()->link_to<true>(m_var);
+			last()->link_to<C_is_ref>(m_var);
 		}
 	};
 

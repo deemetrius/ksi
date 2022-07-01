@@ -20,6 +20,8 @@ export namespace ksi {
 
 	namespace var {
 
+		using namespace just::text_literals;
+
 		using t_integer = just::t_int_max;
 		using t_floating = double;
 		using t_text_value = just::text;
@@ -36,6 +38,15 @@ export namespace ksi {
 		using compound_text_pointer = compound_text *;
 		using compound_array_pointer = compound_array *;
 		using compound_struct_pointer = compound_struct *;
+
+		struct static_data;
+		using static_data_pointer = static_data *;
+
+		struct static_data_base {
+			virtual ~static_data_base() = default;
+
+			virtual void init() {}
+		};
 
 		struct with_owner {
 			// data
@@ -66,10 +77,20 @@ export namespace ksi {
 		// types
 
 		struct type_base {
+			using t_static = std::unique_ptr<static_data_base>;
+
 			// data
-			bool		m_is_compound	= false;
-			bool		m_is_struct		= false;
-			t_text_value		m_name;
+			bool			m_is_compound	= false;
+			bool			m_is_struct		= false;
+			t_text_value	m_name;
+			t_static		m_static;
+
+			void init_base();
+			void init() {
+				init_base();
+				m_static->init();
+			}
+			static_data_pointer get_static();
 
 			virtual compound_pointer	var_owner(var_const_pointer p_var) = 0;
 			virtual void				var_owner_set(var_pointer p_var, compound_pointer p_owner) = 0;
@@ -145,6 +166,9 @@ export namespace ksi {
 				using namespace just::text_literals;
 				m_name = "$type#"_jt;
 			}
+
+			auto element(any_pointer p_any, const any & p_key, bool & p_wrong_key) -> var_pointer override;
+			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
 		};
 
 		struct type_bool :
@@ -275,6 +299,20 @@ export namespace ksi {
 			var_pointer		m_zero_var = nullptr;
 
 			static config * instance();
+			void init() {
+				static bool v_once = false;
+				if( v_once ) { return; }
+				else { v_once = true; }
+				m_null	.init();
+				m_link	.init();
+				m_ref	.init();
+				m_type	.init();
+				m_bool	.init();
+				m_int	.init();
+				m_float	.init();
+				m_text	.init();
+				m_array	.init();
+			}
 		};
 
 		using config_pointer = config *;
@@ -341,6 +379,13 @@ export namespace ksi {
 			bool write(output_pointer p_out = g_config->m_out) const {
 				return m_type->write(this, p_out);
 			}
+
+			var_pointer element(const any & p_key, bool & p_wrong_key) {
+				return m_type->element(this, p_key, p_wrong_key);
+			}
+			var_pointer element_const(const t_text_value & p_key, bool & p_wrong_key) {
+				return m_type->element_const(this, p_key, p_wrong_key);
+			}
 		};
 
 		inline just::output_base & operator , (just::output_base & p_out, any_const_pointer p_value) {
@@ -361,6 +406,7 @@ export namespace ksi {
 
 			any_var() = default;
 			any_var(const t_text_value & p_text);
+			any_var(type_struct_pointer p_type);
 
 			any_var(const any_var & p_other) : any() { // copy
 				any_const_pointer v_from = p_other.any_get_const();
@@ -494,10 +540,23 @@ export namespace ksi {
 			v_compound_text->link_text(v_link);
 		}
 
+		// compound_with_lock
+
+		struct compound_with_lock :
+			public compound_base
+		{
+			// data
+			t_integer	m_lock;
+
+			void lock_add() { ++m_lock; }
+			void lock_del() { --m_lock; }
+			bool lock_check() { return m_lock; }
+		};
+
 		// compound_array
 
 		struct compound_array :
-			public compound_base
+			public compound_with_lock
 		{
 			//using t_items = std::vector<any_var>;
 			using t_items = just::array_alias<var::any_var, just::capacity_step<8, 8> >;
@@ -508,10 +567,6 @@ export namespace ksi {
 
 			compound_array(t_integer p_count) {
 				if( p_count ) {
-					/*{
-						t_items v_items(p_count);
-						std::ranges::swap(m_items, v_items);
-					}*/
 					just::array_append_n(m_items, p_count);
 					for( any_var & v_it : m_items ) {
 						v_it.var_owner_set(this);
@@ -527,15 +582,16 @@ export namespace ksi {
 		// compound_struct
 
 		struct compound_struct :
-			public compound_base
+			public compound_with_lock
 		{
 			using t_items = std::vector<any_var>;
 
 			// data
-			t_items		m_items;
-			any_var		m_count;
+			type_struct_pointer		m_type;
+			t_items					m_items;
+			any_var					m_count;
 
-			compound_struct(type_pointer p_type) {
+			compound_struct(type_struct_pointer p_type) : m_type{p_type} {
 				t_integer v_count = 0;
 				if( p_type->m_is_struct ) {
 					type_struct_pointer v_type_struct = static_cast<type_struct_pointer>(p_type);
@@ -554,6 +610,39 @@ export namespace ksi {
 		};
 
 		inline compound_struct_pointer compound_base::get_struct() { return static_cast<compound_struct_pointer>(this); }
+
+		any_var::any_var(type_struct_pointer p_type) : any{} {
+			link_pointer v_link = link_make_maybe();
+			v_link->m_type = p_type;
+			compound_struct_pointer v_compound;
+			v_link->m_value.m_compound = v_compound = new compound_struct(p_type);
+			v_compound->link(v_link);
+		}
+
+		// static_data
+
+		struct static_data :
+			public static_data_base
+		{
+			// data
+			type_struct		m_struct_props, m_struct_consts;
+			any_var			m_props, m_consts;
+
+			static_data() : m_struct_props("$static#"_jt), m_struct_consts("$static#"_jt) {}
+
+			void init() override {
+				m_props = any_var(&m_struct_props);
+				m_consts = any_var(&m_struct_consts);
+			}
+		};
+
+		void type_base::init_base() {
+			m_static = std::make_unique<static_data>();
+		}
+
+		static_data_pointer type_base::get_static() {
+			return static_cast<static_data_pointer>(m_static.get() );
+		}
 
 		// var_owner()
 
@@ -770,17 +859,24 @@ export namespace ksi {
 			return g_config->m_zero_var;
 		}
 
+		var_pointer type_type::element(any_pointer p_any, const any & p_key, bool & p_wrong_key) {
+			static_data_pointer v_static = p_any->m_type->get_static();
+			any_pointer v_any = v_static->m_props.any_get();
+			return v_any->element(p_key, p_wrong_key);
+		}
+
 		var_pointer type_array::element(any_pointer p_any, const any & p_key, bool & p_wrong_key) {
 			compound_array_pointer v_array = p_any->m_value.m_compound->get_array();
 			if( t_integer v_count = v_array->count() ) {
-				if( p_key.m_type == &g_config->m_int ) { // int key
-					t_integer v_key = p_key.m_value.m_int;
+				any_const_pointer v_any_key = p_key.any_get_const();
+				if( v_any_key->m_type == &g_config->m_int ) { // int key
+					t_integer v_key = v_any_key->m_value.m_int;
 					if( v_key >= 0 && v_key < v_count ) {
 						p_wrong_key = false;
 						return v_array->m_items.data() + v_key;
 					}
-				} else if( p_key.m_type == &g_config->m_text ) { // text key
-					t_text_value_pointer v_key = &p_key.m_value.m_compound->get_text()->m_text;
+				} else if( v_any_key->m_type == &g_config->m_text ) { // text key
+					t_text_value_pointer v_key = &v_any_key->m_value.m_compound->get_text()->m_text;
 					if( just::text_traits::cmp((*v_key)->m_text, "last") == 0 ) { // last
 						p_wrong_key = false;
 						return v_array->m_items.data() + v_count -1;
@@ -794,14 +890,15 @@ export namespace ksi {
 		var_pointer type_struct::element(any_pointer p_any, const any & p_key, bool & p_wrong_key) {
 			if( m_props.size() ) {
 				compound_struct_pointer v_struct = p_any->m_value.m_compound->get_struct();
-				if( p_key.m_type == &g_config->m_int ) { // int key
-					t_integer v_key = p_key.m_value.m_int;
+				any_const_pointer v_any_key = p_key.any_get_const();
+				if( v_any_key->m_type == &g_config->m_int ) { // int key
+					t_integer v_key = v_any_key->m_value.m_int;
 					if( v_key >= 0 && v_key < props_count() ) {
 						p_wrong_key = false;
 						return v_struct->m_items.data() + v_key;
 					}
-				} else if( p_key.m_type == &g_config->m_text ) { // text key
-					t_text_value_pointer v_key = &p_key.m_value.m_compound->get_text()->m_text;
+				} else if( v_any_key->m_type == &g_config->m_text ) { // text key
+					t_text_value_pointer v_key = &v_any_key->m_value.m_compound->get_text()->m_text;
 					typename t_map::iterator v_it = m_props.find(*v_key);
 					if( v_it != m_props.end() ) {
 						p_wrong_key = false;
@@ -818,6 +915,13 @@ export namespace ksi {
 		var_pointer type_base::element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) {
 			p_wrong_key = true;
 			return g_config->m_zero_var;
+		}
+
+		var_pointer type_type::element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) {
+			static_data_pointer v_static = p_any->m_type->get_static();
+			any_pointer v_any = v_static->m_consts.any_get();
+			any_var v_key{p_key};
+			return v_any->element(v_key, p_wrong_key);
 		}
 
 		var_pointer type_text::element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) {

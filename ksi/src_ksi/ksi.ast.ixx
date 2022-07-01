@@ -37,8 +37,8 @@ export namespace ksi {
 		public module_base
 	{
 		void init(t_module & p_module) {
-			for( var::type_pointer v_it : p_module.m_types_used.m_vector ) {
-				m_types_used.maybe_emplace(v_it->m_name, v_it);
+			for( typename t_types::t_info && v_it : p_module.m_types_used ) {
+				m_types_used.maybe_emplace(v_it.m_key, *v_it.m_value);
 			}
 		}
 

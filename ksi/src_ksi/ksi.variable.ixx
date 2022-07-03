@@ -253,34 +253,7 @@ export namespace ksi {
 			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
 		};
 
-		struct type_struct :
-			public type_compound,
-			public just::node_list<type_struct>,
-			public just::bases::with_deleter<type_struct *>
-		{
-			using t_map = std::map<t_text_value, t_integer, just::text_less>;
-			using t_insert = std::pair<t_map::iterator, bool>;
-
-			// data
-			t_map	m_props;
-
-			type_struct(const t_text_value & p_name) {
-				m_is_struct = true;
-				m_name = p_name;
-			}
-
-			bool prop_add(const t_text_value & p_prop_name) {
-				t_integer v_index = props_count();
-				t_insert v_res = m_props.insert({p_prop_name, v_index});
-				return v_res.second;
-			}
-
-			t_integer props_count() const { return std::ssize(m_props); }
-
-			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
-			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
-		};
-
+		struct type_struct;
 		using type_struct_pointer = type_struct *;
 
 		// config
@@ -482,6 +455,41 @@ export namespace ksi {
 			return &v_inst;
 		}
 
+		//
+
+		struct type_struct :
+			public type_compound,
+			public just::node_list<type_struct>,
+			public just::bases::with_deleter<type_struct *>
+		{
+			using t_map = std::map<t_text_value, t_integer, just::text_less>;
+			using t_insert = std::pair<t_map::iterator, bool>;
+			using t_default = just::array_alias<var::any_var, just::capacity_step<8, 8> >;
+
+			// data
+			t_map		m_props;
+			t_default	m_default;
+
+			type_struct(const t_text_value & p_name) {
+				m_is_struct = true;
+				m_name = p_name;
+			}
+
+			bool prop_add(const t_text_value & p_prop_name, const any_var & p_default = any_var{}) {
+				t_integer v_index = props_count();
+				t_insert v_res = m_props.insert({p_prop_name, v_index});
+				if( v_res.second ) {
+					just::array_append(m_default, p_default);
+				}
+				return v_res.second;
+			}
+
+			t_integer props_count() const { return std::ssize(m_props); }
+
+			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
+			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
+		};
+
 		// compound_base
 
 		struct compound_base :
@@ -568,7 +576,6 @@ export namespace ksi {
 		struct compound_array :
 			public compound_with_lock
 		{
-			//using t_items = std::vector<any_var>;
 			using t_items = just::array_alias<var::any_var, just::capacity_step<8, 8> >;
 
 			// data
@@ -612,8 +619,9 @@ export namespace ksi {
 						t_items v_items(v_count);
 						std::ranges::swap(m_items, v_items);
 					}
-					for( any_var & v_it : m_items ) {
-						v_it.var_owner_set(this);
+					for( t_integer v_index = 0; v_index < v_count; ++v_index ) {
+						m_items[v_index].var_owner_set(this);
+						m_items[v_index] = p_type->m_default[v_index];
 					}
 				}
 			}
@@ -662,51 +670,22 @@ export namespace ksi {
 			using namespace just::text_literals;
 			init_base();
 			static_data_pointer v_static = get_static();
-			t_text_value v_key_min = "min#"_jt;
-			t_text_value v_key_max = "max#"_jt;
-			v_static->m_struct_consts.prop_add(v_key_min);
-			v_static->m_struct_consts.prop_add(v_key_max);
-			//
+			v_static->m_struct_consts.prop_add("min#"_jt, t_limits::min() );
+			v_static->m_struct_consts.prop_add("max#"_jt, t_limits::max() );
 			v_static->init();
-			bool v_wrong_key;
-			var_pointer v_var = v_static->m_consts.element(v_key_min, v_wrong_key);
-			*v_var = t_limits::min();
-			v_var = v_static->m_consts.element(v_key_max, v_wrong_key);
-			*v_var = t_limits::max();
 		}
 
 		void type_float::init() {
 			using namespace just::text_literals;
 			init_base();
 			static_data_pointer v_static = get_static();
-			t_text_value v_key_min = "min#"_jt;
-			t_text_value v_key_max = "max#"_jt;
-			t_text_value v_key_infinity = "infinity#"_jt;
-			t_text_value v_key_infinity_negative = "infinity_negative#"_jt;
-			t_text_value v_key_nan = "nan#"_jt;
-			t_text_value v_key_epsilon = "epsilon#"_jt;
-			v_static->m_struct_consts.prop_add(v_key_min);
-			v_static->m_struct_consts.prop_add(v_key_max);
-			v_static->m_struct_consts.prop_add(v_key_infinity);
-			v_static->m_struct_consts.prop_add(v_key_infinity_negative);
-			v_static->m_struct_consts.prop_add(v_key_nan);
-			v_static->m_struct_consts.prop_add(v_key_epsilon);
-			//
+			v_static->m_struct_consts.prop_add("min#"_jt,				t_limits::min() );
+			v_static->m_struct_consts.prop_add("max#"_jt,				t_limits::max() );
+			v_static->m_struct_consts.prop_add("infinity#"_jt,			t_limits::infinity() );
+			v_static->m_struct_consts.prop_add("infinity_negative#"_jt,	-t_limits::infinity() );
+			v_static->m_struct_consts.prop_add("nan#"_jt,				t_limits::quiet_NaN() );
+			v_static->m_struct_consts.prop_add("epsilon#"_jt,			t_limits::epsilon() );
 			v_static->init();
-			bool v_wrong_key;
-			var_pointer
-			v_var = v_static->m_consts.element(v_key_min, v_wrong_key);
-			*v_var = t_limits::min();
-			v_var = v_static->m_consts.element(v_key_max, v_wrong_key);
-			*v_var = t_limits::max();
-			v_var = v_static->m_consts.element(v_key_infinity, v_wrong_key);
-			*v_var = t_limits::infinity();
-			v_var = v_static->m_consts.element(v_key_infinity_negative, v_wrong_key);
-			*v_var = -t_limits::infinity();
-			v_var = v_static->m_consts.element(v_key_nan, v_wrong_key);
-			*v_var = t_limits::quiet_NaN();
-			v_var = v_static->m_consts.element(v_key_epsilon, v_wrong_key);
-			*v_var = t_limits::epsilon();
 		}
 
 		// var_owner()

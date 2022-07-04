@@ -17,16 +17,14 @@ export import ksi.log;
 
 export namespace ksi {
 
+	using namespace just::text_literals;
+
 	using t_index = just::t_diff;
 
 	namespace var {
 
-		using namespace just::text_literals;
-
 		using t_integer = just::t_int_max;
 		using t_floating = double;
-		using t_text_value = just::text;
-		using t_text_value_pointer = t_text_value *;
 
 		using log_pointer = log_base *;
 		using output_pointer = just::output_base *;

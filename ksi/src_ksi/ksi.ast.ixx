@@ -33,20 +33,53 @@ export namespace ksi {
 		return v_ret;
 	}
 
+	struct log_pos {
+		// data
+		fs::path	m_path;
+		position	m_pos;
+
+		log_message message(const t_text_value & p_message) { return {m_path, p_message, m_pos}; }
+	};
+
 	struct module_extension :
-		public module_base
+		public module_base,
+		public just::node_list<module_extension>,
+		public just::bases::with_deleter<module_extension *>
 	{
-		void init(t_module & p_module) {
-			for( typename t_types::t_info && v_it : p_module.m_types_used ) {
+		using pointer = module_extension *;
+
+		// data
+		t_module::pointer	m_module;
+
+		module_extension(t_module::pointer p_module) : m_module{p_module} {}
+
+		void init() {
+			for( typename t_types::t_info && v_it : m_module->m_types_used ) {
 				m_types_used.maybe_emplace(v_it.m_key, *v_it.m_value);
+			}
+			for( typename t_types::t_info && v_it : m_module->m_types ) {
+				m_types.maybe_emplace(v_it.m_key, *v_it.m_value);
 			}
 		}
 
-		void apply(t_module & p_module) {
-			std::ranges::swap(m_types_used, p_module.m_types_used);
+		void apply() {
+			std::ranges::swap(m_types_used, m_module->m_types_used);
 			m_types_used.clear();
-			init(p_module);
-			p_module.m_structs.splice(m_structs);
+			std::ranges::swap(m_types, m_module->m_types);
+			m_types.clear();
+			init();
+			m_module->m_structs.splice(m_structs);
+		}
+
+		var::type_struct_pointer last_struct() {
+			return m_structs.m_zero.node_empty() ? nullptr : m_structs.m_zero.m_prev->node_get_target();
+		}
+
+		bool struct_add(const t_text_value & p_name) {
+			var::type_struct_pointer v_struct = new var::type_struct(p_name);
+			m_structs.m_zero.m_prev->node_attach(v_struct);
+			typename t_types::t_find_result v_res = m_types.maybe_emplace(p_name, v_struct);
+			return v_res.m_added;
 		}
 	};
 
@@ -58,17 +91,59 @@ export namespace ksi {
 		unknown
 	};
 
-	struct prepare_data {
+	struct prepare_data :
+		public space_base
+	{
+		using pointer = prepare_data *;
 		using t_files = std::map<fs::path, file_status>;
 		using t_space_pointer = space *;
-		using t_modules_map = just::hive<var::t_text_value, module_extension, just::text_less>;
+		using t_ext_modules_map = just::hive<t_text_value, module_extension::pointer, just::text_less>;
+		using t_ext_modules_list = just::list<module_extension,
+			just::closers::compound_call_deleter<false>::template t_closer
+		>;
 
 		// data
-		t_space_pointer		m_space;
-		t_files				m_files;
-		t_index				m_error_count = 0;
+		t_space_pointer				m_space;
+		log_base::pointer			m_log;
+		t_files						m_files;
+		t_index						m_error_count = 0;
+		t_ext_modules_list			m_ext_modules_list;
+		t_ext_modules_map			m_ext_modules_map;
+		module_extension::pointer	m_ext_module_current = nullptr;
+		t_text_value				m_type_name;
+		log_pos						m_type_pos;
 
-		prepare_data(t_space_pointer p_space) : m_space{p_space} {}
+		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {}
+
+		void error(log_message && p_message) {
+			++m_error_count;
+			m_log->add(std::move(p_message) );
+		}
+
+		t_module::pointer module_get(const t_text_value & p_name) {
+			if( typename t_modules_map::t_find_result v_res = m_space->m_modules_map.find(p_name); v_res.m_added ) {
+				return *v_res.m_value;
+			}
+			if( typename t_modules_map::t_find_result v_res = m_modules_map.find(p_name); v_res.m_added ) {
+				return *v_res.m_value;
+			}
+			t_module::pointer v_module = new t_module{p_name};
+			m_modules_list.m_zero.m_prev->node_attach(v_module);
+			m_modules_map.maybe_emplace(p_name, v_module);
+			return v_module;
+		}
+
+		module_extension::pointer ext_module_open(const t_text_value & p_name) {
+			if( typename t_ext_modules_map::t_find_result v_res = m_ext_modules_map.find(p_name); v_res.m_added ) {
+				m_ext_module_current = *v_res.m_value;
+				return *v_res.m_value;
+			}
+			module_extension::pointer v_ext_module = new module_extension{module_get(p_name)};
+			m_ext_module_current = v_ext_module;
+			m_ext_modules_list.m_zero.m_prev->node_attach(v_ext_module);
+			m_ext_modules_map.maybe_emplace(p_name, v_ext_module);
+			return v_ext_module;
+		}
 
 		file_status check_path(const fs::path & p_path) {
 			if( m_space->m_files.contains(p_path) ) {

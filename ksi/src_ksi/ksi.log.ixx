@@ -15,6 +15,9 @@ export namespace ksi {
 	
 	namespace fs = std::filesystem;
 	
+	using t_text_value = just::text;
+	using t_text_value_pointer = t_text_value *;
+
 	struct position {
 		// data
 		just::t_int		m_line = 0, m_char = 0;
@@ -22,9 +25,9 @@ export namespace ksi {
 	
 	struct log_message {
 		// data
-		fs::path	m_path;
-		just::text	m_message;
-		position	m_pos;
+		fs::path		m_path;
+		t_text_value	m_message;
+		position		m_pos;
 	};
 	
 	struct log_base {

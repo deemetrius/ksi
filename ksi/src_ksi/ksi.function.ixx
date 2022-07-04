@@ -40,13 +40,12 @@ export namespace ksi {
 	};
 
 	struct module_base {
-		using t_types = just::hive<just::text, var::type_pointer, just::text_less>;
 		using t_structs = just::list<var::type_struct, just::closers::compound_call_deleter<false>::template t_closer>;
+		using t_types = just::hive<just::text, var::type_pointer, just::text_less>;
 
 		// data
-		var::t_text_value	m_name;
-		t_structs			m_structs;
-		t_types				m_types, m_types_used;
+		t_structs		m_structs;
+		t_types			m_types, m_types_used;
 	};
 
 	struct instr_data {

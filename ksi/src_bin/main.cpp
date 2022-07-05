@@ -3,6 +3,7 @@
 import <new>;
 import just.output;
 import ksi.ast;
+import ksi.config;
 
 int main(int p_args_count, char * p_args[], char * p_env[]) {
 	//using namespace just::text_literals;

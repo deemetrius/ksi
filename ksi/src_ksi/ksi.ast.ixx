@@ -5,9 +5,9 @@ module;
 export module ksi.ast;
 
 import <concepts>;
-export import <map>;
-export import ksi.space;
 import just.files;
+export import <map>;
+export import ksi.config;
 
 export namespace ksi {
 

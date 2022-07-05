@@ -39,7 +39,10 @@ export namespace ksi {
 		using t_files = std::set<fs::path>;
 
 		// data
-		t_files			m_files;
+		t_files				m_files;
+		t_module::pointer	m_mod_global;
+
+		space();
 	};
 
 } // ns

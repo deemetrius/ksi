@@ -85,10 +85,12 @@ export namespace ksi {
 			module_pointer	m_module;
 			bool			m_is_compound	= false;
 			bool			m_is_struct		= false;
-			t_text_value	m_name;
+			t_text_value	m_name, m_name_full;
 			t_static		m_static;
 
 			type_base(module_pointer p_module) : m_module{p_module} {}
+
+			void name(const t_text_value & p_name);
 
 			void init_base();
 			void init() {
@@ -117,7 +119,7 @@ export namespace ksi {
 		{
 			type_link(module_pointer p_module) : type_base{p_module} {
 				using namespace just::text_literals;
-				m_name = "$link#"_jt;
+				name("$link#"_jt);
 			}
 
 			auto var_owner(var_const_pointer p_var) -> compound_pointer override;
@@ -135,7 +137,7 @@ export namespace ksi {
 		{
 			type_ref(module_pointer p_module) : type_link{p_module} {
 				using namespace just::text_literals;
-				m_name = "$ref#"_jt;
+				name("$ref#"_jt);
 			}
 
 			void var_change(var_pointer p_to, any_const_pointer p_from) override;
@@ -162,7 +164,7 @@ export namespace ksi {
 		{
 			type_null(module_pointer p_module) : type_simple{p_module} {
 				using namespace just::text_literals;
-				m_name = "$null#"_jt;
+				name("$null#"_jt);
 			}
 		};
 
@@ -171,7 +173,7 @@ export namespace ksi {
 		{
 			type_type(module_pointer p_module) : type_simple{p_module} {
 				using namespace just::text_literals;
-				m_name = "$type#"_jt;
+				name("$type#"_jt);
 			}
 
 			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
@@ -183,7 +185,7 @@ export namespace ksi {
 		{
 			type_bool(module_pointer p_module) : type_simple{p_module} {
 				using namespace just::text_literals;
-				m_name = "$bool#"_jt;
+				name("$bool#"_jt);
 			}
 
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
@@ -196,7 +198,7 @@ export namespace ksi {
 
 			type_int(module_pointer p_module) : type_simple{p_module} {
 				using namespace just::text_literals;
-				m_name = "$int#"_jt;
+				name("$int#"_jt);
 			}
 
 			void init();
@@ -210,7 +212,7 @@ export namespace ksi {
 
 			type_float(module_pointer p_module) : type_simple{p_module} {
 				using namespace just::text_literals;
-				m_name = "$float#"_jt;
+				name("$float#"_jt);
 			}
 
 			void init();
@@ -241,7 +243,7 @@ export namespace ksi {
 		{
 			type_text(module_pointer p_module) : type_compound{p_module} {
 				using namespace just::text_literals;
-				m_name = "$text#"_jt;
+				name("$text#"_jt);
 			}
 
 			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
@@ -252,7 +254,7 @@ export namespace ksi {
 		{
 			type_array(module_pointer p_module) : type_compound{p_module} {
 				using namespace just::text_literals;
-				m_name = "$array#"_jt;
+				name("$array#"_jt);
 			}
 
 			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
@@ -385,7 +387,7 @@ export namespace ksi {
 
 			type_struct(const t_text_value & p_name, module_pointer p_module) : type_compound{p_module} {
 				m_is_struct = true;
-				m_name = p_name;
+				name(p_name);
 			}
 
 			bool prop_add(const t_text_value & p_prop_name, const any_var & p_default = any_var{}) {

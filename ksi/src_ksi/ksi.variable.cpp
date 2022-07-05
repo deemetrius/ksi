@@ -7,7 +7,12 @@ import ksi.config;
 namespace ksi {
 
 	namespace var {
-	
+
+		void type_base::name(const t_text_value & p_name) {
+			m_name = p_name;
+			m_name_full = just::implode<t_text_value::type>({p_name, m_module->name()});
+		}
+
 		// $null#
 		any::any() : m_type{&g_config->m_null} {}
 

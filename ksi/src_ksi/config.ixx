@@ -19,7 +19,7 @@ export namespace ksi {
 			log_pointer		m_log = &m_log_system;
 			output_pointer	m_out = &just::g_console;
 			bool			m_wrong_key_notice = false, m_init = false;
-			module_space		m_mod_ksi, m_mod_hidden;
+			module_space	m_mod_ksi, m_mod_hidden;
 			//
 			type_null		m_null;
 			type_link		m_link;

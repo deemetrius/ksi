@@ -332,7 +332,7 @@ namespace ksi {
 		}
 
 		var_pointer type_struct::element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) {
-			if( m_props.size() ) {
+			if( m_props.count() ) {
 				compound_struct_pointer v_compound = p_any->m_value.m_compound->get_struct();
 				if( p_key->m_type == &g_config->m_int ) { // int key
 					t_integer v_key = p_key->m_value.m_int;
@@ -342,10 +342,10 @@ namespace ksi {
 					}
 				} else if( p_key->m_type == &g_config->m_text ) { // text key
 					t_text_value_pointer v_key = &p_key->m_value.m_compound->get_text()->m_text;
-					typename t_map::iterator v_it = m_props.find(*v_key);
-					if( v_it != m_props.end() ) {
+					typename t_props::t_find_result v_res = m_props.find(*v_key);
+					if( v_res.m_added ) {
 						p_wrong_key = false;
-						return v_compound->m_items.data() + (*v_it).second;
+						return v_compound->m_items.data() + v_res.m_index;
 					}
 				}
 			}

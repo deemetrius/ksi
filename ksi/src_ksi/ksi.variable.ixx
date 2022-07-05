@@ -8,11 +8,12 @@ import <cstddef>;
 import <concepts>;
 import <limits>;
 export import <vector>;
+export import <set>;
 export import <map>;
 export import just.common;
 export import just.list;
 export import just.text;
-export import just.array;
+export import just.hive;
 export import ksi.log;
 
 export namespace ksi {
@@ -23,6 +24,14 @@ export namespace ksi {
 
 	struct module_base;
 	using module_pointer = module_base *;
+
+	struct log_pos {
+		// data
+		fs::path	m_path;
+		position	m_pos;
+
+		log_message message(const t_text_value & p_message) { return {m_path, p_message, m_pos}; }
+	};
 
 	namespace var {
 
@@ -83,6 +92,7 @@ export namespace ksi {
 
 			// data
 			module_pointer	m_module;
+			log_pos			m_log_pos;
 			bool			m_is_compound	= false;
 			bool			m_is_struct		= false;
 			t_text_value	m_name, m_name_full;
@@ -372,34 +382,85 @@ export namespace ksi {
 
 		//
 
+		struct property_info {
+			any_var			m_value;
+			type_pointer	m_type_source;
+		};
+
 		struct type_struct :
 			public type_compound,
 			public just::node_list<type_struct>,
 			public just::bases::with_deleter<type_struct *>
 		{
-			using t_map = std::map<t_text_value, t_integer, just::text_less>;
-			using t_insert = std::pair<t_map::iterator, bool>;
-			using t_default = just::array_alias<var::any_var, just::capacity_step<8, 8> >;
+			//using t_map = std::map<t_text_value, t_integer, just::text_less>;
+			//using t_insert = std::pair<t_map::iterator, bool>;
+			//using t_default = just::array_alias<var::any_var, just::capacity_step<8, 8> >;
+			using t_bases = std::set<type_pointer>;
+			using t_props = just::hive<t_text_value, property_info, just::text_less>;
 
 			// data
-			t_map		m_props;
-			t_default	m_default;
+			t_bases		m_bases;
+			t_props		m_props;
 
-			type_struct(const t_text_value & p_name, module_pointer p_module) : type_compound{p_module} {
+			type_struct(
+				const t_text_value & p_name,
+				module_pointer p_module,
+				const log_pos & p_log_pos = log_pos{}
+			) : type_compound{p_module}
+			{
 				m_is_struct = true;
+				m_log_pos = p_log_pos;
 				name(p_name);
 			}
 
-			bool prop_add(const t_text_value & p_prop_name, const any_var & p_default = any_var{}) {
-				t_integer v_index = props_count();
-				t_insert v_res = m_props.insert({p_prop_name, v_index});
-				if( v_res.second ) {
-					just::array_append(m_default, p_default);
-				}
-				return v_res.second;
+			bool prop_add(
+				const t_text_value & p_prop_name,
+				const any_var & p_default = any_var{},
+				type_pointer p_type_source = nullptr
+			) {
+				if( p_type_source == nullptr ) { p_type_source = this; }
+				typename t_props::t_find_result v_res = m_props.maybe_emplace(p_prop_name, p_default, p_type_source);
+				return v_res.m_added;
 			}
 
-			t_integer props_count() const { return std::ssize(m_props); }
+			t_integer props_count() { return m_props.count(); }
+
+			t_index inherit_from(type_pointer p_type_source, log_pointer p_log) {
+				if( !p_type_source->m_is_struct ) {
+					p_log->add(m_log_pos.message(just::implode<t_text_value::type>(
+						{"deduce error: Not struct type in extends: ", p_type_source->m_name_full}
+					) ) );
+					return 1;
+				}
+				if( m_bases.contains(p_type_source) ) {
+					p_log->add(m_log_pos.message(just::implode<t_text_value::type>(
+						{"deduce error: Base type in extends is listed more than once: ", p_type_source->m_name_full}
+					) ) );
+					return 1;
+				}
+				m_bases.insert(p_type_source);
+				type_struct_pointer v_type_source = static_cast<type_struct_pointer>(p_type_source);
+				t_index v_ret = 0;
+				for( typename t_props::t_info && v_it : v_type_source->m_props ) {
+					if( ! prop_add(v_it.m_key, v_it.m_value->m_value, p_type_source) ) {
+						typename t_props::t_find_result v_res = m_props.find(v_it.m_key);
+						type_pointer v_type = v_res.m_value->m_type_source;
+						p_log->add(m_log_pos.message(just::implode<t_text_value::type>({
+							"deduce error: Property \"", v_it.m_key, "\" defined in type \"", p_type_source->m_name_full,
+							"\" is already inherited from type: ",
+							v_type->m_name_full
+						}) ) );
+						p_log->add(v_type->m_log_pos.message(just::implode<t_text_value::type>(
+							{"info: See definition of type: ", v_type->m_name_full}
+						) ) );
+						p_log->add(v_type_source->m_log_pos.message(just::implode<t_text_value::type>(
+							{"info: See definition of type: ", v_type_source->m_name_full}
+						) ) );
+						++v_ret;
+					}
+				}
+				return v_ret;
+			}
 
 			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
@@ -528,7 +589,7 @@ export namespace ksi {
 					}
 					for( t_integer v_index = 0; v_index < v_count; ++v_index ) {
 						m_items[v_index].var_owner_set(this);
-						m_items[v_index] = p_type->m_default[v_index];
+						m_items[v_index] = p_type->m_props.m_vector[v_index].m_value;
 					}
 				}
 			}

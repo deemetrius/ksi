@@ -4,7 +4,6 @@ module;
 
 export module ksi.space;
 
-export import <set>;
 export import ksi.function;
 
 export namespace ksi {
@@ -39,7 +38,7 @@ export namespace ksi {
 		using t_files = std::set<fs::path>;
 
 		// data
-		t_files				m_files;
+		t_files					m_files;
 		module_space::pointer	m_mod_global;
 
 		space();

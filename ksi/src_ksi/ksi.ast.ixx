@@ -32,14 +32,6 @@ export namespace ksi {
 		return v_ret;
 	}
 
-	struct log_pos {
-		// data
-		fs::path	m_path;
-		position	m_pos;
-
-		log_message message(const t_text_value & p_message) { return {m_path, p_message, m_pos}; }
-	};
-
 	struct module_extension :
 		public module_base,
 		public just::node_list<module_extension>,
@@ -76,8 +68,8 @@ export namespace ksi {
 			return m_structs.m_zero.node_empty() ? nullptr : m_structs.m_zero.m_prev->node_get_target();
 		}
 
-		bool struct_add(const t_text_value & p_name) {
-			var::type_struct_pointer v_struct = new var::type_struct(p_name, m_module);
+		bool struct_add(const t_text_value & p_name, const log_pos & p_log_pos) {
+			var::type_struct_pointer v_struct = new var::type_struct(p_name, m_module, p_log_pos);
 			m_structs.m_zero.m_prev->node_attach(v_struct);
 			typename t_types::t_find_result v_res = m_types.maybe_emplace(p_name, v_struct);
 			return v_res.m_added;

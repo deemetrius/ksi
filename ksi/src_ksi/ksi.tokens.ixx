@@ -52,7 +52,7 @@ export namespace ksi {
 			t_text_value name() const override { return "token_struct_add"_jt; }
 
 			void perform(prepare_data::pointer p_data) override {
-				if( ! p_data->m_ext_module_current->struct_add(p_data->m_type_name) ) {
+				if( ! p_data->m_ext_module_current->struct_add(p_data->m_type_name, p_data->m_type_pos) ) {
 					t_text_value v_message = just::implode<t_text_value::type>(
 						{"deduce error: Duplicate type name: ", p_data->m_type_name}
 					);

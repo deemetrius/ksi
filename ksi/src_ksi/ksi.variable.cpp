@@ -1,5 +1,7 @@
 module ksi.var;
 
+#include "../src/pre.h"
+
 import ksi.config;
 
 namespace ksi {
@@ -84,6 +86,11 @@ namespace ksi {
 			link_to(p_var);
 			m_type = &g_config->m_ref;
 		}
+
+		static_data::static_data(const t_text_value & p_type_name) :
+			m_struct_props(just::implode<t_text_value::type>({p_type_name, ".$static_props"}), &g_config->m_mod_hidden),
+			m_struct_consts(just::implode<t_text_value::type>({p_type_name, ".$static_consts#"}), &g_config->m_mod_hidden)
+		{}
 
 		// var_owner()
 

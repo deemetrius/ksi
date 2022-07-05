@@ -50,6 +50,8 @@ export namespace ksi {
 		// data
 		t_structs		m_structs;
 		t_types			m_types, m_types_used;
+
+		virtual t_text_value name() const = 0;
 	};
 
 	struct instr_data {

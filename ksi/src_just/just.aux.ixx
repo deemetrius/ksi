@@ -13,11 +13,11 @@ export namespace just {
 
 		template <typename T>
 		struct simple_none {
-			using const_pointer = const T *;
+			using type = T;
 
 			static constexpr bool s_can_accept_null = true;
 
-			static void close(const_pointer p_handle) {}
+			static void close(type p_handle) {}
 		};
 
 		template <typename T>

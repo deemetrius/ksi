@@ -6,7 +6,6 @@ export module ksi.ast;
 
 import <concepts>;
 import just.files;
-export import <map>;
 export import ksi.config;
 
 export namespace ksi {
@@ -53,6 +52,8 @@ export namespace ksi {
 
 		module_extension(t_module::pointer p_module) : m_module{p_module} {}
 
+		t_text_value name() const override { return m_module->m_name; }
+
 		void init() {
 			for( typename t_types::t_info && v_it : m_module->m_types_used ) {
 				m_types_used.maybe_emplace(v_it.m_key, *v_it.m_value);
@@ -76,7 +77,7 @@ export namespace ksi {
 		}
 
 		bool struct_add(const t_text_value & p_name) {
-			var::type_struct_pointer v_struct = new var::type_struct(p_name);
+			var::type_struct_pointer v_struct = new var::type_struct(p_name, m_module);
 			m_structs.m_zero.m_prev->node_attach(v_struct);
 			typename t_types::t_find_result v_res = m_types.maybe_emplace(p_name, v_struct);
 			return v_res.m_added;

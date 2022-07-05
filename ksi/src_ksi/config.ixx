@@ -8,6 +8,8 @@ export import ksi.space;
 
 export namespace ksi {
 
+	using namespace just::text_literals;
+
 	namespace var {
 	
 		struct config {
@@ -16,8 +18,8 @@ export namespace ksi {
 			log_list		m_log_system;
 			log_pointer		m_log = &m_log_system;
 			output_pointer	m_out = &just::g_console;
-			bool			m_wrong_key_notice = false;
-			bool			m_init = false;
+			bool			m_wrong_key_notice = false, m_init = false;
+			t_module		m_mod_ksi, m_mod_hidden;
 			//
 			type_null		m_null;
 			type_link		m_link;
@@ -31,7 +33,23 @@ export namespace ksi {
 			//
 			any_var			m_zero_var;
 
-			config() : m_zero_var(nullptr, &m_null) {}
+			config() :
+				m_mod_ksi{"@ksi#"_jt},
+				m_mod_hidden{"@hidden#"_jt},
+				m_null	{&m_mod_ksi},
+				m_link	{&m_mod_hidden},
+				m_ref	{&m_mod_hidden},
+				m_type	{&m_mod_ksi},
+				m_bool	{&m_mod_ksi},
+				m_int	{&m_mod_ksi},
+				m_float	{&m_mod_ksi},
+				m_text	{&m_mod_ksi},
+				m_array	{&m_mod_ksi},
+				m_zero_var(nullptr, &m_null)
+			{
+				m_mod_ksi.m_deleter = &just::closers::simple_none<t_module *>::close;
+				m_mod_hidden.m_deleter = &just::closers::simple_none<t_module *>::close;
+			}
 
 			void init() {
 				if( m_init ) { return; }
@@ -52,6 +70,9 @@ export namespace ksi {
 				return &v_inst;
 			}
 		};
+
+		using config_pointer = config *;
+		config_pointer g_config = nullptr;
 
 		struct log_switcher {
 			// data

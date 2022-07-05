@@ -209,6 +209,14 @@ export namespace just {
 
 		friend void swap(array & p_1, array & p_2) { std::ranges::swap(p_1.m_ref, p_2.m_ref); }
 
+		void clear() {
+			if constexpr( s_is_special ) {
+				m_ref->close_range(m_ref->get_reverse_range() );
+			}
+			m_ref->m_count = 0;
+		}
+
+		t_count size() const { return m_ref->m_count; }
 		t_impl::base_data & base() const { return *m_ref.m_handle; }
 		t_impl * impl() const { return m_ref.m_handle; }
 		t_impl * operator -> () const { return m_ref.m_handle; }

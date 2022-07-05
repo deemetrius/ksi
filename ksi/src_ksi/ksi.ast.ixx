@@ -48,9 +48,9 @@ export namespace ksi {
 		using pointer = module_extension *;
 
 		// data
-		t_module::pointer	m_module;
+		module_space::pointer	m_module;
 
-		module_extension(t_module::pointer p_module) : m_module{p_module} {}
+		module_extension(module_space::pointer p_module) : m_module{p_module} {}
 
 		t_text_value name() const override { return m_module->m_name; }
 
@@ -121,14 +121,14 @@ export namespace ksi {
 			m_log->add(std::move(p_message) );
 		}
 
-		t_module::pointer module_get(const t_text_value & p_name) {
+		module_space::pointer module_get(const t_text_value & p_name) {
 			if( typename t_modules_map::t_find_result v_res = m_space->m_modules_map.find(p_name); v_res.m_added ) {
 				return *v_res.m_value;
 			}
 			if( typename t_modules_map::t_find_result v_res = m_modules_map.find(p_name); v_res.m_added ) {
 				return *v_res.m_value;
 			}
-			t_module::pointer v_module = new t_module{p_name};
+			module_space::pointer v_module = new module_space{p_name};
 			m_modules_list.m_zero.m_prev->node_attach(v_module);
 			m_modules_map.maybe_emplace(p_name, v_module);
 			return v_module;

@@ -392,9 +392,6 @@ export namespace ksi {
 			public just::node_list<type_struct>,
 			public just::bases::with_deleter<type_struct *>
 		{
-			//using t_map = std::map<t_text_value, t_integer, just::text_less>;
-			//using t_insert = std::pair<t_map::iterator, bool>;
-			//using t_default = just::array_alias<var::any_var, just::capacity_step<8, 8> >;
 			using t_bases = std::set<type_pointer>;
 			using t_props = just::hive<t_text_value, property_info, just::text_less>;
 

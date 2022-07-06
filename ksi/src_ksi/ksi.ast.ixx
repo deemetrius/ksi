@@ -70,7 +70,7 @@ export namespace ksi {
 
 		bool struct_add(const t_text_value & p_name, const log_pos & p_log_pos) {
 			var::type_struct_pointer v_struct = new var::type_struct(p_name, m_module, p_log_pos);
-			m_structs.m_zero.m_prev->node_attach(v_struct);
+			m_structs.append(v_struct);
 			typename t_types::t_find_result v_res = m_types.maybe_emplace(p_name, v_struct);
 			return v_res.m_added;
 		}
@@ -121,7 +121,7 @@ export namespace ksi {
 				return *v_res.m_value;
 			}
 			module_space::pointer v_module = new module_space{p_name};
-			m_modules_list.m_zero.m_prev->node_attach(v_module);
+			m_modules_list.append(v_module);
 			m_modules_map.maybe_emplace(p_name, v_module);
 			return v_module;
 		}
@@ -133,7 +133,7 @@ export namespace ksi {
 			}
 			module_extension::pointer v_ext_module = new module_extension{module_get(p_name)};
 			m_ext_module_current = v_ext_module;
-			m_ext_modules_list.m_zero.m_prev->node_attach(v_ext_module);
+			m_ext_modules_list.append(v_ext_module);
 			m_ext_modules_map.maybe_emplace(p_name, v_ext_module);
 			return v_ext_module;
 		}

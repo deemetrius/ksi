@@ -12,11 +12,27 @@ export namespace ksi {
 
 	namespace tokens {
 
-		struct token_base {
+		struct token_base :
+			public just::node_list<token_base>,
+			public just::bases::with_deleter<token_base *>
+		{
 			virtual ~token_base() = default;
 
 			virtual t_text_value name() const = 0;
 			virtual void perform(prepare_data::pointer p_data) {}
+		};
+
+		struct nest_tokens {
+			using t_tokens = just::list<token_base, just::closers::compound_call_deleter<false>::template t_closer>;
+
+			// data
+			t_tokens	m_cats, m_types, m_functions;
+
+			void splice(nest_tokens & p_other) {
+				m_cats		.splice(p_other.m_cats);
+				m_types		.splice(p_other.m_types);
+				m_functions	.splice(p_other.m_functions);
+			}
 		};
 
 		struct token_base_pos :

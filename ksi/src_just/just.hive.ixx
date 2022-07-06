@@ -6,10 +6,8 @@ export module just.hive;
 
 import <utility>;
 import <concepts>;
-//export import <vector>;
 export import <map>;
 export import <functional>;
-//export import just.common;
 export import just.array;
 
 export namespace just {
@@ -24,10 +22,8 @@ export namespace just {
 		using t_value = T_value;
 		using t_value_pointer = t_value *;
 		//
-		//using t_vector = std::vector<t_value>;
 		using t_vector = array_alias<t_value, just::capacity_step<8, 8> >;
 		using t_vector_pointer = t_vector *;
-		//using t_position = t_vector::size_type;
 		using t_position = t_count;
 		//
 		using t_map = std::map<t_key, t_position, T_compare>;
@@ -131,7 +127,6 @@ export namespace just {
 			t_position v_position = m_vector.size();
 			t_map_insert_result res = m_map.insert({p_key, v_position});
 			if( res.second ) {
-				//m_vector.emplace_back(std::forward<T_args>(p_args) ...);
 				array_append(m_vector, std::forward<T_args>(p_args) ...);
 				m_keys.push_back(res.first);
 			} else {

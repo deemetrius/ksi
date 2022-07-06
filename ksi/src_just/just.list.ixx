@@ -17,7 +17,7 @@ export namespace just {
 		using forward_pointer = std::conditional_t<s_only_forward, node_forward *, T_node *>;
 		
 		// data
-		forward_pointer 	m_next = static_cast<forward_pointer>(this);
+		forward_pointer		m_next = static_cast<forward_pointer>(this);
 		
 		inline target_pointer node_get_target() {
 			return static_cast<target_pointer>(this);
@@ -55,7 +55,7 @@ export namespace just {
 	
 	template <typename T_target>
 	struct node_list :
-		public node_forward< T_target, node_list<T_target> >
+		public node_forward<T_target, node_list<T_target> >
 	{
 		using target = T_target;
 		using target_pointer = target *;
@@ -64,16 +64,25 @@ export namespace just {
 		// data
 		node_pointer	m_prev = this;
 		
-		void node_attach(node_pointer p_node) {
+		void node_connect_with(node_pointer p_node) {
 			p_node->m_prev = this;
+			this->m_next = p_node;
+		}
+
+		void node_attach(node_pointer p_node) {
+			/*p_node->m_prev = this;
 			p_node->m_next = this->m_next;
 			this->m_next->m_prev = p_node;
-			this->m_next = p_node;
+			this->m_next = p_node;*/
+			p_node->node_connect_with(this->m_next);
+			this->node_connect_with(p_node);
 		}
 		
 		void node_detach() {
-			this->m_next->m_prev = this->m_prev;
-			this->m_prev->m_next = this->m_next;
+			/*this->m_next->m_prev = this->m_prev;
+			this->m_prev->m_next = this->m_next;*/
+			this->m_prev->node_connect_with(this->m_next);
+			this->node_reset();
 		}
 		
 		void node_reset() {
@@ -100,6 +109,7 @@ export namespace just {
 	template <typename T_target, template <typename T1> typename T_closer = closers::simple_delete>
 	struct list {
 		using t_node = node_list<T_target>;
+		using t_node_pointer = t_node *;
 		using t_closer = T_closer<T_target *>;
 		
 		// data
@@ -111,14 +121,26 @@ export namespace just {
 			});
 		}
 
+		void append(t_node_pointer p_node) {
+			m_zero.m_prev->node_connect_with(p_node);
+			p_node->node_connect_with(&m_zero);
+		}
+
+		void prepend(t_node_pointer p_node) {
+			p_node->node_connect_with(m_zero.m_next);
+			m_zero.node_connect_with(p_node);
+		}
+
 		void splice(list & p_other) {
 			if( p_other.m_zero.node_empty() ) return;
-			typename t_node::node_pointer v_last = m_zero.m_prev;
+			/*typename t_node::node_pointer v_last = m_zero.m_prev;
 			v_last->m_next = p_other.m_zero.m_next;
 			v_last->m_next->m_prev = v_last;
 			v_last = p_other.m_zero.m_prev;
 			v_last->m_next = &m_zero;
-			m_zero.m_prev = v_last;
+			m_zero.m_prev = v_last;*/
+			m_zero.m_prev->node_connect_with(p_other.m_zero.m_next);
+			p_other.m_zero.m_prev->node_connect_with(&m_zero);
 			p_other.m_zero.node_reset();
 		}
 	};

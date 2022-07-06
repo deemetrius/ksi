@@ -163,6 +163,9 @@ export namespace just {
 		operator std::basic_string_view<type> () const {
 			return {m_ref->m_text, static_cast<std::string_view::size_type>(m_ref->m_length)};
 		}
+
+		t_length size() const { return m_ref->size(); }
+		const_pointer data() const { return m_ref->m_text; }
 	};
 	
 	using text = basic_text<char>;
@@ -204,13 +207,13 @@ export namespace just {
 		}
 	};
 
-	template <typename T_char>
-	text implode(
-		std::initializer_list<std::basic_string_view<T_char> > p_list,
+	template <typename T_char, typename T_text, typename T_items>
+	text implode_items(
+		const T_items & p_list,
 		const std::basic_string_view<T_char> & p_separator = std::basic_string_view<T_char>{}
 	) {
 		using t_text = basic_text<T_char>;
-		using t_view = std::basic_string_view<T_char>;
+		using t_view = T_text; //std::basic_string_view<T_char>;
 		typename t_text::t_length v_length = 0;
 		for( const t_view & v_it : p_list ) {
 			v_length += v_it.size();
@@ -246,6 +249,14 @@ export namespace just {
 			v_text += v_part_length;
 		}
 		return v_ret;
+	}
+
+	template <typename T_char>
+	text implode(
+		std::initializer_list<std::basic_string_view<T_char> > p_list,
+		const std::basic_string_view<T_char> & p_separator = std::basic_string_view<T_char>{}
+	) {
+		return implode_items<T_char, std::basic_string_view<T_char> >(p_list, p_separator);
 	}
 
 } // ns

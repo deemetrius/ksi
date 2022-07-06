@@ -25,6 +25,8 @@ export namespace ksi {
 	struct module_base;
 	using module_pointer = module_base *;
 
+	using log_pointer = log_base *;
+
 	struct log_pos {
 		// data
 		fs::path	m_path;
@@ -38,7 +40,6 @@ export namespace ksi {
 		using t_integer = just::t_int_max;
 		using t_floating = double;
 
-		using log_pointer = log_base *;
 		using output_pointer = just::output_base *;
 
 		struct compound_base;

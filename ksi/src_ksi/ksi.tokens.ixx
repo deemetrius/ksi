@@ -2,7 +2,7 @@ module;
 
 #include "../src/pre.h"
 
-export module ksi;
+export module ksi.tokens;
 
 export import ksi.ast;
 

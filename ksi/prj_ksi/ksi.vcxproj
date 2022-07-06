@@ -37,6 +37,7 @@
     <ClCompile Include="..\src_ksi\ksi.function.ixx" />
     <ClCompile Include="..\src_ksi\ksi.instructions.ixx" />
     <ClCompile Include="..\src_ksi\ksi.log.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.rules.ixx" />
     <ClCompile Include="..\src_ksi\ksi.space.cpp" />
     <ClCompile Include="..\src_ksi\ksi.space.ixx" />
     <ClCompile Include="..\src_ksi\ksi.tokens.ixx" />

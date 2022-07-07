@@ -42,7 +42,9 @@ export namespace ksi {
 		// data
 		module_space::pointer	m_module;
 
-		module_extension(module_space::pointer p_module) : m_module{p_module} {}
+		module_extension(module_space::pointer p_module) : m_module{p_module} {
+			init();
+		}
 
 		t_text_value name() const override { return m_module->m_name; }
 

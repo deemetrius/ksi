@@ -11,15 +11,13 @@ export import just.ref;
 
 export namespace just {
 
-	using t_count = t_diff;
-
 	template <t_size C_size, t_size C_align>
 	struct alignas(C_align) aligned_data {
 		using type = t_byte_under;
 		enum : t_size { s_size = C_size, s_align = C_align };
 		
 		// data
-		type m_data[s_size];
+		type	m_data[s_size];
 	};
 	
 	template <typename T>
@@ -34,7 +32,7 @@ export namespace just {
 			using raw = aligned_as<T>;
 			using raw_pointer = raw *;
 
-			static pointer allocate(t_count p_capacity) {
+			static pointer allocate(t_index p_capacity) {
 				return reinterpret_cast<pointer>( new raw[p_capacity] );
 			}
 
@@ -47,7 +45,9 @@ export namespace just {
 
 		struct impl_array_base {
 			// data
-			t_count		m_capacity, m_count = 0, m_from = 0;
+			t_index		m_capacity;
+			t_index		m_count = 0;
+			t_index		m_from = 0;
 		};
 
 		template <typename T>
@@ -62,7 +62,7 @@ export namespace just {
 			pointer						m_handle;
 			t_allocator::t_deallocator	m_deallocate = &t_allocator::deallocate;
 
-			impl_array_data(pointer p_handle, t_count p_capacity) :
+			impl_array_data(pointer p_handle, t_index p_capacity) :
 				impl_array_base{p_capacity}, m_handle{p_handle}
 			{}
 		};
@@ -77,9 +77,9 @@ export namespace just {
 			using typename base_data::t_allocator;
 
 			// data
-			//t_count		m_desired_next_capacity = 0;
+			//t_index		m_desired_next_capacity = 0;
 
-			impl_array(t_count p_capacity) : base_data{t_allocator::allocate(p_capacity), p_capacity} {}
+			impl_array(t_index p_capacity) : base_data{t_allocator::allocate(p_capacity), p_capacity} {}
 			~impl_array() { this->m_deallocate(this->m_handle); }
 
 			// no copy, no move
@@ -96,10 +96,10 @@ export namespace just {
 			t_range get_range() const {
 				return {this->m_handle, this->m_handle + this->m_count};
 			}
-			t_range get_range(t_count p_from) const {
+			t_range get_range(t_index p_from) const {
 				return {this->m_handle + p_from, this->m_handle + this->m_count};
 			}
-			t_range get_range(t_count p_from, t_count p_count) const {
+			t_range get_range(t_index p_from, t_index p_count) const {
 				pointer v_it = this->m_handle + p_from;
 				return {v_it, v_it + p_count};
 			}
@@ -108,11 +108,11 @@ export namespace just {
 				pointer v_it = this->m_handle -1;
 				return {v_it + this->m_count, v_it};
 			}
-			t_reverse_range get_reverse_range(t_count p_from) const {
+			t_reverse_range get_reverse_range(t_index p_from) const {
 				pointer v_it = this->m_handle -1;
 				return {v_it + this->m_count, v_it + p_from};
 			}
-			t_reverse_range get_reverse_range(t_count p_from, t_count p_count) const {
+			t_reverse_range get_reverse_range(t_index p_from, t_index p_count) const {
 				pointer v_it = this->m_handle + p_from -1;
 				return {v_it + p_count, v_it};
 			}
@@ -153,18 +153,18 @@ export namespace just {
 	struct result_capacity_more {
 		// data
 		bool		m_need_realloc = false;
-		t_count		m_capacity;
+		t_index		m_capacity;
 
 		operator bool () const { return m_need_realloc; }
 		bool operator ! () const { return !m_need_realloc; }
 	};
 
-	template <t_count C_initial, t_count C_step>
+	template <t_index C_initial, t_index C_step>
 	struct capacity_step {
-		enum : t_count { s_initial = C_initial, s_step = C_step };
+		enum : t_index { s_initial = C_initial, s_step = C_step };
 
 		static result_capacity_more more(const detail::impl_array_base * p_impl,
-			t_count p_more, t_count & p_new_count
+			t_index p_more, t_index & p_new_count
 		) {
 			p_new_count = p_impl->m_count + p_more;
 			if( p_new_count <= p_impl->m_capacity ) return {};
@@ -202,7 +202,7 @@ export namespace just {
 		// data
 		t_ref	m_ref;
 
-		array(t_count p_capacity = t_capacity::s_initial) : m_ref{new t_impl(p_capacity)} {}
+		array(t_index p_capacity = t_capacity::s_initial) : m_ref{new t_impl(p_capacity)} {}
 
 		pointer begin() const { return m_ref->m_handle; }
 		pointer end() const { return m_ref->m_handle + m_ref->m_count; }
@@ -216,14 +216,14 @@ export namespace just {
 			m_ref->m_count = 0;
 		}
 
-		t_count size() const { return m_ref->m_count; }
+		t_index size() const { return m_ref->m_count; }
 		t_impl::base_data & base() const { return *m_ref.m_handle; }
 		t_impl * impl() const { return m_ref.m_handle; }
 		t_impl * operator -> () const { return m_ref.m_handle; }
 		operator bool () const { return m_ref->m_count; }
 		bool operator ! () const { return !m_ref->m_count; }
 		pointer data() const { return m_ref->m_handle; }
-		T & operator [] (t_count p_index) const { return m_ref->m_handle[p_index]; }
+		T & operator [] (t_index p_index) const { return m_ref->m_handle[p_index]; }
 	};
 
 	template <typename T, typename T_capacity>
@@ -234,7 +234,7 @@ export namespace just {
 
 	template <typename T_array, typename ... T_args>
 	void array_append(T_array & p_array, T_args && ... p_args) {
-		t_count v_new_count;
+		t_index v_new_count;
 		if( result_capacity_more v_res = T_array::t_capacity::more(p_array.impl(), 1, v_new_count) ) {
 			T_array v_array(v_res.m_capacity);
 			new( v_array.data() + p_array->m_count ) T_array::type{std::forward<T_args>(p_args) ...};
@@ -251,13 +251,13 @@ export namespace just {
 	}
 
 	template <typename T_array, typename ... T_args>
-	void array_append_n(T_array & p_array, t_count p_count, const T_args & ... p_args) {
-		t_count v_new_count;
+	void array_append_n(T_array & p_array, t_index p_count, const T_args & ... p_args) {
+		t_index v_new_count;
 		if( result_capacity_more v_res = T_array::t_capacity::more(p_array.impl(), p_count, v_new_count) ) {
 			T_array v_array(v_res.m_capacity);
 			v_array->m_from = p_array->m_count;
 			v_array->m_count = p_array->m_count;
-			for( t_count v_index = p_array->m_count; v_index < v_new_count; ++v_index ) {
+			for( t_index v_index = p_array->m_count; v_index < v_new_count; ++v_index ) {
 				new( v_array.data() + v_index ) T_array::type{p_args ...};
 				++v_array->m_count;
 			}
@@ -268,7 +268,7 @@ export namespace just {
 			}
 			std::ranges::swap( p_array.base(), v_array.base() );
 		} else {
-			for( t_count v_index = p_array->m_count; v_index < v_new_count; ++v_index ) {
+			for( t_index v_index = p_array->m_count; v_index < v_new_count; ++v_index ) {
 				new( p_array.data() + v_index ) T_array::type{p_args ...};
 				++p_array->m_count;
 			}
@@ -276,8 +276,8 @@ export namespace just {
 	}
 
 	template <typename T_array>
-	void array_remove_from_end(T_array & p_array, t_count p_count_from_end) {
-		t_count v_from = p_array->m_count - p_count_from_end;
+	void array_remove_from_end(T_array & p_array, t_index p_count_from_end) {
+		t_index v_from = p_array->m_count - p_count_from_end;
 		if constexpr( T_array::s_is_special ) {
 			T_array::t_impl::close_range( p_array->get_reverse_range(v_from) );
 		}
@@ -285,14 +285,14 @@ export namespace just {
 	}
 
 	template <typename T_array, typename ... T_args>
-	void array_insert(T_array & p_array, t_count p_position, T_args && ... p_args) {
+	void array_insert(T_array & p_array, t_index p_position, T_args && ... p_args) {
 		if( p_position >= p_array->m_count ) {
 			array_append(p_array, std::forward<T_args>(p_args) ...);
 			return;
 		}
 		aligned_as<T_array::type> v_data;
 		new(&v_data) T_array::type{std::forward<T_args>(p_args) ...};
-		t_count v_new_count, v_rest = p_array->m_count - p_position;
+		t_index v_new_count, v_rest = p_array->m_count - p_position;
 		if( result_capacity_more v_res = T_array::t_capacity::more(p_array.impl(), 1, v_new_count) ) {
 			T_array v_array{v_res.m_capacity};
 			if( p_position ) {
@@ -315,11 +315,11 @@ export namespace just {
 	}
 
 	template <typename T_array>
-	void array_remove(T_array & p_array, t_count p_from, t_count p_count = 1) {
+	void array_remove(T_array & p_array, t_index p_from, t_index p_count = 1) {
 		if constexpr( T_array::s_is_special ) {
 			T_array::t_impl::close_range( p_array->get_reverse_range(p_from, p_count) );
 		}
-		t_count v_rest = p_array->m_count - p_from - p_count;
+		t_index v_rest = p_array->m_count - p_from - p_count;
 		if( v_rest ) {
 			std::memmove(p_array.data() + p_from, p_array.data() + p_from + p_count,
 				sizeof(T_array::type) * v_rest

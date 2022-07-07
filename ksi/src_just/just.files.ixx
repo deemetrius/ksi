@@ -75,7 +75,7 @@ export namespace just {
 			return text{};
 		}
 		t_text v_text;
-		text v_ret{static_cast<text::t_length>(v_size_res.m_value), v_text};
+		text v_ret{static_cast<t_index>(v_size_res.m_value), v_text};
 		t_size v_read_count = v_file.read(v_text, v_size_res.m_value);
 		if( v_read_count < v_size_res.m_value ) {
 			p_status = file_read_status::fail_read;

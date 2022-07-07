@@ -14,8 +14,8 @@ export namespace just {
 	using t_byte_under = unsigned char;
 	enum t_byte : t_byte_under {};
 	
-	using t_int = std::intptr_t;
-	using t_uint = std::uintptr_t;
+	using t_int_ptr = std::intptr_t;
+	using t_uint_ptr = std::uintptr_t;
 	
 	using t_int_max = std::intmax_t;
 	using t_uint_max = std::uintmax_t;
@@ -23,6 +23,8 @@ export namespace just {
 	using t_diff = std::ptrdiff_t;
 	using t_size = std::size_t;
 	
+	using t_index = t_diff;
+
 	using t_plain_text = const char *;
 	using t_plain_text_wide = const wchar_t *;
 	using t_text = char *;

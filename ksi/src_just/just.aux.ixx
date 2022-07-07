@@ -140,7 +140,7 @@ export namespace just {
 			using pointer = T *;
 
 			// data
-			pointer m_handle = nullptr;
+			pointer		m_handle = nullptr;
 
 			//friend auto operator <=> (const with_handle &, const with_handle &) = default;
 		};
@@ -154,7 +154,7 @@ export namespace just {
 		};
 
 		struct with_ref_count {
-			using t_refs = t_int;
+			using t_refs = t_int_ptr;
 
 			// data
 			t_refs	m_refs = 1;

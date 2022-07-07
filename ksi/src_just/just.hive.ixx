@@ -24,25 +24,24 @@ export namespace just {
 		//
 		using t_vector = array_alias<t_value, just::capacity_step<8, 8> >;
 		using t_vector_pointer = t_vector *;
-		using t_position = t_count;
 		//
-		using t_map = std::map<t_key, t_position, T_compare>;
+		using t_map = std::map<t_key, t_index, T_compare>;
 		using t_map_iterator = t_map::iterator;
 		using t_map_insert_result = std::pair<t_map_iterator, bool>;
 		//
 		using t_keys = std::vector<t_map_iterator>;
-		using t_find_position = std::pair<bool, t_position>;
+		using t_find_position = std::pair<bool, t_index>;
 
 		struct t_info {
 			// data
-			t_position			m_index;
+			t_index				m_index;
 			t_key				m_key;
 			t_value_pointer		m_value;
 		};
 
 		struct t_find_result : public t_info {
 			// data
-			bool				m_added = false;
+			bool	m_added = false;
 		};
 
 		struct key_iterator {
@@ -69,7 +68,7 @@ export namespace just {
 			}
 
 			t_info operator * () const {
-				t_position v_index = (*m_map_iterator).second;
+				t_index v_index = (*m_map_iterator).second;
 				return {v_index, (*m_map_iterator).first, m_vector->data() + v_index};
 			}
 		};
@@ -77,7 +76,7 @@ export namespace just {
 		struct iterator {
 			// data
 			pointer		m_hive;
-			t_position	m_index;
+			t_index		m_index;
 
 			iterator & operator ++ () {
 				++m_index;
@@ -124,7 +123,7 @@ export namespace just {
 
 		template <typename ... T_args>
 		t_find_result maybe_emplace(const t_key & p_key, T_args && ... p_args) {
-			t_position v_position = m_vector.size();
+			t_index v_position = m_vector.size();
 			t_map_insert_result res = m_map.insert({p_key, v_position});
 			if( res.second ) {
 				array_append(m_vector, std::forward<T_args>(p_args) ...);
@@ -141,7 +140,7 @@ export namespace just {
 			m_keys.clear();
 		}
 
-		t_position count() { return m_vector.size(); }
+		t_index count() { return m_vector.size(); }
 
 		t_key_range key_range() { return { {m_map.begin(), &m_vector}, {m_map.end(), &m_vector} }; }
 		iterator begin() { return {this, 0}; }

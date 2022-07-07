@@ -20,7 +20,8 @@ export namespace ksi {
 
 	struct position {
 		// data
-		just::t_int		m_line = 0, m_char = 0;
+		just::t_index	m_line = 0;
+		just::t_index	m_char = 0;
 	};
 	
 	struct log_message {

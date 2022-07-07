@@ -16,7 +16,6 @@ export namespace ksi {
 
 		struct state;
 
-		using t_position = just::t_int_max;
 		using t_char = t_text_value::type;
 		using t_raw_const = t_text_value::const_pointer;
 		using t_raw = t_text_value::pointer;
@@ -26,7 +25,7 @@ export namespace ksi {
 		struct line_info {
 			// data
 			t_raw_const		m_line_start;
-			t_position		m_line = 1;
+			t_index			m_line = 1;
 
 			void next_line(t_raw_const p_line_start) {
 				++m_line;
@@ -69,7 +68,7 @@ export namespace ksi {
 			nest			m_nest;
 			kind			m_kind = kind::start;
 			flags_raw		m_flags = 0;
-			t_position		m_loop_depth = 0;
+			t_int_ptr		m_loop_depth = 0;
 			bool			m_was_space = false;
 			bool			m_nice = false;
 			bool			m_done = false;
@@ -137,7 +136,7 @@ export namespace ksi {
 					return false;
 				}
 
-				static bool take_multiline_comment_open(t_raw_const & p_text_pos, t_position & p_depth, bool & p_continue) {
+				static bool take_multiline_comment_open(t_raw_const & p_text_pos, t_index & p_depth, bool & p_continue) {
 					if( *p_text_pos == '/' && p_text_pos[1] == '*' ) {
 						p_continue = true;
 						++p_depth;
@@ -153,7 +152,7 @@ export namespace ksi {
 					{
 						bool v_continue;
 						nest_comments v_nest = nest_comments::none;
-						t_position v_depth = 0;
+						t_index v_depth = 0;
 						do {
 							v_continue = false;
 							if( *v_text_pos == '\0' ) break;

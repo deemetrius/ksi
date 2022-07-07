@@ -156,8 +156,8 @@ export namespace ksi {
 			const fs::path p_priority_path,
 			log_base::pointer p_log,
 			const just::text & p_message,
-			just::t_int p_line,
-			just::t_int p_char
+			just::t_index p_line,
+			just::t_index p_char
 		) {
 			p_log->add({ p_priority_path, p_message, {p_line, p_char} });
 			m_files.insert_or_assign(p_priority_path, p_status);
@@ -202,7 +202,7 @@ export namespace ksi {
 		just::text v_ext = ".define"_jt;
 		just::t_plain_text v_text = v_file_res.m_value->m_text;
 		just::t_plain_text v_start_line = v_text;
-		just::t_int v_line = 1;
+		just::t_int_ptr v_line = 1;
 		just::text::t_const_pointer v_cmd_ext = "ext: \""_jt;
 		fs::path v_file_path;
 		do {

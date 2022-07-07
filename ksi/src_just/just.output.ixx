@@ -12,7 +12,7 @@ export namespace just {
 	
 	struct output_base {
 		// data
-		t_int	m_errors = 0;
+		t_int_ptr	m_errors = 0;
 		
 		operator bool () const {
 			return m_errors;

@@ -19,7 +19,7 @@ export namespace just {
 		enum n_size : t_size { s_length = N -1 };
 		
 		// data
-		type m_text[N];
+		type	m_text[N];
 		
 		constexpr fixed_string() requires(N == 1) : m_text{0} {}
 		
@@ -48,19 +48,18 @@ export namespace just {
 				closers::compound_cast<const impl_text<type> *>::template t_closer
 			>;
 			using t_deleter = t_with::t_deleter;
-			using t_length = t_int_max;
 			
 			// data
 			const_pointer	m_text;
-			t_length		m_length;
+			t_index			m_length;
 			
 			virtual void refs_inc() const {}
 			virtual t_deleter refs_dec() const { return nullptr; }
 
-			virtual t_length size() const { return m_length; }
-			virtual bool size(t_length p_length) const { return false; }
+			virtual t_index size() const { return m_length; }
+			virtual bool size(t_index p_length) const { return false; }
 			
-			constexpr impl_text_base(const_pointer p_text, t_length p_length) :
+			constexpr impl_text_base(const_pointer p_text, t_index p_length) :
 				m_text(p_text), m_length(p_length)
 			{}
 		};
@@ -75,8 +74,7 @@ export namespace just {
 			using typename t_base::pointer;
 			using typename t_base::const_pointer;
 			using typename t_base::t_deleter;
-			using typename t_base::t_length;
-			using t_refs = t_int;
+			using t_refs = t_int_ptr;
 			
 			static void close(const_pointer p_handle) { delete [] p_handle; }
 
@@ -84,16 +82,16 @@ export namespace just {
 
 			// data
 			mutable t_refs		m_refs = 1;
-			mutable t_length	m_length_actual;
+			mutable t_index		m_length_actual;
 			t_closer			m_closer = &close;
 			
 			void refs_inc() const override { ++m_refs; }
 			t_deleter refs_dec() const override { return --m_refs < 1 ? this->m_deleter : nullptr; }
 
-			t_length size() const override { return m_length_actual; }
-			bool size(t_length p_length) const override { m_length_actual = p_length; return true; }
+			t_index size() const override { return m_length_actual; }
+			bool size(t_index p_length) const override { m_length_actual = p_length; return true; }
 			
-			impl_text(pointer & p_text, t_length p_length) :
+			impl_text(pointer & p_text, t_index p_length) :
 				t_base(p_text = new type[p_length +1], p_length),
 				m_length_actual(p_length)
 			{}
@@ -132,14 +130,13 @@ export namespace just {
 		>;
 		using pointer = t_impl_base::pointer;
 		using const_pointer = t_impl_base::const_pointer;
-		using t_length = t_impl_base::t_length;
 		
 		static constexpr const type s_empty[1]{};
 		
 		friend void swap(basic_text & p1, basic_text & p2) { std::ranges::swap(p1.m_ref, p2.m_ref); }
 		
 		// data
-		t_ref m_ref;
+		t_ref	m_ref;
 		
 		basic_text() : basic_text(&detail::static_data<s_empty>::s_value) {}
 		basic_text(t_const_pointer p_impl) : m_ref(p_impl) {}
@@ -148,7 +145,7 @@ export namespace just {
 			return *this;
 		}
 		
-		basic_text(t_length p_length, pointer & p_text) :
+		basic_text(t_index p_length, pointer & p_text) :
 			m_ref( new t_impl(p_text, p_length) )
 		{ *p_text = 0; }
 
@@ -160,7 +157,7 @@ export namespace just {
 			return {m_ref->m_text, static_cast<std::string_view::size_type>(m_ref->m_length)};
 		}
 
-		t_length size() const { return m_ref->size(); }
+		t_index size() const { return m_ref->size(); }
 		const_pointer data() const { return m_ref->m_text; }
 	};
 	
@@ -171,7 +168,7 @@ export namespace just {
 		template <c_any_of<char, wchar_t> T_char>
 		static text from_range(const T_char * p_begin, const T_char * p_end) {
 			using t_ret = basic_text<T_char>;
-			typename t_ret::t_length v_length = p_end - p_begin;
+			t_index v_length = p_end - p_begin;
 			typename t_ret::pointer v_text;
 			t_ret v_ret{v_length, v_text};
 			std::memcpy(v_text, p_begin, v_length * sizeof(T_char) );
@@ -208,7 +205,7 @@ export namespace just {
 	) {
 		using t_text = basic_text<T_char>;
 		using t_view = T_text; //std::basic_string_view<T_char>;
-		typename t_text::t_length v_length = 0;
+		t_index v_length = 0;
 		for( const t_view & v_it : p_list ) {
 			v_length += v_it.size();
 		}
@@ -218,7 +215,7 @@ export namespace just {
 			t_text v_ret{v_length, v_text};
 			v_text[v_length] = 0;
 			bool v_first = true;
-			typename t_text::t_length v_part_length;
+			t_index v_part_length;
 			for( const t_view & v_it : p_list ) {
 				if( v_first ) {
 					v_first = false;
@@ -236,7 +233,7 @@ export namespace just {
 		typename t_text::pointer v_text;
 		t_text v_ret{v_length, v_text};
 		v_text[v_length] = 0;
-		typename t_text::t_length v_part_length;
+		t_index v_part_length;
 		for( const t_view & v_it : p_list ) {
 			v_part_length = v_it.size();
 			std::memcpy(v_text, v_it.data(), v_part_length * sizeof(t_text::type) );

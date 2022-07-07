@@ -20,7 +20,11 @@ export namespace ksi {
 
 	using namespace just::text_literals;
 
-	using t_index = just::t_diff;
+	using t_index		= just::t_index;
+	using t_int_ptr		= just::t_int_ptr;
+	using t_uint_ptr	= just::t_uint_ptr;
+	using t_integer		= just::t_int_max;
+	using t_floating	= double;
 
 	struct module_base;
 	using module_pointer = module_base *;
@@ -36,9 +40,6 @@ export namespace ksi {
 	};
 
 	namespace var {
-
-		using t_integer = just::t_int_max;
-		using t_floating = double;
 
 		using output_pointer = just::output_base *;
 
@@ -96,7 +97,8 @@ export namespace ksi {
 			log_pos			m_log_pos;
 			bool			m_is_compound	= false;
 			bool			m_is_struct		= false;
-			t_text_value	m_name, m_name_full;
+			t_text_value	m_name;
+			t_text_value	m_name_full;
 			t_static		m_static;
 
 			type_base(module_pointer p_module) : m_module{p_module} {}
@@ -470,8 +472,10 @@ export namespace ksi {
 			public just::bases::with_deleter<compound_base *>
 		{
 			using t_node = just::node_list<any_link>;
+
 			// data
-			t_node	m_links_strong, m_links_weak;
+			t_node	m_links_strong;
+			t_node	m_links_weak;
 
 			virtual ~compound_base() = default;
 
@@ -530,7 +534,7 @@ export namespace ksi {
 			public compound_base
 		{
 			// data
-			t_integer	m_lock;
+			t_int_ptr	m_lock;
 
 			void lock_add() { ++m_lock; }
 			void lock_del() { --m_lock; }
@@ -603,8 +607,10 @@ export namespace ksi {
 			public static_data_base
 		{
 			// data
-			type_struct		m_struct_props, m_struct_consts;
-			any_var			m_props, m_consts;
+			type_struct		m_struct_props;
+			type_struct		m_struct_consts;
+			any_var			m_props;
+			any_var			m_consts;
 
 			static_data(const t_text_value & p_type_name);
 

@@ -74,6 +74,17 @@ export namespace ksi {
 					);
 					p_data->error(p_data->m_type_pos.message(v_message) );
 				}
+				p_data->m_ext_module_current->last_struct()->init_base();
+			}
+		};
+
+		struct token_struct_end :
+			public token_base
+		{
+			t_text_value name() const override { return "token_struct_end"_jt; }
+
+			void perform(prepare_data::pointer p_data) override {
+				p_data->m_ext_module_current->last_struct()->m_static->init();
 			}
 		};
 

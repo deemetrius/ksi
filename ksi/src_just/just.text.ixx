@@ -152,10 +152,6 @@ export namespace just {
 			m_ref( new t_impl(p_text, p_length) )
 		{ *p_text = 0; }
 
-		/* basic_text(const_pointer p_begin, const_pointer p_end, pointer p_text = nullptr, t_length p_length = 0) :
-			m_ref( new t_impl(p_text, p_length = p_end - p_begin) )
-		{ std::memcpy(p_text, p_begin, p_length); p_text[p_length] = 0; } */
-		
 		//
 		operator bool () const { return *m_ref->m_text; }
 		bool operator ! () const { return !*m_ref->m_text; }
@@ -170,8 +166,6 @@ export namespace just {
 	
 	using text = basic_text<char>;
 	using text_wide = basic_text<wchar_t>;
-	
-	struct text_traits;
 
 	struct text_traits {
 		template <c_any_of<char, wchar_t> T_char>

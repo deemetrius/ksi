@@ -6,11 +6,12 @@ export module just.text;
 
 import <concepts>;
 import <utility>;
-export import just.ref;
 import <cstring>;
 import <cwchar>;
 export import <initializer_list>;
 export import <string_view>;
+export import just.ref;
+export import just.output;
 
 export namespace just {
 	
@@ -173,6 +174,12 @@ export namespace just {
 		const_pointer data() const { return m_ref->m_text; }
 	};
 	
+	template <typename T_char>
+	output_base & operator , (output_base & p_out, const basic_text<T_char> & p_value) {
+		p_out.write(p_value.data() );
+		return p_out;
+	}
+
 	using text = basic_text<char>;
 	using text_wide = basic_text<wchar_t>;
 

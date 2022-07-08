@@ -251,7 +251,7 @@ export namespace ksi {
 				t_text_value v_text = just::implode_items<t_char, t_text_value>(v_items, ", ");
 				std::string_view v_symbol = "symbol";
 				if( *p_state.m_text_pos == '\0' ) { v_symbol = "EOF"; }
-				return just::implode<t_char>({"parse error: Unexpected ", v_symbol, " expected (", v_text, ")"});
+				return just::implode<t_char>({"parse error: Unexpected ", v_symbol, ". Expected (", v_text, ")"});
 			}
 
 			using fn_message = decltype(&message);
@@ -342,6 +342,26 @@ export namespace ksi {
 
 		struct all {
 
+			struct t_module_name {
+				static t_text_value name() { return "t_module_name"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data {
+					// data
+					t_text_value	m_name;
+
+					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						position v_pos;
+						return traits::take_name_with_prefix(p_state, '@', m_name, v_pos);
+					}
+
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_tokens.m_types.append( new tokens::token_module_name(m_name) );
+						p_state.m_fn_parse = &rule_decl::parse;
+					}
+				};
+			};
+
 			struct t_type_def_name {
 				static t_text_value name() { return "t_type_def_name"_jt; }
 				static bool check(state & p_state) { return true; }
@@ -411,6 +431,10 @@ export namespace ksi {
 
 			//
 
+			struct rule_module_name :
+				public rule_alt<true, t_space, t_module_name>
+			{};
+
 			struct rule_decl :
 				public rule_alt<true, t_space, t_eof, t_type_def_name>
 			{};
@@ -429,8 +453,13 @@ export namespace ksi {
 
 		};
 
-		bool parse_declarative(fs::path p_path, const t_text_value & p_contents, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-			state v_state{p_path, p_contents.data(), &all::rule_decl::parse, nest::declarative};
+		bool parse_declarative(
+			fs::path p_path,
+			const t_text_value & p_contents,
+			tokens::nest_tokens & p_tokens,
+			log_pointer p_log
+		) {
+			state v_state{p_path, p_contents.data(), &all::rule_module_name::parse, nest::declarative};
 			do {
 				v_state.m_fn_parse(v_state, p_tokens, p_log);
 			} while( ! v_state.m_done );

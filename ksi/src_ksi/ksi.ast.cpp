@@ -152,7 +152,6 @@ namespace ksi {
 	}
 
 	file_status prepare_data::load_file(const fs::path & p_path) {
-		just::g_console, p_path.c_str(), just::g_new_line;
 		if( fs::file_type v_file_type = just::file_type(p_path); v_file_type != fs::file_type::regular ) {
 			file_status v_ret = (v_file_type == fs::file_type::not_found) ? file_status::absent : file_status::with_error;
 			m_files.insert_or_assign(p_path, v_ret);
@@ -173,6 +172,9 @@ namespace ksi {
 			++m_error_count;
 			m_files.insert_or_assign(p_path, file_status::with_error);
 			return file_status::with_error;
+		}
+		if( m_error_count == 0 ) {
+			v_tokens.perform(this);
 		}
 		//
 		m_files.insert_or_assign(p_path, file_status::loaded);

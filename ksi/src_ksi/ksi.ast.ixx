@@ -136,11 +136,9 @@ export namespace ksi {
 			if( typename t_ext_modules_map::iterator v_it = m_ext_modules_map.find(p_name);
 				v_it != m_ext_modules_map.end()
 			) {
-				m_ext_module_current = (*v_it).second;
-				return m_ext_module_current;
+				return (*v_it).second;
 			}
 			module_extension::pointer v_ext_module = new module_extension{module_get(p_name)};
-			m_ext_module_current = v_ext_module;
 			m_ext_modules_list.append(v_ext_module);
 			m_ext_modules_map.emplace(p_name, v_ext_module);
 			return v_ext_module;
@@ -150,6 +148,10 @@ export namespace ksi {
 			if( m_error_count ) { return; }
 			m_ext_modules_list.m_zero.node_apply_to_others([](t_ext_modules_list::t_node_pointer p_node){
 				p_node->node_get_target()->apply();
+			});
+			m_modules_list.m_zero.node_apply_to_others([this](t_modules_list::t_node_pointer p_node){
+				module_space::pointer v_module = p_node->node_get_target();
+				m_space->m_modules_map.emplace(v_module->m_name, v_module);
 			});
 			m_space->m_modules_list.splice(m_modules_list);
 		}

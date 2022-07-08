@@ -21,6 +21,8 @@ export namespace ksi {
 		module_space(const t_text_value & p_name) : m_name{p_name} {}
 
 		t_text_value name() const override { return m_name; }
+
+		//var::type_pointer get_type(const t_text_value & p_name) {}
 	};
 
 	struct space_base {
@@ -42,6 +44,11 @@ export namespace ksi {
 		module_space::pointer	m_mod_global;
 
 		space();
+
+		module_space::pointer get_module(const t_text_value & p_name) {
+			typename t_modules_map::iterator v_it = m_modules_map.find(p_name);
+			return v_it == m_modules_map.end() ? nullptr : (*v_it).second;
+		}
 	};
 
 } // ns

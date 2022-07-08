@@ -56,6 +56,21 @@ export namespace ksi {
 			token_base_pos(const log_pos & p_log_pos) : m_log_pos{p_log_pos} {}
 		};
 
+		struct token_module_name :
+			public token_base
+		{
+			// data
+			t_text_value	m_name;
+
+			token_module_name(const t_text_value & p_name) : m_name{p_name} {}
+
+			t_text_value name() const override { return "token_module_name"_jt; }
+
+			void perform(prepare_data::pointer p_data) override {
+				p_data->m_ext_module_current = p_data->ext_module_open(m_name);
+			}
+		};
+
 		struct token_type_add :
 			public token_base_pos
 		{

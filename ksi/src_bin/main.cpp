@@ -5,7 +5,7 @@ import just.output;
 import ksi.ast;
 
 int main(int p_args_count, char * p_args[], char * p_env[]) {
-	//using namespace just::text_literals;
+	using namespace just::text_literals;
 	try {
 		if( p_args_count < 2 ) {
 			just::g_console, "ksi.exe <path_to_folder>\n";
@@ -21,7 +21,16 @@ int main(int p_args_count, char * p_args[], char * p_env[]) {
 		if( v_data.load_folder(p_args[1]) != ksi::file_status::loaded ) {
 			just::g_console, "error: Unable to load path: ", p_args[1], just::g_new_line;
 			v_log.out(just::g_console);
+		} else {
+			v_data.apply();
+			if( ksi::module_space::pointer v_module = v_space.get_module("@std"_jt) ) {
+				just::g_console, "Types of @std :\n";
+				for( typename ksi::module_space::t_types::value_type & v_it : v_module->m_types ) {
+					just::g_console, v_it.second->m_name, just::g_new_line;
+				}
+			}
 		}
+		just::g_console, "Error count: ", v_data.m_error_count, just::g_new_line;
 	} catch( const std::bad_alloc & e ) {
 		just::g_console, "error: Memory allocation; ", e.what(), just::g_new_line;
 	} catch( ... ) {

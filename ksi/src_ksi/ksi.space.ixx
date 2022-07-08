@@ -25,7 +25,7 @@ export namespace ksi {
 
 	struct space_base {
 		using t_modules_list = just::list<module_space, just::closers::compound_call_deleter<false>::template t_closer>;
-		using t_modules_map = just::hive<t_text_value, module_space::pointer, just::text_less>;
+		using t_modules_map = std::map<t_text_value, module_space::pointer, just::text_less>;
 
 		// data
 		t_modules_list	m_modules_list;

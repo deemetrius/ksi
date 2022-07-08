@@ -279,6 +279,7 @@ export namespace ksi {
 						return t_rest::parse_inner(p_state, p_tokens, p_log, p_fn);
 					}
 				} else if constexpr( C_none_match_done ) {
+					just::g_console, "here\n";
 					p_log->add({p_state.m_path, p_fn(p_state), p_state.pos()});
 					p_state.done();
 				}
@@ -349,13 +350,19 @@ export namespace ksi {
 					// data
 					t_text_value	m_name;
 					position		m_pos;
+					bool			m_is_local = false;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						return traits::take_name_with_prefix(p_state, '$', m_name, m_pos);
+						bool ret = traits::take_name_with_prefix(p_state, '$', m_name, m_pos);
+						if( ret && *p_state.m_text_pos == '@' ) {
+							++p_state.m_text_pos;
+							m_is_local = true;
+						}
+						return ret;
 					}
 
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						p_tokens.m_types.append( new tokens::token_type_add({p_state.m_path, m_pos}, m_name) );
+						p_tokens.m_types.append( new tokens::token_type_add({p_state.m_path, m_pos}, m_name, m_is_local) );
 						p_state.m_fn_parse = &rule_type_kind::parse;
 					}
 				};
@@ -405,7 +412,7 @@ export namespace ksi {
 			//
 
 			struct rule_decl :
-				public rule_alt<true, t_space, t_type_def_name>
+				public rule_alt<true, t_space, t_eof, t_type_def_name>
 			{};
 
 			struct rule_type_kind :
@@ -421,6 +428,14 @@ export namespace ksi {
 			{};
 
 		};
+
+		bool parse_declarative(fs::path p_path, const t_text_value & p_contents, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+			state v_state{p_path, p_contents.data(), &all::rule_decl::parse, nest::declarative};
+			do {
+				v_state.m_fn_parse(v_state, p_tokens, p_log);
+			} while( ! v_state.m_done );
+			return v_state.m_nice;
+		}
 
 	} // ns
 

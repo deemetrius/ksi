@@ -95,6 +95,7 @@ export namespace ksi {
 			// data
 			module_pointer	m_module;
 			log_pos			m_log_pos;
+			bool			m_is_local		= false;
 			bool			m_is_compound	= false;
 			bool			m_is_struct		= false;
 			t_text_value	m_name;
@@ -405,10 +406,12 @@ export namespace ksi {
 			type_struct(
 				const t_text_value & p_name,
 				module_pointer p_module,
+				bool p_is_local,
 				const log_pos & p_log_pos = log_pos{}
 			) : type_compound{p_module}
 			{
 				m_is_struct = true;
+				m_is_local = p_is_local;
 				m_log_pos = p_log_pos;
 				name(p_name);
 			}

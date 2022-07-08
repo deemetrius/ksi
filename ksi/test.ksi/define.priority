@@ -1,10 +1,3 @@
 : comment
-"../std.define"
-
-: comment
 ext: ".define"
-point
-
-: comment
-ext: ".ksi"
-test
+std

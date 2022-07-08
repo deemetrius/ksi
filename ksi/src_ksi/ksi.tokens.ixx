@@ -33,6 +33,18 @@ export namespace ksi {
 				m_types		.splice(p_other.m_types);
 				m_functions	.splice(p_other.m_functions);
 			}
+
+			void perform(prepare_data::pointer p_data) {
+				m_cats.m_zero.node_apply_to_others([p_data](t_tokens::t_node_pointer p_node){
+					p_node->node_get_target()->perform(p_data);
+				});
+				m_types.m_zero.node_apply_to_others([p_data](t_tokens::t_node_pointer p_node){
+					p_node->node_get_target()->perform(p_data);
+				});
+				m_functions.m_zero.node_apply_to_others([p_data](t_tokens::t_node_pointer p_node){
+					p_node->node_get_target()->perform(p_data);
+				});
+			}
 		};
 
 		struct token_base_pos :
@@ -49,9 +61,10 @@ export namespace ksi {
 		{
 			// data
 			t_text_value	m_name;
+			bool			m_is_local;
 
-			token_type_add(const log_pos & p_log_pos, const t_text_value & p_name) :
-				token_base_pos{p_log_pos}, m_name{p_name}
+			token_type_add(const log_pos & p_log_pos, const t_text_value & p_name, bool p_is_local) :
+				token_base_pos{p_log_pos}, m_name{p_name}, m_is_local{p_is_local}
 			{}
 
 			t_text_value name() const override { return "token_type_add"_jt; }
@@ -59,6 +72,7 @@ export namespace ksi {
 			void perform(prepare_data::pointer p_data) override {
 				p_data->m_type_name = m_name;
 				p_data->m_type_pos = m_log_pos;
+				p_data->m_type_is_local = m_is_local;
 			}
 		};
 
@@ -68,7 +82,9 @@ export namespace ksi {
 			t_text_value name() const override { return "token_struct_add"_jt; }
 
 			void perform(prepare_data::pointer p_data) override {
-				if( ! p_data->m_ext_module_current->struct_add(p_data->m_type_name, p_data->m_type_pos) ) {
+				if( ! p_data->m_ext_module_current->struct_add(
+					p_data->m_type_name, p_data->m_type_is_local, p_data->m_type_pos
+				) ) {
 					t_text_value v_message = just::implode<t_text_value::type>(
 						{"deduce error: Duplicate type name: ", p_data->m_type_name}
 					);

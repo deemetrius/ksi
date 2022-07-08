@@ -93,8 +93,8 @@ namespace ksi {
 		}
 
 		static_data::static_data(const t_text_value & p_type_name) :
-			m_struct_props(just::implode<t_text_value::type>({p_type_name, ".$static_props"}), &g_config->m_mod_hidden),
-			m_struct_consts(just::implode<t_text_value::type>({p_type_name, ".$static_consts#"}), &g_config->m_mod_hidden)
+			m_struct_props(just::implode<t_text_value::type>({p_type_name, ".$static_props"}), &g_config->m_mod_hidden, true),
+			m_struct_consts(just::implode<t_text_value::type>({p_type_name, ".$static_consts#"}), &g_config->m_mod_hidden, true)
 		{}
 
 		// var_owner()

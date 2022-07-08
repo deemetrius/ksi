@@ -10,10 +10,11 @@ export import ksi.config;
 
 export namespace ksi {
 
+	using namespace just::text_literals;
+
 	using file_read_result = just::result<just::text>;
 
 	file_read_result file_read(const fs::path & p_path, log_base::pointer p_log) {
-		using namespace just::text_literals;
 		just::file_read_status v_read_status;
 		file_read_result v_ret{false, just::file_read(p_path, v_read_status)};
 		switch( v_read_status ) {
@@ -43,26 +44,26 @@ export namespace ksi {
 		module_space::pointer	m_module;
 
 		module_extension(module_space::pointer p_module) : m_module{p_module} {
-			init();
+			init<true>();
 		}
 
 		t_text_value name() const override { return m_module->m_name; }
 
+		template <bool C_types>
 		void init() {
-			for( typename t_types::t_info && v_it : m_module->m_types_used ) {
-				m_types_used.maybe_emplace(v_it.m_key, *v_it.m_value);
+			if constexpr( C_types ) {
+				m_types = m_module->m_types;
 			}
-			for( typename t_types::t_info && v_it : m_module->m_types ) {
-				m_types.maybe_emplace(v_it.m_key, *v_it.m_value);
+			for( typename t_types_used::t_info && v_it : m_module->m_types_used ) {
+				m_types_used.maybe_emplace(v_it.m_key, *v_it.m_value);
 			}
 		}
 
 		void apply() {
+			m_module->m_types = m_types;
 			std::ranges::swap(m_types_used, m_module->m_types_used);
 			m_types_used.clear();
-			std::ranges::swap(m_types, m_module->m_types);
-			m_types.clear();
-			init();
+			init<false>();
 			m_module->m_structs.splice(m_structs);
 		}
 
@@ -73,8 +74,8 @@ export namespace ksi {
 		bool struct_add(const t_text_value & p_name, const log_pos & p_log_pos) {
 			var::type_struct_pointer v_struct = new var::type_struct(p_name, m_module, p_log_pos);
 			m_structs.append(v_struct);
-			typename t_types::t_find_result v_res = m_types.maybe_emplace(p_name, v_struct);
-			return v_res.m_added;
+			typename t_types_insert v_res = m_types.emplace(p_name, v_struct);
+			return v_res.second;
 		}
 	};
 
@@ -101,7 +102,7 @@ export namespace ksi {
 		t_space_pointer				m_space;
 		log_base::pointer			m_log;
 		t_files						m_files;
-		t_index						m_error_count = 0;
+		t_int_ptr					m_error_count = 0;
 		t_ext_modules_list			m_ext_modules_list;
 		t_ext_modules_map			m_ext_modules_map;
 		module_extension::pointer	m_ext_module_current = nullptr;
@@ -161,7 +162,7 @@ export namespace ksi {
 			just::t_index p_line,
 			just::t_index p_char
 		) {
-			p_log->add({ p_priority_path, p_message, {p_line, p_char} });
+			error({ p_priority_path, p_message, {p_line, p_char} });
 			m_files.insert_or_assign(p_priority_path, p_status);
 			m_files.insert_or_assign(p_path, p_status);
 			return p_status;
@@ -173,22 +174,19 @@ export namespace ksi {
 	}
 
 	file_status prepare_data::load_folder(const fs::path & p_path, log_base::pointer p_log) {
-		using namespace just::text_literals;
 		fs::path v_path = fs::weakly_canonical(p_path);
 		if( file_status v_res = check_path(v_path); v_res != file_status::unknown ) {
 			return v_res;
 		}
 		if( fs::file_type v_file_type = just::file_type(v_path); v_file_type != fs::file_type::directory ) {
-			++m_error_count;
 			file_status v_ret = (v_file_type == fs::file_type::not_found) ? file_status::absent : file_status::with_error;
 			m_files.insert_or_assign(v_path, v_ret);
-			p_log->add({ v_path, "error: Given path should be directory."_jt });
+			error({ v_path, "error: Given path should be directory."_jt });
 			return v_ret;
 		}
 		fs::path v_priority_path = v_path;
 		v_priority_path.append("define.priority");
 		if( fs::file_type v_file_type = just::file_type(v_priority_path); v_file_type != fs::file_type::regular ) {
-			++m_error_count;
 			file_status v_ret = (v_file_type == fs::file_type::not_found) ? file_status::absent : file_status::with_error;
 			return folder_fail(v_ret, v_path, v_priority_path, p_log, "error: Given file should exists."_jt, 0, 0);
 		}
@@ -197,6 +195,7 @@ export namespace ksi {
 		//
 		file_read_result v_file_res = file_read(v_priority_path, p_log);
 		if( ! v_file_res ) {
+			++m_error_count;
 			m_files.insert_or_assign(v_path, file_status::with_error);
 			m_files.insert_or_assign(v_priority_path, file_status::with_error);
 			return file_status::with_error;
@@ -265,7 +264,7 @@ export namespace ksi {
 					v_start_line = v_text;
 				}
 			}
-			if( just::is_one_of(*v_text, '\r', '\n', '\0') && (v_text > v_start_line) ) {
+			if( just::is_one_of(*v_text, '\r', '\n', '\0') && (v_text != v_start_line) ) {
 				just::text v_name = just::text_traits::from_range(v_start_line, v_text);
 				v_file_path = v_path;
 				v_file_path /= static_cast<std::string_view>(v_name);

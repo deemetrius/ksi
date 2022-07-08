@@ -225,8 +225,8 @@ namespace ksi {
 				v_link->node_detach();
 				if( v_compound->m_links_strong.node_empty() ) { // no strong links
 																// reset weak links
-					v_compound->m_links_weak.apply_to_others(
-						[](link_node_pointer p_node, link_node_pointer p_first){
+					v_compound->m_links_weak.node_apply_to_others(
+						[](link_node_pointer p_node){
 							p_node->node_get_target()->close();
 						}
 					);

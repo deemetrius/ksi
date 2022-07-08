@@ -27,18 +27,8 @@ export namespace just {
 			return m_next == this;
 		}
 		
-		template <typename T_fn>
-		void apply_to_others(T_fn && p_fn) {
-			forward_pointer v_current = this->m_next, v_next;
-			while( v_current != this ) {
-				v_next = v_current->m_next;
-				p_fn(v_current, this->m_next);
-				v_current = v_next;
-			}
-		}
-		
 		void forward_attach(forward_pointer p_node) requires (s_only_forward) {
-			p_node->m_next = this->m_next;
+			if( ! node_empty() ) { p_node->m_next = this->m_next; }
 			this->m_next = p_node;
 		}
 		
@@ -50,6 +40,16 @@ export namespace just {
 		
 		void forward_reset() requires (s_only_forward) {
 			this->next_ = static_cast<forward_pointer>(this);
+		}
+
+		template <typename T_fn>
+		void forward_apply_to_others(T_fn && p_fn) requires (s_only_forward) {
+			forward_pointer v_current = this->m_next, v_next;
+			while( v_current->node_empty() ) {
+				v_next = v_current->m_next;
+				p_fn(v_current);
+				v_current = v_next;
+			}
 		}
 	};
 	
@@ -89,6 +89,16 @@ export namespace just {
 			this->m_next = this;
 			this->m_prev = this;
 		}
+
+		template <typename T_fn>
+		void node_apply_to_others(T_fn && p_fn) {
+			node_pointer v_current = this->m_next, v_next;
+			while( v_current != this ) {
+				v_next = v_current->m_next;
+				p_fn(v_current);
+				v_current = v_next;
+			}
+		}
 	};
 	
 	template <typename T_target, template <typename T1> typename T_closer = closers::simple_delete>
@@ -100,7 +110,7 @@ export namespace just {
 		t_node	m_zero;
 		
 		~list_forward() {
-			m_zero.apply_to_others([](t_node::forward_pointer p_node, t_node::forward_pointer p_first){
+			m_zero.forward_apply_to_others([](t_node::forward_pointer p_node){
 				t_closer::close(p_node->node_get_target() );
 			});
 		}
@@ -116,7 +126,7 @@ export namespace just {
 		t_node	m_zero;
 		
 		~list() {
-			m_zero.apply_to_others([](t_node::forward_pointer p_node, t_node::forward_pointer p_first){
+			m_zero.node_apply_to_others([](t_node::forward_pointer p_node){
 				t_closer::close(p_node->node_get_target() );
 			});
 		}

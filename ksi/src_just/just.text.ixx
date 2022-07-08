@@ -4,6 +4,7 @@ module;
 
 export module just.text;
 
+import <concepts>;
 import <utility>;
 export import just.ref;
 import <cstring>;
@@ -145,6 +146,17 @@ export namespace just {
 			return *this;
 		}
 		
+		basic_text(const basic_text & p_other) = default;
+		basic_text(basic_text && p_other) : basic_text() {
+			std::ranges::swap(m_ref, p_other.m_ref);
+		}
+
+		basic_text & operator = (const basic_text & p_other) = default;
+		basic_text & operator = (basic_text && p_other) {
+			std::ranges::swap(m_ref, p_other.m_ref);
+			return *this;
+		}
+
 		basic_text(t_index p_length, pointer & p_text) :
 			m_ref( new t_impl(p_text, p_length) )
 		{ *p_text = 0; }

@@ -41,26 +41,26 @@ export namespace ksi {
 	};
 	
 	struct log_list : public log_base {
-		struct t_node : public just::node_forward<t_node> {
+		struct t_node : public just::node_list<t_node> {
 			// data
 			log_message		m_message;
 			
-			t_node(log_message && p_message) : m_message(p_message) {}
+			t_node(log_message && p_message) : m_message{std::move(p_message)} {}
 		};
 		
-		using t_list = just::list_forward<t_node>;
+		using t_list = just::list<t_node>;
 		
 		// data
 		t_list	m_list;
 		
 		void add(log_message && p_message) override {
-			m_list.m_zero.forward_attach(new t_node{std::move(p_message)});
+			m_list.append(new t_node{std::move(p_message)});
 		}
 		
 		void out(just::output_base & p_out) override {
-			m_list.m_zero.apply_to_others(
-				[&p_out](t_node::forward_pointer p_node, t_node::forward_pointer p_first){
-					t_node::target_pointer v_node = p_node->node_get_target();
+			m_list.m_zero.node_apply_to_others(
+				[&p_out](t_node::node_pointer p_node){
+					typename t_node::target_pointer v_node = p_node->node_get_target();
 					p_out,
 					'[', v_node->m_message.m_pos.m_line,
 					':', v_node->m_message.m_pos.m_char, "] ",

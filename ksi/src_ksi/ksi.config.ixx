@@ -4,6 +4,7 @@ module;
 
 export module ksi.config;
 
+export import <array>;
 export import ksi.space;
 
 export namespace ksi {
@@ -13,6 +14,8 @@ export namespace ksi {
 	namespace var {
 	
 		struct config {
+			using t_types = std::array<type_pointer, 7>;
+
 			// data
 			fs::path		m_path;
 			log_list		m_log_system;
@@ -32,6 +35,7 @@ export namespace ksi {
 			type_text		m_text;
 			type_array		m_array;
 			//
+			t_types			m_types;
 			any_var			m_zero_var;
 
 			config() :
@@ -46,10 +50,17 @@ export namespace ksi {
 				m_float	{&m_mod_ksi},
 				m_text	{&m_mod_ksi},
 				m_array	{&m_mod_ksi},
+				m_types{&m_null, &m_type, &m_bool, &m_int, &m_float, &m_text, &m_array},
 				m_zero_var(nullptr, &m_null)
 			{
 				m_mod_ksi.m_deleter = &just::closers::simple_none<module_space *>::close;
 				m_mod_hidden.m_deleter = &just::closers::simple_none<module_space *>::close;
+				//
+				for( type_pointer v_type : m_types ) { type_reg(v_type); }
+			}
+
+			static void type_reg(type_pointer p_type) {
+				p_type->m_is_added = p_type->m_module->type_reg(p_type);
 			}
 
 			void init() {

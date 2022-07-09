@@ -49,6 +49,14 @@ export namespace ksi {
 			typename t_modules_map::iterator v_it = m_modules_map.find(p_name);
 			return v_it == m_modules_map.end() ? nullptr : (*v_it).second;
 		}
+
+		bool type_reg(var::type_pointer p_type) {
+			bool ret = p_type->m_is_added ? true : (p_type->m_is_added = p_type->m_module->type_reg(p_type) );
+			if( ! p_type->m_is_local ) {
+				p_type->m_is_global = m_mod_global->type_reg(p_type);
+			}
+			return ret;
+		}
 	};
 
 } // ns

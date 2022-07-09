@@ -71,7 +71,7 @@
     <ClCompile Include="..\src_ksi\ksi.tokens.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\src_ksi\config.ixx">
+    <ClCompile Include="..\src_ksi\ksi.config.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="..\src_ksi\ksi.variable.cpp">

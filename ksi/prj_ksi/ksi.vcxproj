@@ -32,7 +32,7 @@
     <ClCompile Include="..\src_just\just.output.ixx" />
     <ClCompile Include="..\src_just\just.ref.ixx" />
     <ClCompile Include="..\src_just\just.text.ixx" />
-    <ClCompile Include="..\src_ksi\config.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.config.ixx" />
     <ClCompile Include="..\src_ksi\ksi.ast.cpp" />
     <ClCompile Include="..\src_ksi\ksi.ast.ixx" />
     <ClCompile Include="..\src_ksi\ksi.function.ixx" />

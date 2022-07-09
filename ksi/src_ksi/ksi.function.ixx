@@ -55,6 +55,11 @@ export namespace ksi {
 		t_types_used	m_types_used;
 
 		virtual t_text_value name() const = 0;
+
+		bool type_reg(var::type_pointer p_type) {
+			typename t_types_insert v_res = m_types.emplace(p_type->m_name, p_type);
+			return v_res.second;
+		}
 	};
 
 	struct instr_data {

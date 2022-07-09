@@ -23,10 +23,10 @@ int main(int p_args_count, char * p_args[], char * p_env[]) {
 			v_log.out(just::g_console);
 		} else {
 			v_data.apply();
-			if( ksi::module_space::pointer v_module = v_space.get_module("@std"_jt) ) {
-				just::g_console, "Types of @std :\n";
+			if( ksi::module_space::pointer v_module = v_space.get_module("@global#"_jt) ) {
+				just::g_console, "Types of @global# :\n";
 				for( typename ksi::module_space::t_types::value_type & v_it : v_module->m_types ) {
-					just::g_console, v_it.second->m_name, just::g_new_line;
+					just::g_console, v_it.second->m_name_full, just::g_new_line;
 				}
 			}
 		}

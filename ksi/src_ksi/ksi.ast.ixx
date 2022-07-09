@@ -74,7 +74,11 @@ export namespace ksi {
 		bool struct_add(const t_text_value & p_name, bool p_is_local, const log_pos & p_log_pos) {
 			var::type_struct_pointer v_struct = new var::type_struct(p_name, m_module, p_is_local, p_log_pos);
 			m_structs.append(v_struct);
-			typename t_types_insert v_res = m_types.emplace(p_name, v_struct);
+			return type_reg(v_struct);
+		}
+
+		bool type_reg(var::type_pointer p_type) {
+			typename t_types_insert v_res = m_types.emplace(p_type->m_name, p_type);
 			return v_res.second;
 		}
 	};
@@ -106,15 +110,27 @@ export namespace ksi {
 		t_ext_modules_list			m_ext_modules_list;
 		t_ext_modules_map			m_ext_modules_map;
 		module_extension::pointer	m_ext_module_current = nullptr;
+		module_extension::pointer	m_ext_module_global = nullptr;
 		t_text_value				m_type_name;
-		log_pos						m_type_pos;
 		bool						m_type_is_local;
+		log_pos						m_type_pos;
 
-		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {}
+		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {
+			m_ext_module_global = ext_module_open("@global#"_jt);
+		}
 
 		void error(log_message && p_message) {
 			++m_error_count;
 			m_log->add(std::move(p_message) );
+		}
+
+		bool struct_add() {
+			bool ret = m_ext_module_current->struct_add(m_type_name, m_type_is_local, m_type_pos);
+			if( ! m_type_is_local ) {
+				var::type_struct_pointer v_struct = m_ext_module_current->last_struct();
+				v_struct->m_is_global = m_ext_module_global->type_reg(v_struct);
+			}
+			return ret;
 		}
 
 		module_space::pointer module_get(const t_text_value & p_name) {

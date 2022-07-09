@@ -96,6 +96,7 @@ export namespace ksi {
 			module_pointer	m_module;
 			log_pos			m_log_pos;
 			bool			m_is_local		= false;
+			bool			m_is_global		= false;
 			bool			m_is_compound	= false;
 			bool			m_is_struct		= false;
 			t_text_value	m_name;

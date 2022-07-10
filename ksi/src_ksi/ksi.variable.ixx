@@ -192,6 +192,7 @@ export namespace ksi {
 				name("$type#"_jt);
 			}
 
+			bool write(any_const_pointer p_any, output_pointer p_out) override;
 			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
 		};

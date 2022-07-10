@@ -285,6 +285,10 @@ namespace ksi {
 			return p_any->m_value.m_link->write(p_out);
 		}
 
+		bool type_type::write(any_const_pointer p_any, output_pointer p_out) {
+			return p_out->write(p_any->m_value.m_type->m_name_full.data() );
+		}
+
 		bool type_bool::write(any_const_pointer p_any, output_pointer p_out) {
 			return p_out->write(p_any->m_value.m_bool ? 1 : 0);
 		}

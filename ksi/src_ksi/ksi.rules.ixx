@@ -42,6 +42,9 @@ export namespace ksi {
 
 		enum class kind {
 			start,
+			end,
+			space,
+			special,
 			n_literal,
 			constant,
 			variable,
@@ -96,8 +99,8 @@ export namespace ksi {
 		//
 
 		struct t_eof {
+			static constexpr kind s_kind{ kind::end };
 			static t_text_value name() { return "t_eof"_jt; }
-
 			static bool check(state & p_state) { return true; }
 
 			struct t_data {
@@ -112,8 +115,8 @@ export namespace ksi {
 		};
 
 		struct t_space {
+			static constexpr kind s_kind{ kind::space };
 			static t_text_value name() { return "t_space"_jt; }
-
 			static bool check(state & p_state) { return !p_state.m_was_space; }
 
 			enum class nest_comments { none, line, multiline };
@@ -271,6 +274,9 @@ export namespace ksi {
 					if( v_data.parse(p_state, p_tokens, p_log) ) {
 						v_data.action(p_state, p_tokens, p_log);
 						p_state.m_was_space = std::is_same_v<t_first, t_space>;
+						if constexpr( t_first::s_kind != kind::space ) {
+							p_state.m_kind = t_first::s_kind;
+						}
 						return true;
 					}
 				}
@@ -343,6 +349,7 @@ export namespace ksi {
 		struct all {
 
 			struct t_module_name {
+				static constexpr kind s_kind{ kind::special };
 				static t_text_value name() { return "t_module_name"_jt; }
 				static bool check(state & p_state) { return true; }
 
@@ -363,6 +370,7 @@ export namespace ksi {
 			};
 
 			struct t_type_def_name {
+				static constexpr kind s_kind{ kind::special };
 				static t_text_value name() { return "t_type_def_name"_jt; }
 				static bool check(state & p_state) { return true; }
 
@@ -389,6 +397,7 @@ export namespace ksi {
 			};
 
 			struct t_kw_struct {
+				static constexpr kind s_kind{ kind::special };
 				static t_text_value name() { return "t_kw_struct"_jt; }
 				static bool check(state & p_state) { return true; }
 
@@ -403,6 +412,7 @@ export namespace ksi {
 			};
 
 			struct t_struct_open {
+				static constexpr kind s_kind{ kind::start };
 				static t_text_value name() { return "t_struct_open"_jt; }
 				static bool check(state & p_state) { return true; }
 
@@ -416,6 +426,7 @@ export namespace ksi {
 			};
 
 			struct t_struct_close {
+				static constexpr kind s_kind{ kind::special };
 				static t_text_value name() { return "t_struct_close"_jt; }
 				static bool check(state & p_state) { return true; }
 
@@ -442,7 +453,7 @@ export namespace ksi {
 			struct rule_type_kind :
 				public rule_alt<true, t_space, t_kw_struct>
 			{};
-		
+
 			struct rule_struct_open :
 				public rule_alt<true, t_space, t_struct_open>
 			{};

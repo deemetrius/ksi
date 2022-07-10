@@ -306,11 +306,11 @@ export namespace ksi {
 			virtual ~any() { close(); }
 
 			any(std::nullptr_t, type_null * p_type_null) : m_type{p_type_null} {}
-			any(); // $null#
-			any(bool p_value); // $bool#
-			any(t_integer p_value); // $int#
-			any(t_floating p_value); // $float#
-			any(type_pointer p_value); // $type#
+			any();						// $null#
+			any(bool p_value);			// $bool#
+			any(t_integer p_value);		// $int#
+			any(t_floating p_value);	// $float#
+			any(type_pointer p_value);	// $type#
 
 			auto any_get() -> any_pointer { return m_type->any_get(this); }
 			auto any_get_const() const -> any_const_pointer { return m_type->any_get_const(this); }

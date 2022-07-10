@@ -28,9 +28,8 @@ namespace ksi {
 		m_files.insert_or_assign(v_path, file_status::in_process);
 		m_files.insert_or_assign(v_priority_path, file_status::in_process);
 		//
-		file_read_result v_file_res = file_read(v_priority_path, m_log);
+		file_read_result v_file_res = file_read(v_priority_path, m_log, m_error_count);
 		if( ! v_file_res ) {
-			++m_error_count;
 			m_files.insert_or_assign(v_path, file_status::with_error);
 			m_files.insert_or_assign(v_priority_path, file_status::with_error);
 			return file_status::with_error;
@@ -109,21 +108,21 @@ namespace ksi {
 				file_status v_file_status = load_file(v_file_path);
 				switch( v_file_status ) {
 				case file_status::absent :
-				{
-					just::text v_msg = "error: Given file is absent: "_jt;
-					std::string v_file_string = v_file_path.string();
-					return folder_fail(file_status::with_error, v_path, v_priority_path,
-						just::implode<char>({v_msg, v_file_string}), v_line, 1
-					);
-				}
+					{
+						just::text v_msg = "error: Given file is absent: "_jt;
+						std::string v_file_string = v_file_path.string();
+						return folder_fail(file_status::with_error, v_path, v_priority_path,
+							just::implode<char>({v_msg, v_file_string}), v_line, 1
+						);
+					}
 				case file_status::with_error :
-				{
-					just::text v_msg = "error: Given file contains error: "_jt;
-					std::string v_file_string = v_file_path.string();
-					return folder_fail(file_status::with_error, v_path, v_priority_path,
-						just::implode<char>({v_msg, v_file_string}), v_line, 1
-					);
-				}
+					{
+						just::text v_msg = "error: Given file contains error: "_jt;
+						std::string v_file_string = v_file_path.string();
+						return folder_fail(file_status::with_error, v_path, v_priority_path,
+							just::implode<char>({v_msg, v_file_string}), v_line, 1
+						);
+					}
 				}
 				v_file_path.clear();
 			}
@@ -152,33 +151,38 @@ namespace ksi {
 	}
 
 	file_status prepare_data::load_file(const fs::path & p_path) {
+		if( file_status v_res = check_path(p_path); v_res != file_status::unknown ) {
+			return v_res;
+		}
 		if( fs::file_type v_file_type = just::file_type(p_path); v_file_type != fs::file_type::regular ) {
 			file_status v_ret = (v_file_type == fs::file_type::not_found) ? file_status::absent : file_status::with_error;
 			m_files.insert_or_assign(p_path, v_ret);
 			error({p_path, "error: Given file should exists."_jt});
 			return v_ret;
 		}
-		file_read_result v_file_res = file_read(p_path, m_log);
+		file_read_result v_file_res = file_read(p_path, m_log, m_error_count);
 		if( ! v_file_res ) {
-			++m_error_count;
 			m_files.insert_or_assign(p_path, file_status::with_error);
 			return file_status::with_error;
 		}
 		m_files.insert_or_assign(p_path, file_status::in_process);
 		//
 		tokens::nest_tokens v_tokens;
-		bool v_nice = rules::parse_declarative(p_path, v_file_res.m_value, v_tokens, m_log);
-		if( ! v_nice ) {
+		if( ! rules::parse_declarative(p_path, v_file_res.m_value, v_tokens, m_log) ) {
 			++m_error_count;
 			m_files.insert_or_assign(p_path, file_status::with_error);
 			return file_status::with_error;
 		}
 		if( m_error_count == 0 ) {
 			v_tokens.perform(this);
+			if( m_error_count == 0 ) {
+				m_files.insert_or_assign(p_path, file_status::loaded);
+				return file_status::loaded;
+			}
 		}
 		//
-		m_files.insert_or_assign(p_path, file_status::loaded);
-		return file_status::loaded;
+		m_files.insert_or_assign(p_path, file_status::with_error);
+		return file_status::with_error;
 	}
 
 } // ns

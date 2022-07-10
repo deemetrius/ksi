@@ -14,17 +14,20 @@ export namespace ksi {
 
 	using file_read_result = just::result<just::text>;
 
-	file_read_result file_read(const fs::path & p_path, log_base::pointer p_log) {
+	file_read_result file_read(const fs::path & p_path, log_base::pointer p_log, t_int_ptr & p_error_count) {
 		just::file_read_status v_read_status;
 		file_read_result v_ret{false, just::file_read(p_path, v_read_status)};
 		switch( v_read_status ) {
 		case just::file_read_status::fail_get_size :
+			++p_error_count;
 			p_log->add({p_path, "error: Unable to get file size."_jt});
 			break;
 		case just::file_read_status::fail_open :
+			++p_error_count;
 			p_log->add({p_path, "error: Unable to open file."_jt});
 			break;
 		case just::file_read_status::fail_read :
+			++p_error_count;
 			p_log->add({p_path, "error: Unable to read file."_jt});
 			break;
 		default:

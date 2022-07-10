@@ -47,14 +47,14 @@ export namespace ksi {
 			}
 		};
 
-		struct token_base_pos :
+		/*struct token_base_pos :
 			public token_base
 		{
 			// data
 			log_pos		m_log_pos;
 
 			token_base_pos(const log_pos & p_log_pos) : m_log_pos{p_log_pos} {}
-		};
+		};*/
 
 		struct token_module_name :
 			public token_base
@@ -72,14 +72,15 @@ export namespace ksi {
 		};
 
 		struct token_type_add :
-			public token_base_pos
+			public token_base
 		{
 			// data
+			log_pos			m_log_pos;
 			t_text_value	m_name;
 			bool			m_is_local;
 
 			token_type_add(const log_pos & p_log_pos, const t_text_value & p_name, bool p_is_local) :
-				token_base_pos{p_log_pos}, m_name{p_name}, m_is_local{p_is_local}
+				m_log_pos{p_log_pos}, m_name{p_name}, m_is_local{p_is_local}
 			{}
 
 			t_text_value name() const override { return "token_type_add"_jt; }
@@ -114,6 +115,36 @@ export namespace ksi {
 
 			void perform(prepare_data::pointer p_data) override {
 				p_data->m_ext_module_current->last_struct()->m_static->init();
+			}
+		};
+
+		struct token_struct_prop_name :
+			public token_base
+		{
+			// data
+			log_pos			m_log_pos;
+			t_text_value	m_name;
+
+			token_struct_prop_name(const log_pos & p_log_pos, const t_text_value & p_name) :
+				m_log_pos{p_log_pos}, m_name{p_name}
+			{}
+
+			t_text_value name() const override { return "token_struct_prop_name"_jt; }
+
+			void perform(prepare_data::pointer p_data) override {
+				var::type_struct_pointer v_type_struct = p_data->m_ext_module_current->last_struct();
+				if( ! v_type_struct->prop_add(m_name) ) {
+					typename var::type_struct::t_props::t_find_result v_res = v_type_struct->m_props.find(m_name);
+					var::type_pointer v_type = v_res.m_value->m_type_source;
+					p_data->error(m_log_pos.message(just::implode<t_text_value::type>({
+						"deduce error: Property \"", m_name, "\" is already defined in type: ", v_type->m_name_full
+					}) ) );
+					if( v_type != v_type_struct ) {
+						p_data->m_log->add(v_type->m_log_pos.message(just::implode<t_text_value::type>(
+							{"info: See definition of type: ", v_type->m_name_full}
+						) ) );
+					}
+				}
 			}
 		};
 

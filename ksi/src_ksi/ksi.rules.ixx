@@ -299,10 +299,10 @@ export namespace ksi {
 
 		//
 
-		template <t_char C_char>
+		template <t_char ... C_char>
 		struct is_char {
 			bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-				if( *p_state.m_text_pos == C_char ) {
+				if( just::is_one_of(*p_state.m_text_pos, C_char ...) ) {
 					++p_state.m_text_pos;
 					return true;
 				}
@@ -322,7 +322,7 @@ export namespace ksi {
 		};
 
 		struct traits {
-			static bool take_name(t_raw_const & p_text_pos) {
+			static bool impl_take_name(t_raw_const & p_text_pos) {
 				if( std::isalpha(*p_text_pos) ) {
 					++p_text_pos;
 					while( *p_text_pos == '_' || std::isalnum(*p_text_pos) ) { ++p_text_pos; }
@@ -331,10 +331,21 @@ export namespace ksi {
 				return false;
 			}
 
+			static bool take_name(state & p_state, t_text_value & p_name, position & p_pos) {
+				t_raw_const v_name_end = p_state.m_text_pos;
+				if( impl_take_name(v_name_end) ) {
+					p_pos = p_state.pos();
+					p_name = just::text_traits::from_range(p_state.m_text_pos, v_name_end);
+					p_state.m_text_pos = v_name_end;
+					return true;
+				}
+				return false;
+			}
+
 			static bool take_name_with_prefix(state & p_state, t_char p_prefix, t_text_value & p_name, position & p_pos) {
 				if( *p_state.m_text_pos != p_prefix ) return false;
 				t_raw_const v_name_end = p_state.m_text_pos +1;
-				if( take_name(v_name_end) ) {
+				if( impl_take_name(v_name_end) ) {
 					p_pos = p_state.pos();
 					p_name = just::text_traits::from_range(p_state.m_text_pos, v_name_end);
 					p_state.m_text_pos = v_name_end;
@@ -440,6 +451,41 @@ export namespace ksi {
 				};
 			};
 
+			struct t_struct_prop_name {
+				static constexpr kind s_kind{ kind::special };
+				static t_text_value name() { return "t_struct_prop_name"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data
+				{
+					// data
+					position		m_pos;
+					t_text_value	m_name;
+
+					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						return traits::take_name(p_state, m_name, m_pos);
+					}
+
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_tokens.m_types.append( new tokens::token_struct_prop_name({p_state.m_path, m_pos}, m_name) );
+					}
+				};
+			};
+
+			struct t_struct_prop_separator {
+				static constexpr kind s_kind{ kind::separator };
+				static t_text_value name() { return "t_struct_prop_separator"_jt; }
+				static bool check(state & p_state) {
+					return ! just::is_one_of(p_state.m_kind, kind::start, kind::separator);
+				}
+
+				struct t_data :
+					public is_char<',', ';'>
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {}
+				};
+			};
+
 			//
 
 			struct rule_module_name :
@@ -459,7 +505,7 @@ export namespace ksi {
 			{};
 
 			struct rule_struct_prop :
-				public rule_alt<true, t_space, t_struct_close>
+				public rule_alt<true, t_space, t_struct_close, t_struct_prop_name, t_struct_prop_separator>
 			{};
 
 		};

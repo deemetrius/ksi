@@ -1,4 +1,7 @@
 
 @std
 
-$range struct ( )
+$range struct (
+	from
+	to
+)

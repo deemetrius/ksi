@@ -20,7 +20,6 @@ int main(int p_args_count, char * p_args[], char * p_env[]) {
 		ksi::prepare_data v_data(&v_space, &v_log);
 		if( v_data.load_folder(p_args[1]) != ksi::file_status::loaded ) {
 			just::g_console, "error: Unable to load path: ", p_args[1], just::g_new_line;
-			v_log.out(just::g_console);
 		} else {
 			v_data.apply();
 			if( ksi::module_space::pointer v_module = v_space.get_module("@global#"_jt) ) {
@@ -31,6 +30,7 @@ int main(int p_args_count, char * p_args[], char * p_env[]) {
 			}
 		}
 		just::g_console, "Error count: ", v_data.m_error_count, just::g_new_line;
+		v_log.out(just::g_console);
 	} catch( const std::bad_alloc & e ) {
 		just::g_console, "error: Memory allocation; ", e.what(), just::g_new_line;
 	} catch( ... ) {

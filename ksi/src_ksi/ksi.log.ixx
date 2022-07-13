@@ -12,9 +12,9 @@ export import just.output;
 //export import just.files;
 
 export namespace ksi {
-	
+
 	namespace fs = std::filesystem;
-	
+
 	using t_text_value = just::text;
 	using t_text_value_pointer = t_text_value *;
 
@@ -30,7 +30,15 @@ export namespace ksi {
 		t_text_value	m_message;
 		position		m_pos;
 	};
-	
+
+	struct log_pos {
+		// data
+		fs::path	m_path;
+		position	m_pos;
+
+		log_message message(const t_text_value & p_message) const { return {m_path, p_message, m_pos}; }
+	};
+
 	struct log_base {
 		using pointer = log_base *;
 		
@@ -39,7 +47,9 @@ export namespace ksi {
 		virtual void add(log_message && p_message) {}
 		virtual void out(just::output_base & p_out) {}
 	};
-	
+
+	using log_pointer = log_base *;
+
 	struct log_list : public log_base {
 		struct t_node : public just::node_list<t_node> {
 			// data
@@ -47,16 +57,16 @@ export namespace ksi {
 			
 			t_node(log_message && p_message) : m_message{std::move(p_message)} {}
 		};
-		
+
 		using t_list = just::list<t_node>;
-		
+
 		// data
 		t_list	m_list;
-		
+
 		void add(log_message && p_message) override {
 			m_list.append(new t_node{std::move(p_message)});
 		}
-		
+
 		void out(just::output_base & p_out) override {
 			m_list.m_zero.node_apply_to_others(
 				[&p_out](t_node::node_pointer p_node){
@@ -70,5 +80,5 @@ export namespace ksi {
 			);
 		}
 	};
-	
+
 } // ns

@@ -29,16 +29,6 @@ export namespace ksi {
 	struct module_base;
 	using module_pointer = module_base *;
 
-	using log_pointer = log_base *;
-
-	struct log_pos {
-		// data
-		fs::path	m_path;
-		position	m_pos;
-
-		log_message message(const t_text_value & p_message) { return {m_path, p_message, m_pos}; }
-	};
-
 	namespace var {
 
 		using output_pointer = just::output_base *;
@@ -431,15 +421,15 @@ export namespace ksi {
 
 			t_integer props_count() { return m_props.count(); }
 
-			t_index inherit_from(type_pointer p_type_source, log_pointer p_log) {
+			t_index inherit_from(const log_pos & p_log_pos, type_pointer p_type_source, log_pointer p_log) {
 				if( !p_type_source->m_is_struct ) {
-					p_log->add(m_log_pos.message(just::implode<t_text_value::type>(
+					p_log->add(p_log_pos.message(just::implode<t_text_value::type>(
 						{"deduce error: Not struct type in extends: ", p_type_source->m_name_full}
 					) ) );
 					return 1;
 				}
 				if( m_bases.contains(p_type_source) ) {
-					p_log->add(m_log_pos.message(just::implode<t_text_value::type>(
+					p_log->add(p_log_pos.message(just::implode<t_text_value::type>(
 						{"deduce error: Base type in extends is listed more than once: ", p_type_source->m_name_full}
 					) ) );
 					return 1;
@@ -451,7 +441,7 @@ export namespace ksi {
 					if( ! prop_add(v_it.m_key, v_it.m_value->m_value, p_type_source) ) {
 						typename t_props::t_find_result v_res = m_props.find(v_it.m_key);
 						type_pointer v_type = v_res.m_value->m_type_source;
-						p_log->add(m_log_pos.message(just::implode<t_text_value::type>({
+						p_log->add(p_log_pos.message(just::implode<t_text_value::type>({
 							"deduce error: Property \"", v_it.m_key, "\" defined in type \"", p_type_source->m_name_full,
 							"\" is already inherited from type: ",
 							v_type->m_name_full

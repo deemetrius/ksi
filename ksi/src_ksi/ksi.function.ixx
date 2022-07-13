@@ -44,6 +44,7 @@ export namespace ksi {
 	};
 
 	struct module_base {
+		using pointer = module_base *;
 		using t_structs = just::list<var::type_struct, just::closers::compound_call_deleter<false>::template t_closer>;
 		using t_types = std::map<just::text, var::type_pointer, just::text_less>;
 		using t_types_insert = std::pair<t_types::iterator, bool>;
@@ -60,6 +61,11 @@ export namespace ksi {
 			typename t_types_insert v_res = m_types.emplace(p_type->m_name, p_type);
 			return v_res.second;
 		}
+
+		var::type_pointer type_find(const t_text_value & p_type_name) {
+			typename t_types::iterator v_it = m_types.find(p_type_name);
+			return (v_it == m_types.end() ) ? nullptr : (*v_it).second;
+		}
 	};
 
 	struct instr_data {
@@ -67,9 +73,9 @@ export namespace ksi {
 
 		// data
 		position			m_pos;
-		just::t_int_ptr		m_arg = 0,
-							m_param = 0,
-							m_group = 0;
+		just::t_int_ptr		m_arg = 0;
+		just::t_int_ptr		m_param = 0;
+		just::t_int_ptr		m_group = 0;
 	};
 
 	struct instr_type {

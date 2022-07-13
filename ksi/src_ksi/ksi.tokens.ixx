@@ -89,6 +89,22 @@ export namespace ksi {
 				p_data->m_type_name = m_name;
 				p_data->m_type_pos = m_log_pos;
 				p_data->m_type_is_local = m_is_local;
+				p_data->m_type_extends.clear();
+			}
+		};
+
+		struct token_type_add_base :
+			public token_base
+		{
+			// data
+			type_extend_info	m_type_extend;
+
+			token_type_add_base(const type_extend_info & p_type_extend) : m_type_extend{p_type_extend} {}
+
+			t_text_value name() const override { return "token_type_add_base"_jt; }
+
+			void perform(prepare_data::pointer p_data) override {
+				p_data->m_type_extends.push_back(m_type_extend);
 			}
 		};
 
@@ -104,8 +120,16 @@ export namespace ksi {
 					);
 					p_data->error(p_data->m_type_pos.message(v_message) );
 				}
-				p_data->m_ext_module_current->last_struct()->init_base();
-			}
+				var::type_struct_pointer v_struct = p_data->m_ext_module_current->last_struct();
+				v_struct->init_base();
+				for( type_extend_info & v_it : p_data->m_type_extends ) {
+					if( var::type_pointer v_type_source = p_data->type_find(v_it) ) {
+						p_data->m_error_count += v_struct->inherit_from(
+							{p_data->m_type_pos.m_path, v_it.m_pos}, v_type_source, p_data->m_log
+						);
+					}
+				}
+			} // fn
 		};
 
 		struct token_struct_end :

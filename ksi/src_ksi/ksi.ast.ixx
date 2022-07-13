@@ -79,6 +79,11 @@ export namespace ksi {
 			m_structs.append(v_struct);
 			return v_struct->m_is_added = type_reg(v_struct);
 		}
+
+		/*var::type_pointer type_find(const t_text_value & p_type_name) {
+			typename t_types::iterator v_it = m_types.find(p_type_name);
+			return (v_it == m_types.end() ) ? nullptr : (*v_it).second;
+		}*/
 	};
 
 	enum class file_status {
@@ -87,6 +92,13 @@ export namespace ksi {
 		with_error,
 		absent,
 		unknown
+	};
+
+	struct type_extend_info {
+		// data
+		position					m_pos;
+		t_text_value				m_type_name;
+		t_text_value				m_module_name;
 	};
 
 	struct prepare_data :
@@ -99,6 +111,7 @@ export namespace ksi {
 		using t_ext_modules_list = just::list<module_extension,
 			just::closers::compound_call_deleter<false>::template t_closer
 		>;
+		using t_type_extends = std::vector<type_extend_info>;
 
 		// data
 		t_space_pointer				m_space;
@@ -112,6 +125,7 @@ export namespace ksi {
 		t_text_value				m_type_name;
 		bool						m_type_is_local;
 		log_pos						m_type_pos;
+		t_type_extends				m_type_extends;
 
 		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {
 			m_ext_module_global = ext_module_open("@global#"_jt);
@@ -122,6 +136,11 @@ export namespace ksi {
 			m_log->add(std::move(p_message) );
 		}
 
+		module_extension::pointer ext_module_find(const t_text_value & p_module_name) {
+			typename t_ext_modules_map::iterator v_it = m_ext_modules_map.find(p_module_name);
+			return (v_it == m_ext_modules_map.end() ) ? nullptr : (*v_it).second;
+		}
+
 		bool struct_add() {
 			bool ret{ m_ext_module_current->struct_add(m_type_name, m_type_is_local, m_type_pos) };
 			if( ! m_type_is_local ) {
@@ -129,6 +148,42 @@ export namespace ksi {
 				v_struct->m_is_global = m_ext_module_global->type_reg(v_struct);
 			}
 			return ret;
+		}
+
+		template <typename T_module>
+		var::type_pointer impl_type_find(T_module * p_module, const type_extend_info & p_type_extend) {
+			var::type_pointer v_ret = p_module->type_find(p_type_extend.m_type_name);
+			if( v_ret == nullptr ) {
+				error({m_type_pos.m_path, just::implode<t_text_value::type>(
+					{"deduce error: Type not yet defined: ", p_type_extend.m_type_name, p_type_extend.m_module_name}
+				), p_type_extend.m_pos});
+			}
+			return v_ret;
+		}
+
+		var::type_pointer type_find(const type_extend_info & p_type_extend) {
+			module_extension::pointer v_ext_module = nullptr;
+			switch( p_type_extend.m_module_name.size() ) {
+			case 0:
+				v_ext_module = m_ext_module_global;
+				break;
+			case 1:
+				v_ext_module = m_ext_module_current;
+				break;
+			default:
+				v_ext_module = ext_module_find(p_type_extend.m_module_name);
+				if( v_ext_module == nullptr ) {
+					module_space::pointer v_module = m_space->module_find(p_type_extend.m_module_name);
+					if( v_module == nullptr ) {
+						error({m_type_pos.m_path, just::implode<t_text_value::type>(
+							{"deduce error: Module not yet defined: ", p_type_extend.m_module_name}
+						), p_type_extend.m_pos});
+						return nullptr;
+					}
+					return impl_type_find(v_module, p_type_extend);
+				}
+			}
+			return impl_type_find(v_ext_module, p_type_extend);
 		}
 
 		module_space::pointer module_get(const t_text_value & p_name) {

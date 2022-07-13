@@ -41,11 +41,11 @@ export namespace ksi {
 
 		// data
 		t_files					m_files;
-		module_space::pointer	m_mod_global;
+		module_space::pointer	m_module_global;
 
 		space();
 
-		module_space::pointer get_module(const t_text_value & p_name) {
+		module_space::pointer module_find(const t_text_value & p_name) {
 			typename t_modules_map::iterator v_it = m_modules_map.find(p_name);
 			return v_it == m_modules_map.end() ? nullptr : (*v_it).second;
 		}
@@ -53,7 +53,7 @@ export namespace ksi {
 		bool type_reg(var::type_pointer p_type) {
 			bool ret = p_type->m_is_added ? true : (p_type->m_is_added = p_type->m_module->type_reg(p_type) );
 			if( ! p_type->m_is_local ) {
-				p_type->m_is_global = m_mod_global->type_reg(p_type);
+				p_type->m_is_global = m_module_global->type_reg(p_type);
 			}
 			return ret;
 		}

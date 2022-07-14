@@ -44,6 +44,7 @@ export namespace ksi {
 			start,
 			end,
 			space,
+			keep,
 			special,
 			n_literal,
 			constant,
@@ -87,6 +88,10 @@ export namespace ksi {
 
 			position pos() const { return m_line.pos(m_text_pos); }
 
+			bool flag_check(flags_raw p_flag) { return (m_flags & p_flag) == p_flag; }
+			void flag_set(flags_raw p_flag) { m_flags |= p_flag; }
+			void flag_unset(flags_raw p_flag) { m_flags &= ~p_flag; }
+
 			void done_nice() {
 				m_nice = true;
 				m_done = true;
@@ -96,6 +101,17 @@ export namespace ksi {
 				m_done = true;
 			}
 		};
+
+		//
+
+		template <typename, typename = void>
+		struct is_rule_inner : public std::false_type {};
+
+		template <typename T>
+		struct is_rule_inner<T, std::void_t<typename T::t_data> > : public std::true_type {};
+
+		template <typename T>
+		constexpr bool is_rule_inner_v = is_rule_inner<T>::value;
 
 		//
 
@@ -226,14 +242,6 @@ export namespace ksi {
 			using type_rest = T_template<C_flag, T_rest ...>;
 		};
 
-		/*template <typename T_last>
-		struct first_type<T_last> {
-			using type = T_last;
-
-			template <bool C_flag, template <bool, typename ...> typename T_template>
-			using type_rest = T_template<C_flag>;
-		};*/
-
 		template <typename ... T_items>
 		using first_type_t = first_type<T_items ...>::type;
 
@@ -271,11 +279,19 @@ export namespace ksi {
 
 			static bool parse_inner(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log, fn_message p_fn) {
 				if( t_first::check(p_state) ) {
-					typename t_first::t_data v_data;
-					if( v_data.parse(p_state, p_tokens, p_log) ) {
-						v_data.action(p_state, p_tokens, p_log);
+					bool v_nice = false;
+					if constexpr( is_rule_inner_v<t_first> ) {
+						typename t_first::t_data v_data;
+						if( v_data.parse(p_state, p_tokens, p_log) ) {
+							v_data.action(p_state, p_tokens, p_log);
+							v_nice = true;
+						}
+					} else if( t_first::parse(p_state, p_tokens, p_log) ) {
+						v_nice = true;
+					}
+					if( v_nice ) {
 						p_state.m_was_space = std::is_same_v<t_first, t_space>;
-						if constexpr( t_first::s_kind != kind::space ) {
+						if constexpr( ! just::is_one_of(t_first::s_kind, kind::space, kind::keep) ) {
 							p_state.m_kind = t_first::s_kind;
 						}
 						return true;
@@ -402,7 +418,9 @@ export namespace ksi {
 					}
 
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						p_tokens.m_types.append( new tokens::token_type_add({p_state.m_path, m_pos}, m_name, m_is_local) );
+						p_tokens.m_types.append(
+							new tokens::token_type_add({p_state.m_path, m_pos}, m_name, m_is_local)
+						);
 						p_state.m_fn_parse = &rule_type_kind::parse;
 					}
 				};
@@ -411,13 +429,13 @@ export namespace ksi {
 			struct t_kw_extends {
 				static constexpr kind s_kind{ kind::special };
 				static t_text_value name() { return "t_kw_extends"_jt; }
-				static bool check(state & p_state) { return (p_state.m_flags & flag_was_extends) == 0; }
+				static bool check(state & p_state) { return ! p_state.flag_check(flag_was_extends); }
 
 				struct t_data :
 					public is_keyword<"extends">
 				{
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						p_state.m_flags |= flag_was_extends;
+						p_state.flag_set(flag_was_extends);
 						p_state.m_fn_parse = &rule_extends_open::parse;
 					}
 				};
@@ -462,7 +480,9 @@ export namespace ksi {
 					type_extend_info	m_type_extend;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						bool ret = traits::take_name_with_prefix(p_state, '$', m_type_extend.m_type_name, m_type_extend.m_pos);
+						bool ret = traits::take_name_with_prefix(p_state, '$',
+							m_type_extend.m_type_name, m_type_extend.m_pos
+						);
 						if( ret ) {
 							position v_pos;
 							if( traits::take_name_with_prefix(p_state, '@', m_type_extend.m_module_name, v_pos) ) {}
@@ -520,6 +540,7 @@ export namespace ksi {
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 						p_tokens.m_types.append( new tokens::token_struct_end() );
 						p_state.m_fn_parse = &rule_decl::parse;
+						p_state.flag_unset(flag_was_extends);
 					}
 				};
 			};
@@ -527,7 +548,10 @@ export namespace ksi {
 			struct t_struct_prop_name {
 				static constexpr kind s_kind{ kind::special };
 				static t_text_value name() { return "t_struct_prop_name"_jt; }
-				static bool check(state & p_state) { return true; }
+				static bool check(state & p_state) {
+					//return just::is_one_of(p_state.m_kind, kind::start, kind::special, kind::n_literal, kind::separator);
+					return p_state.m_kind != kind::n_operator;
+				}
 
 				struct t_data
 				{
@@ -559,6 +583,75 @@ export namespace ksi {
 				};
 			};
 
+			struct t_struct_prop_assign {
+				static constexpr kind s_kind{ kind::n_operator };
+				static t_text_value name() { return "t_struct_prop_assign"_jt; }
+				static bool check(state & p_state) {
+					return ! just::is_one_of(p_state.m_kind, kind::n_operator, kind::n_literal);
+				}
+
+				struct t_data :
+					public is_char<'='>
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {}
+				};
+			};
+
+			//
+
+			struct t_literal_null {
+				static constexpr kind s_kind{ kind::n_literal };
+				static t_text_value name() { return "t_literal_null"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data :
+					public is_keyword<"null">
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						if( p_state.m_nest != nest::declarative ) { p_tokens.put_literal(var::any_var{}); }
+					}
+				};
+			};
+
+			struct t_literal_false {
+				static constexpr kind s_kind{ kind::n_literal };
+				static t_text_value name() { return "t_literal_false"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data :
+					public is_keyword<"false">
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_tokens.put_literal(false);
+					}
+				};
+			};
+
+			struct t_literal_true {
+				static constexpr kind s_kind{ kind::n_literal };
+				static t_text_value name() { return "t_literal_true"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data :
+					public is_keyword<"true">
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_tokens.put_literal(true);
+					}
+				};
+			};
+
+			struct rule_literal :
+				public rule_alt<false, t_literal_null, t_literal_false, t_literal_true>
+			{
+				static constexpr kind s_kind{ kind::keep };
+				static t_text_value name() { return "rule_literal"_jt; }
+
+				static bool check(state & p_state) {
+					return (p_state.m_nest == nest::declarative) ? (p_state.m_kind == kind::n_operator) : true;
+				}
+			};
+
 			//
 
 			struct rule_module_name :
@@ -586,7 +679,13 @@ export namespace ksi {
 			{};
 
 			struct rule_struct_prop :
-				public rule_alt<true, t_space, t_struct_close, t_struct_prop_name, t_struct_prop_separator>
+				public rule_alt<true, t_space,
+					t_struct_close,
+					t_struct_prop_name,
+					t_struct_prop_assign,
+					rule_literal,
+					t_struct_prop_separator
+				>
 			{};
 
 		};

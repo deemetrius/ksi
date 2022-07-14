@@ -2,8 +2,8 @@
 @std
 
 $range
-struct	( from to )
+struct ( from, to = true )
 
 $range_step
-extends	( $range )
-struct	( step )
+extends ( $range )
+struct ( step )

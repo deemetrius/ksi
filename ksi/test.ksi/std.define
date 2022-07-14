@@ -1,7 +1,9 @@
 
 @std
 
-$range struct (
-	from
-	to
-)
+$range
+struct	( from to )
+
+$range_step
+extends	( $range )
+struct	( step )

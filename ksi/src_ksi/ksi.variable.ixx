@@ -31,6 +31,15 @@ export namespace ksi {
 
 	namespace var {
 
+		enum t_id_config : t_integer {
+			n_id_standard	= 0,
+			n_id_special	= 1000,
+			n_id_enum		= 100'000,
+			n_id_struct		= 200'000,
+			n_id_delta_static_props		= 1000'000,
+			n_id_delta_static_consts	= 2000'000
+		};
+
 		using output_pointer = just::output_base *;
 
 		struct compound_base;
@@ -84,6 +93,7 @@ export namespace ksi {
 
 			// data
 			module_pointer	m_module;
+			t_integer		m_id;
 			log_pos			m_log_pos;
 			bool			m_is_added		= false;
 			bool			m_is_local		= false;
@@ -94,7 +104,9 @@ export namespace ksi {
 			t_text_value	m_name_full;
 			t_static		m_static;
 
-			type_base(module_pointer p_module) : m_module{p_module} {}
+			type_base(module_pointer p_module, t_integer & p_id) : m_module{p_module}, m_id{p_id} {
+				++p_id;
+			}
 
 			void name(const t_text_value & p_name);
 
@@ -123,7 +135,7 @@ export namespace ksi {
 		struct type_link :
 			public type_base
 		{
-			type_link(module_pointer p_module) : type_base{p_module} {
+			type_link(module_pointer p_module, t_integer & p_id) : type_base{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$link#"_jt);
 			}
@@ -141,7 +153,7 @@ export namespace ksi {
 		struct type_ref :
 			public type_link
 		{
-			type_ref(module_pointer p_module) : type_link{p_module} {
+			type_ref(module_pointer p_module, t_integer & p_id) : type_link{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$ref#"_jt);
 			}
@@ -168,7 +180,7 @@ export namespace ksi {
 		struct type_null :
 			public type_simple
 		{
-			type_null(module_pointer p_module) : type_simple{p_module} {
+			type_null(module_pointer p_module, t_integer & p_id) : type_simple{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$null#"_jt);
 			}
@@ -177,7 +189,7 @@ export namespace ksi {
 		struct type_type :
 			public type_simple
 		{
-			type_type(module_pointer p_module) : type_simple{p_module} {
+			type_type(module_pointer p_module, t_integer & p_id) : type_simple{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$type#"_jt);
 			}
@@ -190,7 +202,7 @@ export namespace ksi {
 		struct type_bool :
 			public type_simple
 		{
-			type_bool(module_pointer p_module) : type_simple{p_module} {
+			type_bool(module_pointer p_module, t_integer & p_id) : type_simple{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$bool#"_jt);
 			}
@@ -203,7 +215,7 @@ export namespace ksi {
 		{
 			using t_limits = std::numeric_limits<t_integer>;
 
-			type_int(module_pointer p_module) : type_simple{p_module} {
+			type_int(module_pointer p_module, t_integer & p_id) : type_simple{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$int#"_jt);
 			}
@@ -217,7 +229,7 @@ export namespace ksi {
 		{
 			using t_limits = std::numeric_limits<t_floating>;
 
-			type_float(module_pointer p_module) : type_simple{p_module} {
+			type_float(module_pointer p_module, t_integer & p_id) : type_simple{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$float#"_jt);
 			}
@@ -231,7 +243,7 @@ export namespace ksi {
 		struct type_compound :
 			public type_base
 		{
-			type_compound(module_pointer p_module) : type_base{p_module} {
+			type_compound(module_pointer p_module, t_integer & p_id) : type_base{p_module, p_id} {
 				m_is_compound = true;
 			}
 
@@ -248,7 +260,7 @@ export namespace ksi {
 		struct type_text :
 			public type_compound
 		{
-			type_text(module_pointer p_module) : type_compound{p_module} {
+			type_text(module_pointer p_module, t_integer & p_id) : type_compound{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$text#"_jt);
 			}
@@ -259,7 +271,7 @@ export namespace ksi {
 		struct type_array :
 			public type_compound
 		{
-			type_array(module_pointer p_module) : type_compound{p_module} {
+			type_array(module_pointer p_module, t_integer & p_id) : type_compound{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$array#"_jt);
 			}
@@ -399,9 +411,10 @@ export namespace ksi {
 			type_struct(
 				const t_text_value & p_name,
 				module_pointer p_module,
+				t_integer & p_id,
 				bool p_is_local,
 				const log_pos & p_log_pos = log_pos{}
-			) : type_compound{p_module}
+			) : type_compound{p_module, p_id}
 			{
 				m_is_struct = true;
 				m_is_local = p_is_local;
@@ -603,12 +616,14 @@ export namespace ksi {
 			public static_data_base
 		{
 			// data
+			t_integer		m_id_props;
+			t_integer		m_id_consts;
 			type_struct		m_struct_props;
 			type_struct		m_struct_consts;
 			any_var			m_props;
 			any_var			m_consts;
 
-			static_data(const t_text_value & p_type_name);
+			static_data(const t_text_value & p_type_name, t_integer p_id);
 
 			void init() override {
 				m_props = any_var(&m_struct_props);
@@ -619,7 +634,7 @@ export namespace ksi {
 		// init()
 
 		inline void type_base::init_base() {
-			m_static = std::make_unique<static_data>(m_name);
+			m_static = std::make_unique<static_data>(m_name, m_id);
 		}
 
 		inline static_data_pointer type_base::get_static() {

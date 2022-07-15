@@ -74,16 +74,11 @@ export namespace ksi {
 			return m_structs.m_zero.node_empty() ? nullptr : m_structs.m_zero.m_prev->node_target();
 		}
 
-		bool struct_add(const t_text_value & p_name, bool p_is_local, const log_pos & p_log_pos) {
-			var::type_struct_pointer v_struct = new var::type_struct(p_name, m_module, p_is_local, p_log_pos);
+		bool struct_add(t_integer & p_id, const t_text_value & p_name, bool p_is_local, const log_pos & p_log_pos) {
+			var::type_struct_pointer v_struct = new var::type_struct(p_name, m_module, p_id, p_is_local, p_log_pos);
 			m_structs.append(v_struct);
 			return v_struct->m_is_added = type_reg(v_struct);
 		}
-
-		/*var::type_pointer type_find(const t_text_value & p_type_name) {
-			typename t_types::iterator v_it = m_types.find(p_type_name);
-			return (v_it == m_types.end() ) ? nullptr : (*v_it).second;
-		}*/
 	};
 
 	enum class file_status {
@@ -126,6 +121,7 @@ export namespace ksi {
 		bool						m_type_is_local;
 		log_pos						m_type_pos;
 		t_type_extends				m_type_extends;
+		t_integer					m_id_struct = var::n_id_struct;
 
 		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {
 			m_ext_module_global = ext_module_open("@global#"_jt);
@@ -142,7 +138,7 @@ export namespace ksi {
 		}
 
 		bool struct_add() {
-			bool ret{ m_ext_module_current->struct_add(m_type_name, m_type_is_local, m_type_pos) };
+			bool ret{ m_ext_module_current->struct_add(m_id_struct, m_type_name, m_type_is_local, m_type_pos) };
 			if( ! m_type_is_local ) {
 				var::type_struct_pointer v_struct = m_ext_module_current->last_struct();
 				v_struct->m_is_global = m_ext_module_global->type_reg(v_struct);

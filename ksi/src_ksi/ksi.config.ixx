@@ -25,6 +25,9 @@ export namespace ksi {
 			module_space	m_mod_ksi;
 			module_space	m_mod_hidden;
 			//
+			t_integer		m_id_standard	= n_id_standard;
+			t_integer		m_id_special	= n_id_special;
+			//
 			type_null		m_null;
 			type_link		m_link;
 			type_ref		m_ref;
@@ -41,15 +44,15 @@ export namespace ksi {
 			config() :
 				m_mod_ksi{"@ksi#"_jt},
 				m_mod_hidden{"@hidden#"_jt},
-				m_null	{&m_mod_ksi},
-				m_link	{&m_mod_hidden},
-				m_ref	{&m_mod_hidden},
-				m_type	{&m_mod_ksi},
-				m_bool	{&m_mod_ksi},
-				m_int	{&m_mod_ksi},
-				m_float	{&m_mod_ksi},
-				m_text	{&m_mod_ksi},
-				m_array	{&m_mod_ksi},
+				m_null	{&m_mod_ksi, m_id_standard},
+				m_link	{&m_mod_hidden, m_id_special},
+				m_ref	{&m_mod_hidden, m_id_special},
+				m_type	{&m_mod_ksi, m_id_standard},
+				m_bool	{&m_mod_ksi, m_id_standard},
+				m_int	{&m_mod_ksi, m_id_standard},
+				m_float	{&m_mod_ksi, m_id_standard},
+				m_text	{&m_mod_ksi, m_id_standard},
+				m_array	{&m_mod_ksi, m_id_standard},
 				m_types{&m_null, &m_type, &m_bool, &m_int, &m_float, &m_text, &m_array},
 				m_zero_var(nullptr, &m_null)
 			{

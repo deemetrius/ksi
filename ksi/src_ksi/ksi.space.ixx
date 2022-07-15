@@ -21,8 +21,6 @@ export namespace ksi {
 		module_space(const t_text_value & p_name) : m_name{p_name} {}
 
 		t_text_value name() const override { return m_name; }
-
-		//var::type_pointer get_type(const t_text_value & p_name) {}
 	};
 
 	struct space_base {

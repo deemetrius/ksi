@@ -338,7 +338,7 @@ export namespace ksi {
 
 			any_var() = default;
 			any_var(const t_text_value & p_text); // $text#
-			any_var(type_struct_pointer p_type);
+			any_var(type_struct_pointer p_type); // struct
 
 			any_var(const any_var & p_other); // copy
 			any_var(any_var && p_other); // move

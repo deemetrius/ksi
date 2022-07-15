@@ -70,17 +70,11 @@ export namespace just {
 		}
 
 		void node_attach(node_pointer p_node) {
-			/*p_node->m_prev = this;
-			p_node->m_next = this->m_next;
-			this->m_next->m_prev = p_node;
-			this->m_next = p_node;*/
 			p_node->node_connect_with(this->m_next);
 			this->node_connect_with(p_node);
 		}
 		
 		void node_detach() {
-			/*this->m_next->m_prev = this->m_prev;
-			this->m_prev->m_next = this->m_next;*/
 			this->m_prev->node_connect_with(this->m_next);
 			this->node_reset();
 		}
@@ -121,14 +115,23 @@ export namespace just {
 		using t_node = node_list<T_target>;
 		using t_node_pointer = t_node *;
 		using t_closer = T_closer<T_target *>;
+
+		static constexpr bool s_need_close = ! std::is_same_v<t_closer, closers::simple_none<T_target *> >;
 		
 		// data
 		t_node	m_zero;
 		
-		~list() {
-			m_zero.node_apply_to_others([](t_node::forward_pointer p_node){
-				t_closer::close(p_node->node_get_target() );
-			});
+		~list() requires(s_need_close) {
+			clear();
+		}
+
+		void clear() {
+			if constexpr( s_need_close ) {
+				m_zero.node_apply_to_others([](t_node::forward_pointer p_node){
+					t_closer::close(p_node->node_get_target() );
+				});
+			}
+			m_zero.node_reset();
 		}
 
 		void append(t_node_pointer p_node) {
@@ -143,12 +146,6 @@ export namespace just {
 
 		void splice(list & p_other) {
 			if( p_other.m_zero.node_empty() ) return;
-			/*typename t_node::node_pointer v_last = m_zero.m_prev;
-			v_last->m_next = p_other.m_zero.m_next;
-			v_last->m_next->m_prev = v_last;
-			v_last = p_other.m_zero.m_prev;
-			v_last->m_next = &m_zero;
-			m_zero.m_prev = v_last;*/
 			m_zero.m_prev->node_connect_with(p_other.m_zero.m_next);
 			p_other.m_zero.m_prev->node_connect_with(&m_zero);
 			p_other.m_zero.node_reset();

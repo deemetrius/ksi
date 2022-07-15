@@ -197,7 +197,7 @@ export namespace ksi {
 			}
 			module_space::pointer v_module = new module_space{p_name};
 			m_modules_list.append(v_module);
-			m_modules_map.emplace(p_name, v_module);
+			m_modules_map.try_emplace(p_name, v_module);
 			return v_module;
 		}
 
@@ -209,7 +209,7 @@ export namespace ksi {
 			}
 			module_extension::pointer v_ext_module = new module_extension{module_get(p_name)};
 			m_ext_modules_list.append(v_ext_module);
-			m_ext_modules_map.emplace(p_name, v_ext_module);
+			m_ext_modules_map.try_emplace(p_name, v_ext_module);
 			return v_ext_module;
 		}
 
@@ -220,7 +220,7 @@ export namespace ksi {
 			});
 			m_modules_list.m_zero.node_apply_to_others([this](t_modules_list::t_node_pointer p_node){
 				module_space::pointer v_module = p_node->node_get_target();
-				m_space->m_modules_map.emplace(v_module->m_name, v_module);
+				m_space->m_modules_map.try_emplace(v_module->m_name, v_module);
 			});
 			m_space->m_modules_list.splice(m_modules_list);
 		}

@@ -29,6 +29,7 @@
     <ClCompile Include="..\src_just\just.files.ixx" />
     <ClCompile Include="..\src_just\just.hive.ixx" />
     <ClCompile Include="..\src_just\just.list.ixx" />
+    <ClCompile Include="..\src_just\just.map.ixx" />
     <ClCompile Include="..\src_just\just.output.ixx" />
     <ClCompile Include="..\src_just\just.ref.ixx" />
     <ClCompile Include="..\src_just\just.text.ixx" />

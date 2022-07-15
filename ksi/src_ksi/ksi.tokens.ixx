@@ -42,13 +42,13 @@ export namespace ksi {
 
 			void perform(prepare_data::pointer p_data) {
 				m_cats.m_zero.node_apply_to_others([p_data](t_tokens::t_node_pointer p_node){
-					p_node->node_get_target()->perform(p_data);
+					p_node->node_target()->perform(p_data);
 				});
 				m_types.m_zero.node_apply_to_others([p_data](t_tokens::t_node_pointer p_node){
-					p_node->node_get_target()->perform(p_data);
+					p_node->node_target()->perform(p_data);
 				});
 				m_functions.m_zero.node_apply_to_others([p_data](t_tokens::t_node_pointer p_node){
-					p_node->node_get_target()->perform(p_data);
+					p_node->node_target()->perform(p_data);
 				});
 			}
 

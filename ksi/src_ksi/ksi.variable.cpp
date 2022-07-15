@@ -227,7 +227,7 @@ namespace ksi {
 																// reset weak links
 					v_compound->m_links_weak.node_apply_to_others(
 						[](link_node_pointer p_node){
-							p_node->node_get_target()->close();
+							p_node->node_target()->close();
 						}
 					);
 					// delete compound

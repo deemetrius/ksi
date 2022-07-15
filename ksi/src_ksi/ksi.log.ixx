@@ -70,7 +70,7 @@ export namespace ksi {
 		void out(just::output_base & p_out) override {
 			m_list.m_zero.node_apply_to_others(
 				[&p_out](t_node::node_pointer p_node){
-					typename t_node::target_pointer v_node = p_node->node_get_target();
+					typename t_node::target_pointer v_node = p_node->node_target();
 					p_out,
 					'[', v_node->m_message.m_pos.m_line,
 					':', v_node->m_message.m_pos.m_char, "] ",

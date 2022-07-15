@@ -36,10 +36,16 @@ export namespace just {
 		using t_key_iterator = t_node::t_key_iterator;
 		using t_add_result = std::pair<t_key_iterator, bool>;
 		using t_list = node_list<t_node>;
+		using iterator = t_list::t_node_iterator;
+		using t_range_reverse = t_list::t_node_range_reverse;
 
 		// data
 		t_map	m_map;
 		t_list	m_list;
+
+		iterator begin() { return {m_list.m_next}; }
+		iterator end() { return {&m_list}; }
+		t_range_reverse range_reverse() { return m_list.node_range_reverse(); }
 
 		void clear() {
 			m_list.node_reset();

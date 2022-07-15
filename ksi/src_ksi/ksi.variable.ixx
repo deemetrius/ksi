@@ -370,7 +370,7 @@ export namespace ksi {
 			any_link & operator = (any_link &&) = delete; // no move assign
 
 			compound_pointer link_owner() {
-				return m_owners.m_next->node_get_target()->m_owner;
+				return m_owners.m_next->node_target()->m_owner;
 			}
 		};
 
@@ -483,7 +483,7 @@ export namespace ksi {
 
 			link_pointer link_get_primary() {
 				return m_links_strong.node_empty() ? nullptr :
-					m_links_strong.m_next->node_get_target()
+					m_links_strong.m_next->node_target()
 				;
 			}
 

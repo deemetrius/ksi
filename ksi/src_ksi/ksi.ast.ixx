@@ -71,7 +71,7 @@ export namespace ksi {
 		}
 
 		var::type_struct_pointer last_struct() {
-			return m_structs.m_zero.node_empty() ? nullptr : m_structs.m_zero.m_prev->node_get_target();
+			return m_structs.m_zero.node_empty() ? nullptr : m_structs.m_zero.m_prev->node_target();
 		}
 
 		bool struct_add(const t_text_value & p_name, bool p_is_local, const log_pos & p_log_pos) {
@@ -216,10 +216,10 @@ export namespace ksi {
 		void apply() {
 			if( m_error_count ) { return; }
 			m_ext_modules_list.m_zero.node_apply_to_others([](t_ext_modules_list::t_node_pointer p_node){
-				p_node->node_get_target()->apply();
+				p_node->node_target()->apply();
 			});
 			m_modules_list.m_zero.node_apply_to_others([this](t_modules_list::t_node_pointer p_node){
-				module_space::pointer v_module = p_node->node_get_target();
+				module_space::pointer v_module = p_node->node_target();
 				m_space->m_modules_map.try_emplace(v_module->m_name, v_module);
 			});
 			m_space->m_modules_list.splice(m_modules_list);

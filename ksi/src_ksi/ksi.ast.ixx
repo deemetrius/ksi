@@ -223,6 +223,11 @@ export namespace ksi {
 				m_space->m_modules_map.try_emplace(v_module->m_name, v_module);
 			});
 			m_space->m_modules_list.splice(m_modules_list);
+			for( typename t_files::value_type & v_it : m_files ) {
+				if( v_it.second == file_status::loaded ) {
+					m_space->m_files.emplace(v_it.first);
+				}
+			}
 		}
 
 		file_status check_path(const fs::path & p_path) {

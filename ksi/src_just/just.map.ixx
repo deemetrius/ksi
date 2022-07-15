@@ -52,6 +52,8 @@ export namespace just {
 			m_map.clear();
 		}
 
+		t_index count() const { std::ssize(m_map); }
+
 		template <typename ... T_args>
 		t_add_result maybe_emplace(const t_key & p_key, T_args && ... p_args) {
 			t_add_result ret = m_map.try_emplace(p_key, std::forward<T_args>(p_args) ...);

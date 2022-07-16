@@ -53,6 +53,20 @@ export namespace ksi {
 		using compound_array_pointer = compound_array *;
 		using compound_struct_pointer = compound_struct *;
 
+		using set_deep = std::set<compound_pointer>; // recursion detection
+		struct set_deep_changer {
+			using set_deep_pointer = set_deep *;
+			
+			// data
+			set_deep_pointer	m_deep;
+			compound_pointer	m_item;
+
+			set_deep_changer(set_deep & p_deep, compound_pointer p_item) : m_deep{&p_deep}, m_item{p_item} {
+				p_deep.insert(p_item);
+			}
+			~set_deep_changer() { m_deep->erase(m_item); }
+		};
+
 		struct static_data;
 		using static_data_pointer = static_data *;
 
@@ -149,9 +163,14 @@ export namespace ksi {
 			virtual void				any_close(any_pointer p_any) = 0;
 			virtual void				var_change(var_pointer p_to, any_const_pointer p_from) = 0;
 			//
-			virtual bool write(any_const_pointer p_any, output_pointer p_out) { return true; }
-			virtual var_pointer element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key);
-			virtual var_pointer element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key);
+			virtual bool write(
+				output_pointer p_out,
+				any_const_pointer p_any,
+				const any & p_separator,
+				set_deep & p_deep
+			) { return true; }
+			virtual var_pointer element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key);
+			virtual var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key);
 			//
 			virtual void variant_set(any_const_pointer p_any, t_variant_inner & p_variant) {}
 		};
@@ -174,7 +193,12 @@ export namespace ksi {
 			auto any_get_const(any_const_pointer p_any) -> any_const_pointer override;
 			void any_close(any_pointer p_any) override;
 			void var_change(var_pointer p_to, any_const_pointer p_from) override;
-			bool write(any_const_pointer p_any, output_pointer p_out) override;
+			bool write(
+				output_pointer p_out,
+				any_const_pointer p_any,
+				const any & p_separator,
+				set_deep & p_deep
+			) override;
 		};
 
 		struct type_ref :
@@ -234,9 +258,14 @@ export namespace ksi {
 				name("$type#"_jt);
 			}
 
-			bool write(any_const_pointer p_any, output_pointer p_out) override;
-			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
-			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
+			bool write(
+				output_pointer p_out,
+				any_const_pointer p_any,
+				const any & p_separator,
+				set_deep & p_deep
+			) override;
+			auto element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
+			var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
@@ -248,7 +277,12 @@ export namespace ksi {
 				name("$bool#"_jt);
 			}
 
-			bool write(any_const_pointer p_any, output_pointer p_out) override;
+			bool write(
+				output_pointer p_out,
+				any_const_pointer p_any,
+				const any & p_separator,
+				set_deep & p_deep
+			) override;
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
@@ -263,7 +297,12 @@ export namespace ksi {
 			}
 
 			void init();
-			bool write(any_const_pointer p_any, output_pointer p_out) override;
+			bool write(
+				output_pointer p_out,
+				any_const_pointer p_any,
+				const any & p_separator,
+				set_deep & p_deep
+			) override;
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
@@ -282,7 +321,12 @@ export namespace ksi {
 			}
 
 			void init();
-			bool write(any_const_pointer p_any, output_pointer p_out) override;
+			bool write(
+				output_pointer p_out,
+				any_const_pointer p_any,
+				const any & p_separator,
+				set_deep & p_deep
+			) override;
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
@@ -313,7 +357,13 @@ export namespace ksi {
 				name("$text#"_jt);
 			}
 
-			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
+			bool write(
+				output_pointer p_out,
+				any_const_pointer p_any,
+				const any & p_separator,
+				set_deep & p_deep
+			) override;
+			var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
@@ -325,8 +375,14 @@ export namespace ksi {
 				name("$array#"_jt);
 			}
 
-			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
-			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
+			bool write(
+				output_pointer p_out,
+				any_const_pointer p_any,
+				const any & p_separator,
+				set_deep & p_deep
+			) override;
+			auto element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
+			var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
@@ -371,16 +427,20 @@ export namespace ksi {
 			auto any_get_const() const -> any_const_pointer { return m_type->any_get_const(this); }
 			auto type_get() const -> type_pointer { return any_get_const()->m_type; }
 			void close() { m_type->any_close(this); }
-			bool write(output_pointer p_out) const {
-				return m_type->write(this, p_out);
+			bool write(output_pointer p_out = &just::g_console, const any & p_separator = any{}) const {
+				set_deep v_set_compound;
+				return m_type->write(p_out, this, p_separator, v_set_compound);
+			}
+			bool write(output_pointer p_out, const any & p_separator, set_deep & p_deep) const {
+				return m_type->write(p_out, this, p_separator, p_deep);
 			}
 
-			var_pointer element(const t_text_value & p_key, bool & p_wrong_key);
-			var_pointer element(const any & p_key, bool & p_wrong_key) {
-				return m_type->element(any_get(), p_key.any_get_const(), p_wrong_key);
+			var_pointer element(const t_text_value & p_key, bool & p_wrong_key) const;
+			var_pointer element(const any & p_key, bool & p_wrong_key) const {
+				return m_type->element(any_get_const(), p_key.any_get_const(), p_wrong_key);
 			}
-			var_pointer element_const(const t_text_value & p_key, bool & p_wrong_key) {
-				return m_type->element_const(any_get(), p_key, p_wrong_key);
+			var_pointer element_const(const t_text_value & p_key, bool & p_wrong_key) const {
+				return m_type->element_const(any_get_const(), p_key, p_wrong_key);
 			}
 		};
 
@@ -525,8 +585,8 @@ export namespace ksi {
 				return v_ret;
 			}
 
-			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
-			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
+			auto element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
+			var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
@@ -725,7 +785,7 @@ export namespace ksi {
 
 		// element()
 
-		inline var_pointer any::element(const t_text_value & p_key, bool & p_wrong_key) {
+		inline var_pointer any::element(const t_text_value & p_key, bool & p_wrong_key) const {
 			any_var v_key{p_key};
 			return element(v_key, p_wrong_key);
 		}

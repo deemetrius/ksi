@@ -72,10 +72,10 @@ export namespace ksi {
 		using const_reference = const instr_data &;
 
 		// data
-		position			m_pos;
-		just::t_int_ptr		m_arg = 0;
-		just::t_int_ptr		m_param = 0;
-		just::t_int_ptr		m_group = 0;
+		position	m_pos;
+		t_integer	m_arg = 0;
+		t_index		m_param = 0;
+		t_index		m_group = 0;
 	};
 
 	struct instr_type {

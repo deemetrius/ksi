@@ -10,6 +10,7 @@ import <limits>;
 export import <vector>;
 export import <set>;
 export import <map>;
+export import <variant>;
 export import just.common;
 export import just.list;
 export import just.text;
@@ -37,7 +38,8 @@ export namespace ksi {
 			n_id_enum		= 100'000,
 			n_id_struct		= 200'000,
 			n_id_delta_static_props		= 1000'000,
-			n_id_delta_static_consts	= 2000'000
+			n_id_delta_static_consts	= 2000'000,
+			n_id_all		= std::numeric_limits<t_integer>::max() -1
 		};
 
 		using output_pointer = just::output_base *;
@@ -59,6 +61,16 @@ export namespace ksi {
 
 			virtual void init() {}
 		};
+
+		//
+
+		struct variant_null {};
+		struct variant_all {};
+		struct base_compound_text { using pointer = base_compound_text *; compound_text_pointer get(); };
+		struct base_compound_array { using pointer = base_compound_array *; compound_array_pointer get(); };
+		struct base_compound_struct { using pointer = base_compound_struct *; compound_struct_pointer get(); };
+
+		//
 
 		struct with_owner {
 			// data
@@ -89,7 +101,19 @@ export namespace ksi {
 		// types
 
 		struct type_base {
+			using type_pointer = type_base *;
 			using t_static = std::unique_ptr<static_data_base>;
+			using t_variant_inner = std::variant<
+				variant_null,
+				variant_all,
+				type_pointer,
+				bool,
+				t_integer,
+				t_floating,
+				base_compound_text::pointer,
+				base_compound_array::pointer,
+				base_compound_struct::pointer
+			>;
 
 			// data
 			module_pointer	m_module;
@@ -128,9 +152,12 @@ export namespace ksi {
 			virtual bool write(any_const_pointer p_any, output_pointer p_out) { return true; }
 			virtual var_pointer element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key);
 			virtual var_pointer element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key);
+			//
+			virtual void variant_set(any_const_pointer p_any, t_variant_inner & p_variant) {}
 		};
 
 		using type_pointer = type_base *;
+		using t_variant = type_base::t_variant_inner;
 
 		struct type_link :
 			public type_base
@@ -184,6 +211,19 @@ export namespace ksi {
 				using namespace just::text_literals;
 				name("$null#"_jt);
 			}
+
+			void variant_set(any_const_pointer p_any, t_variant & p_variant) override { p_variant = variant_null{}; }
+		};
+
+		struct type_all :
+			public type_simple
+		{
+			type_all(module_pointer p_module, t_integer & p_id) : type_simple{p_module, p_id} {
+				using namespace just::text_literals;
+				name("$all#"_jt);
+			}
+
+			void variant_set(any_const_pointer p_any, t_variant & p_variant) override { p_variant = variant_all{}; }
 		};
 
 		struct type_type :
@@ -197,6 +237,7 @@ export namespace ksi {
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
 			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
+			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
 		struct type_bool :
@@ -208,6 +249,7 @@ export namespace ksi {
 			}
 
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
+			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
 		struct type_int :
@@ -222,12 +264,17 @@ export namespace ksi {
 
 			void init();
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
+			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
 		struct type_float :
 			public type_simple
 		{
 			using t_limits = std::numeric_limits<t_floating>;
+
+			static constexpr t_floating s_infinity			= t_limits::infinity();
+			static constexpr t_floating s_infinity_negative	= -t_limits::infinity();
+			static constexpr t_floating s_nan				= t_limits::quiet_NaN();
 
 			type_float(module_pointer p_module, t_integer & p_id) : type_simple{p_module, p_id} {
 				using namespace just::text_literals;
@@ -236,6 +283,7 @@ export namespace ksi {
 
 			void init();
 			bool write(any_const_pointer p_any, output_pointer p_out) override;
+			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
 		// compound
@@ -266,6 +314,7 @@ export namespace ksi {
 			}
 
 			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
+			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
 		struct type_array :
@@ -278,6 +327,7 @@ export namespace ksi {
 
 			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
+			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
 		struct type_struct;
@@ -310,6 +360,8 @@ export namespace ksi {
 
 			any(std::nullptr_t, type_null * p_type_null) : m_type{p_type_null} {}
 			any();						// $null#
+			any(variant_null);			// $null#
+			any(variant_all);			// $all#
 			any(bool p_value);			// $bool#
 			any(t_integer p_value);		// $int#
 			any(t_floating p_value);	// $float#
@@ -332,7 +384,7 @@ export namespace ksi {
 			}
 		};
 
-		inline just::output_base & operator , (just::output_base & p_out, any_const_pointer p_value) {
+		inline just::output_base & operator << (just::output_base & p_out, any_const_pointer p_value) {
 			p_value->write(&p_out);
 			return p_out;
 		}
@@ -364,6 +416,8 @@ export namespace ksi {
 
 			void link_to(var_pointer p_var);
 			void ref_to(var_pointer p_var);
+
+			void variant_set(t_variant & p_variant) const { m_type->variant_set(any_get_const(), p_variant); }
 		};
 
 		struct any_link :
@@ -473,6 +527,7 @@ export namespace ksi {
 
 			auto element(any_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 			auto element_const(any_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) -> var_pointer override;
+			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
 		// compound_base
@@ -519,7 +574,8 @@ export namespace ksi {
 		// compound_text
 
 		struct compound_text :
-			public compound_base
+			public compound_base,
+			public base_compound_text
 		{
 			// data
 			t_text_value	m_text;
@@ -534,8 +590,6 @@ export namespace ksi {
 
 			t_integer count() { return m_text->size(); }
 		};
-
-		inline compound_text_pointer compound_base::get_text() { return static_cast<compound_text_pointer>(this); }
 
 		// compound_with_lock
 
@@ -553,7 +607,8 @@ export namespace ksi {
 		// compound_array
 
 		struct compound_array :
-			public compound_with_lock
+			public compound_with_lock,
+			public base_compound_array
 		{
 			using t_items = just::array_alias<var::any_var, just::capacity_step<8, 8> >;
 
@@ -573,12 +628,11 @@ export namespace ksi {
 			t_integer count() { return m_items->m_count; }
 		};
 
-		inline compound_array_pointer compound_base::get_array() { return static_cast<compound_array_pointer>(this); }
-
 		// compound_struct
 
 		struct compound_struct :
-			public compound_with_lock
+			public compound_with_lock,
+			public base_compound_struct
 		{
 			using t_items = std::vector<any_var>;
 
@@ -608,7 +662,13 @@ export namespace ksi {
 			t_integer count() { return m_items.size(); }
 		};
 
+		inline compound_text_pointer compound_base::get_text() { return static_cast<compound_text_pointer>(this); }
+		inline compound_array_pointer compound_base::get_array() { return static_cast<compound_array_pointer>(this); }
 		inline compound_struct_pointer compound_base::get_struct() { return static_cast<compound_struct_pointer>(this); }
+
+		inline compound_text_pointer base_compound_text::get() { return static_cast<compound_text_pointer>(this); }
+		inline compound_array_pointer base_compound_array::get() { return static_cast<compound_array_pointer>(this); }
+		inline compound_struct_pointer base_compound_struct::get() { return static_cast<compound_struct_pointer>(this); }
 
 		// static_data
 

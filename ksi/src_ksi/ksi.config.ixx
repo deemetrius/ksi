@@ -14,7 +14,7 @@ export namespace ksi {
 	namespace var {
 	
 		struct config {
-			using t_types = std::array<type_pointer, 7>;
+			using t_types = std::array<type_pointer, 8>;
 
 			// data
 			fs::path		m_path;
@@ -27,8 +27,10 @@ export namespace ksi {
 			//
 			t_integer		m_id_standard	= n_id_standard;
 			t_integer		m_id_special	= n_id_special;
+			t_integer		m_id_all		= n_id_all;
 			//
 			type_null		m_null;
+			type_all		m_all;
 			type_link		m_link;
 			type_ref		m_ref;
 			type_type		m_type;
@@ -45,6 +47,7 @@ export namespace ksi {
 				m_mod_ksi{"@ksi#"_jt},
 				m_mod_hidden{"@hidden#"_jt},
 				m_null	{&m_mod_ksi, m_id_standard},
+				m_all	{&m_mod_ksi, m_id_all},
 				m_link	{&m_mod_hidden, m_id_special},
 				m_ref	{&m_mod_hidden, m_id_special},
 				m_type	{&m_mod_ksi, m_id_standard},
@@ -53,7 +56,7 @@ export namespace ksi {
 				m_float	{&m_mod_ksi, m_id_standard},
 				m_text	{&m_mod_ksi, m_id_standard},
 				m_array	{&m_mod_ksi, m_id_standard},
-				m_types{&m_null, &m_type, &m_bool, &m_int, &m_float, &m_text, &m_array},
+				m_types{&m_null, &m_all, &m_type, &m_bool, &m_int, &m_float, &m_text, &m_array},
 				m_zero_var(nullptr, &m_null)
 			{
 				m_mod_ksi.m_deleter = &just::closers::simple_none<module_space *>::close;

@@ -43,6 +43,7 @@
     <ClCompile Include="..\src_ksi\ksi.space.cpp" />
     <ClCompile Include="..\src_ksi\ksi.space.ixx" />
     <ClCompile Include="..\src_ksi\ksi.tokens.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.var.ops.ixx" />
     <ClCompile Include="..\src_ksi\ksi.variable.cpp" />
     <ClCompile Include="..\src_ksi\ksi.variable.ixx" />
   </ItemGroup>

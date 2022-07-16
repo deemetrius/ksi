@@ -71,11 +71,11 @@ export namespace ksi {
 			m_list.m_zero.node_apply_to_others(
 				[&p_out](t_node::node_pointer p_node){
 					typename t_node::target_pointer v_node = p_node->node_target();
-					p_out,
-					'[', v_node->m_message.m_pos.m_line,
-					':', v_node->m_message.m_pos.m_char, "] ",
-					v_node->m_message.m_path.c_str(), just::g_new_line,
-					v_node->m_message.m_message->m_text, just::g_new_line;
+					p_out <<
+					'[' << v_node->m_message.m_pos.m_line <<
+					':' << v_node->m_message.m_pos.m_char << "] " <<
+					v_node->m_message.m_path.c_str() << just::g_new_line <<
+					v_node->m_message.m_message->m_text << just::g_new_line;
 				}
 			);
 		}

@@ -130,7 +130,7 @@ export namespace just {
 		t_diff, t_size,
 		double, long double
 	> T>
-	output_base & operator , (output_base & p_out, T p_value) {
+	output_base & operator << (output_base & p_out, T p_value) {
 		p_out.write(p_value);
 		return p_out;
 	}

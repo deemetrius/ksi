@@ -302,7 +302,6 @@ export namespace ksi {
 						return t_rest::parse_inner(p_state, p_tokens, p_log, p_fn);
 					}
 				} else if constexpr( C_none_match_done ) {
-					just::g_console, "here\n";
 					p_log->add({p_state.m_path, p_fn(p_state), p_state.pos()});
 					p_state.done();
 				}

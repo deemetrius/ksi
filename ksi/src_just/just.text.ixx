@@ -175,7 +175,7 @@ export namespace just {
 	};
 	
 	template <typename T_char>
-	output_base & operator , (output_base & p_out, const basic_text<T_char> & p_value) {
+	output_base & operator << (output_base & p_out, const basic_text<T_char> & p_value) {
 		p_out.write(p_value.data() );
 		return p_out;
 	}
@@ -196,9 +196,11 @@ export namespace just {
 		}
 
 		static int cmp(text::const_pointer p_1, text::const_pointer p_2) {
+			if( p_1 == p_2 ) { return 0; }
 			return std::strcmp(p_1, p_2);
 		}
 		static int cmp(text_wide::const_pointer p_1, text_wide::const_pointer p_2) {
+			if( p_1 == p_2 ) { return 0; }
 			return std::wcscmp(p_1, p_2);
 		}
 

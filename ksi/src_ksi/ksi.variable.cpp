@@ -16,6 +16,12 @@ namespace ksi {
 		// $null#
 		any::any() : m_type{&g_config->m_null} {}
 
+		// $null#
+		any::any(variant_null) : m_type{&g_config->m_null} {}
+
+		// $all#
+		any::any(variant_all) : m_type{&g_config->m_all} {}
+
 		// $bool#
 		any::any(bool p_value) : m_type{&g_config->m_bool} {
 			m_value.m_bool = p_value;
@@ -408,6 +414,22 @@ namespace ksi {
 			}
 			p_wrong_key = true;
 			return &g_config->m_zero_var;
+		}
+
+		// variant_set()
+
+		void type_type::variant_set(any_const_pointer p_any, t_variant & p_variant) { p_variant = p_any->m_value.m_type; }
+		void type_bool::variant_set(any_const_pointer p_any, t_variant & p_variant) { p_variant = p_any->m_value.m_bool; }
+		void type_int::variant_set(any_const_pointer p_any, t_variant & p_variant) { p_variant = p_any->m_value.m_int; }
+		void type_float::variant_set(any_const_pointer p_any, t_variant & p_variant) { p_variant = p_any->m_value.m_float; }
+		void type_text::variant_set(any_const_pointer p_any, t_variant & p_variant) {
+			p_variant = p_any->m_value.m_compound->get_text();
+		}
+		void type_array::variant_set(any_const_pointer p_any, t_variant & p_variant) {
+			p_variant = p_any->m_value.m_compound->get_array();
+		}
+		void type_struct::variant_set(any_const_pointer p_any, t_variant & p_variant) {
+			p_variant = p_any->m_value.m_compound->get_struct();
 		}
 
 	} // ns

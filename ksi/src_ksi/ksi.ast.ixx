@@ -121,10 +121,10 @@ export namespace ksi {
 		bool						m_type_is_local;
 		log_pos						m_type_pos;
 		t_type_extends				m_type_extends;
-		t_integer					m_id_struct = var::n_id_struct;
 
 		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {
 			m_ext_module_global = ext_module_open("@global#"_jt);
+			m_data = m_space->m_data;
 		}
 
 		void error(log_message && p_message) {
@@ -138,7 +138,7 @@ export namespace ksi {
 		}
 
 		bool struct_add() {
-			bool ret{ m_ext_module_current->struct_add(m_id_struct, m_type_name, m_type_is_local, m_type_pos) };
+			bool ret{ m_ext_module_current->struct_add(m_data.m_id_struct, m_type_name, m_type_is_local, m_type_pos) };
 			if( ! m_type_is_local ) {
 				var::type_struct_pointer v_struct = m_ext_module_current->last_struct();
 				v_struct->m_is_global = m_ext_module_global->type_reg(v_struct);
@@ -211,6 +211,7 @@ export namespace ksi {
 
 		void apply() {
 			if( m_error_count ) { return; }
+			m_space->m_data = m_data;
 			m_ext_modules_list.m_zero.node_apply_to_others([](t_ext_modules_list::t_node_pointer p_node){
 				p_node->node_target()->apply();
 			});

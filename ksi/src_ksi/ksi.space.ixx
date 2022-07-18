@@ -23,6 +23,11 @@ export namespace ksi {
 		t_text_value name() const override { return m_name; }
 	};
 
+	struct space_data {
+		// data
+		t_integer	m_id_struct = var::n_id_struct;
+	};
+
 	struct space_base {
 		using t_modules_list = just::list<module_space, just::closers::compound_call_deleter<false>::template t_closer>;
 		using t_modules_map = std::map<t_text_value, module_space::pointer, just::text_less>;
@@ -30,6 +35,7 @@ export namespace ksi {
 		// data
 		t_modules_list	m_modules_list;
 		t_modules_map	m_modules_map;
+		space_data		m_data;
 	};
 
 	struct space :

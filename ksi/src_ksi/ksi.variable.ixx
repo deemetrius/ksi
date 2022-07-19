@@ -15,6 +15,7 @@ export import just.common;
 export import just.list;
 export import just.text;
 export import just.hive;
+export import just.map;
 export import ksi.log;
 
 export namespace ksi {
@@ -33,13 +34,13 @@ export namespace ksi {
 	namespace var {
 
 		enum t_id_config : t_integer {
-			n_id_standard	= 0,
-			n_id_special	= 1000,
-			n_id_enum		= 100'000,
-			n_id_struct		= 200'000,
-			n_id_delta_static_props		= 1000'000,
-			n_id_delta_static_consts	= 2000'000,
-			n_id_all		= std::numeric_limits<t_integer>::max() -1
+			n_id_standard				= 0,
+			n_id_special				= 1000,
+			n_id_enum					= 100'000,
+			n_id_struct					= 200'000,
+			n_id_delta_static_props		= 1'000'000,
+			n_id_delta_static_consts	= 2'000'000,
+			n_id_all					= std::numeric_limits<t_integer>::max() -100
 		};
 
 		using output_pointer = just::output_base *;
@@ -47,11 +48,13 @@ export namespace ksi {
 		struct compound_base;
 		struct compound_text;
 		struct compound_array;
+		struct compound_map;
 		struct compound_struct;
-		using compound_pointer = compound_base *;
-		using compound_text_pointer = compound_text *;
-		using compound_array_pointer = compound_array *;
-		using compound_struct_pointer = compound_struct *;
+		using compound_pointer			= compound_base *;
+		using compound_text_pointer		= compound_text *;
+		using compound_array_pointer	= compound_array *;
+		using compound_map_pointer		= compound_map *;
+		using compound_struct_pointer	= compound_struct *;
 
 		using set_deep = std::set<compound_pointer>; // recursion detection
 		struct set_deep_changer {
@@ -82,6 +85,7 @@ export namespace ksi {
 		struct variant_all {};
 		struct base_compound_text { using pointer = base_compound_text *; compound_text_pointer get(); };
 		struct base_compound_array { using pointer = base_compound_array *; compound_array_pointer get(); };
+		struct base_compound_map { using pointer = base_compound_map *; compound_map_pointer get(); };
 		struct base_compound_struct { using pointer = base_compound_struct *; compound_struct_pointer get(); };
 
 		//
@@ -126,6 +130,7 @@ export namespace ksi {
 				t_floating,
 				base_compound_text::pointer,
 				base_compound_array::pointer,
+				base_compound_map::pointer,
 				base_compound_struct::pointer
 			>;
 
@@ -183,6 +188,7 @@ export namespace ksi {
 		{
 			type_link(module_pointer p_module, t_integer & p_id) : type_base{p_module, p_id} {
 				using namespace just::text_literals;
+				m_is_local = true;
 				name("$link#"_jt);
 			}
 
@@ -206,6 +212,7 @@ export namespace ksi {
 		{
 			type_ref(module_pointer p_module, t_integer & p_id) : type_link{p_module, p_id} {
 				using namespace just::text_literals;
+				m_is_local = true;
 				name("$ref#"_jt);
 			}
 
@@ -386,6 +393,24 @@ export namespace ksi {
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
+		struct type_map :
+			public type_compound
+		{
+			type_map(module_pointer p_module, t_integer & p_id) : type_compound{p_module, p_id} {
+				name("$map#"_jt);
+			}
+
+			bool write(
+				output_pointer p_out,
+				any_const_pointer p_any,
+				const any & p_separator,
+				set_deep & p_deep
+			) override;
+			auto element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
+			var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
+			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
+		};
+
 		struct type_struct;
 		using type_struct_pointer = type_struct *;
 
@@ -442,6 +467,8 @@ export namespace ksi {
 			var_pointer element_const(const t_text_value & p_key, bool & p_wrong_key) const {
 				return m_type->element_const(any_get_const(), p_key, p_wrong_key);
 			}
+
+			void variant_set(t_variant & p_variant) const { m_type->variant_set(any_get_const(), p_variant); }
 		};
 
 		inline just::output_base & operator << (just::output_base & p_out, any_const_pointer p_value) {
@@ -476,8 +503,6 @@ export namespace ksi {
 
 			void link_to(var_pointer p_var);
 			void ref_to(var_pointer p_var);
-
-			void variant_set(t_variant & p_variant) const { m_type->variant_set(any_get_const(), p_variant); }
 		};
 
 		struct any_link :
@@ -605,6 +630,7 @@ export namespace ksi {
 
 			compound_text_pointer	get_text();
 			compound_array_pointer	get_array();
+			compound_map_pointer	get_map();
 			compound_struct_pointer	get_struct();
 
 			bool link_is_primary(link_pointer v_link) { return m_links_strong.m_next == v_link; }
@@ -670,7 +696,7 @@ export namespace ksi {
 			public compound_with_lock,
 			public base_compound_array
 		{
-			using t_items = just::array_alias<var::any_var, just::capacity_step<8, 8> >;
+			using t_items = just::array_alias<any_var, just::capacity_step<8, 8> >;
 
 			// data
 			t_items		m_items;
@@ -686,6 +712,27 @@ export namespace ksi {
 			}
 
 			t_integer count() { return m_items->m_count; }
+		};
+
+		// compound_map
+
+		struct any_less {
+			bool operator () (const any & p1, const any & p2) const;
+		};
+
+		struct compound_map :
+			public compound_with_lock,
+			public base_compound_map
+		{
+			using t_items = just::map<any_var, any_var, any_less>;
+
+			// data
+			t_items		m_items;
+			any_var		m_count;
+
+			compound_map() = default;
+
+			t_integer count() { return m_items.count(); }
 		};
 
 		// compound_struct
@@ -724,10 +771,12 @@ export namespace ksi {
 
 		inline compound_text_pointer compound_base::get_text() { return static_cast<compound_text_pointer>(this); }
 		inline compound_array_pointer compound_base::get_array() { return static_cast<compound_array_pointer>(this); }
+		inline compound_map_pointer compound_base::get_map() { return static_cast<compound_map_pointer>(this); }
 		inline compound_struct_pointer compound_base::get_struct() { return static_cast<compound_struct_pointer>(this); }
 
 		inline compound_text_pointer base_compound_text::get() { return static_cast<compound_text_pointer>(this); }
 		inline compound_array_pointer base_compound_array::get() { return static_cast<compound_array_pointer>(this); }
+		inline compound_map_pointer base_compound_map::get() { return static_cast<compound_map_pointer>(this); }
 		inline compound_struct_pointer base_compound_struct::get() { return static_cast<compound_struct_pointer>(this); }
 
 		// static_data

@@ -3,6 +3,7 @@ module ksi.var;
 #include "../src/pre.h"
 
 import ksi.config;
+import ksi.var.ops;
 
 namespace ksi {
 
@@ -98,6 +99,8 @@ namespace ksi {
 			m_type = &g_config->m_ref;
 		}
 
+		//
+
 		static_data::static_data(const t_text_value & p_type_name, t_integer p_id) :
 			m_id_props{p_id + n_id_delta_static_props},
 			m_id_consts{p_id + n_id_delta_static_consts},
@@ -108,6 +111,12 @@ namespace ksi {
 				&g_config->m_mod_hidden, m_id_consts, true
 			}
 		{}
+
+		//
+
+		bool any_less::operator () (const any & p1, const any & p2) const {
+			return compare(p1, p2) == compare_less;
+		}
 
 		// var_owner()
 
@@ -360,16 +369,17 @@ namespace ksi {
 			set_deep_changer v_deep_c{p_deep, v_compound};
 			compound_array_pointer v_array = v_compound->get_array();
 			t_int_ptr v_errors = 0;
-			if( p_separator.m_type == &g_config->m_null ) {
+			any_const_pointer v_separator = p_separator.any_get_const();
+			if( v_separator->m_type == &g_config->m_null ) {
 				for( any_var & v_it : v_array->m_items ) {
 					v_errors += v_it.write(p_out, p_separator, p_deep);
 				}
 				return v_errors;
 			}
-			if( p_separator.m_type == &g_config->m_array ) {
+			if( v_separator->m_type == &g_config->m_array ) {
 				bool v_wrong_key;
-				var_pointer v_sep_items = p_separator.element(t_integer{0}, v_wrong_key);
-				var_pointer v_sep_keys = p_separator.element(t_integer{1}, v_wrong_key);
+				var_pointer v_sep_items = v_separator->element(t_integer{0}, v_wrong_key);
+				var_pointer v_sep_keys = v_separator->element(t_integer{1}, v_wrong_key);
 				bool is_first = true;
 				for( t_index v_it = 0, v_count = v_array->count(); v_it < v_count; ++v_it ) {
 					if( is_first ) { is_first = false; }
@@ -383,12 +393,55 @@ namespace ksi {
 			bool is_first = true;
 			for( any_var & v_it : v_array->m_items ) {
 				if( is_first ) { is_first = false; }
-				else { v_errors += p_separator.write(p_out); }
+				else { v_errors += v_separator->write(p_out); }
 				v_errors += v_it.write(p_out, p_separator, p_deep);
 			}
 			return v_errors;
 		}
-	
+
+		bool type_map::write(
+			output_pointer p_out,
+			any_const_pointer p_any,
+			const any & p_separator,
+			set_deep & p_deep
+		) {
+			compound_pointer v_compound = p_any->m_value.m_compound;
+			if( p_deep.contains(p_any->m_value.m_compound) ) {
+				return p_out->write("{recursion}");
+			}
+			set_deep_changer v_deep_c{p_deep, v_compound};
+			compound_map_pointer v_map = v_compound->get_map();
+			t_int_ptr v_errors = 0;
+			any_const_pointer v_separator = p_separator.any_get_const();
+			if( v_separator->m_type == &g_config->m_null ) {
+				for( typename compound_map::t_items::t_node::pointer v_it : v_map->m_items ) {
+					v_errors += v_it->m_value.write(p_out, p_separator, p_deep);
+				}
+				return v_errors;
+			}
+			if( v_separator->m_type == &g_config->m_array ) {
+				bool v_wrong_key;
+				var_pointer v_sep_items = v_separator->element(t_integer{0}, v_wrong_key);
+				var_pointer v_sep_keys = v_separator->element(t_integer{1}, v_wrong_key);
+				bool is_first = true;
+				for( typename compound_map::t_items::t_node::pointer v_it : v_map->m_items ) {
+					if( is_first ) { is_first = false; }
+					else { v_errors += v_sep_items->write(p_out); }
+					v_errors += (*v_it->m_key_iterator).first.write(p_out);
+					v_errors += v_sep_keys->write(p_out);
+					v_errors += v_it->m_value.write(p_out, p_separator, p_deep);
+				}
+				return v_errors;
+			}
+			bool is_first = true;
+			for( typename compound_map::t_items::t_node::pointer v_it : v_map->m_items ) {
+				if( is_first ) { is_first = false; }
+				else { v_errors += v_separator->write(p_out); }
+				v_errors += v_it->m_value.write(p_out, p_separator, p_deep);
+			}
+			return v_errors;
+		}
+
 		// element()
 
 		var_pointer type_base::element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) {
@@ -417,6 +470,18 @@ namespace ksi {
 						p_wrong_key = false;
 						return v_array->m_items.data() + v_count -1;
 					}
+				}
+			}
+			p_wrong_key = true;
+			return &g_config->m_zero_var;
+		}
+
+		var_pointer type_map::element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) {
+			compound_map_pointer v_map = p_any->m_value.m_compound->get_map();
+			if( v_map->count() ) {
+				if( typename compound_map::t_items::t_node::pointer v_node = v_map->m_items.find(p_key) ) {
+					p_wrong_key = false;
+					return &v_node->m_value;
 				}
 			}
 			p_wrong_key = true;
@@ -462,7 +527,7 @@ namespace ksi {
 		var_pointer type_text::element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) {
 			compound_text_pointer v_compound = p_any->m_value.m_compound->get_text();
 			if( just::text_traits::cmp(p_key->m_text, "count#") == 0 ) { // count
-				v_compound->m_count = v_compound->count();
+				v_compound->m_count = t_integer{v_compound->count()};
 				p_wrong_key = false;
 				return &v_compound->m_count;
 			}
@@ -481,10 +546,21 @@ namespace ksi {
 			return &g_config->m_zero_var;
 		}
 
+		var_pointer type_map::element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) {
+			compound_map_pointer v_compound = p_any->m_value.m_compound->get_map();
+			if( just::text_traits::cmp(p_key->m_text, "count#") == 0 ) { // count
+				v_compound->m_count = t_integer{v_compound->count()};
+				p_wrong_key = false;
+				return &v_compound->m_count;
+			}
+			p_wrong_key = true;
+			return &g_config->m_zero_var;
+		}
+
 		var_pointer type_struct::element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) {
 			compound_struct_pointer v_compound = p_any->m_value.m_compound->get_struct();
 			if( just::text_traits::cmp(p_key->m_text, "count#") == 0 ) { // count
-				v_compound->m_count = v_compound->count();
+				v_compound->m_count = t_integer{v_compound->count()};
 				p_wrong_key = false;
 				return &v_compound->m_count;
 			}
@@ -503,6 +579,9 @@ namespace ksi {
 		}
 		void type_array::variant_set(any_const_pointer p_any, t_variant & p_variant) {
 			p_variant = p_any->m_value.m_compound->get_array();
+		}
+		void type_map::variant_set(any_const_pointer p_any, t_variant & p_variant) {
+			p_variant = p_any->m_value.m_compound->get_map();
 		}
 		void type_struct::variant_set(any_const_pointer p_any, t_variant & p_variant) {
 			p_variant = p_any->m_value.m_compound->get_struct();

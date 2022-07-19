@@ -14,7 +14,7 @@ export namespace ksi {
 	namespace var {
 	
 		struct config {
-			using t_types = std::array<type_pointer, 8>;
+			using t_types = std::array<type_pointer, 9>;
 
 			// data
 			fs::path		m_path;
@@ -39,6 +39,7 @@ export namespace ksi {
 			type_float		m_float;
 			type_text		m_text;
 			type_array		m_array;
+			type_map		m_map;
 			//
 			t_types			m_types;
 			any_var			m_zero_var;
@@ -56,7 +57,8 @@ export namespace ksi {
 				m_float	{&m_mod_ksi, m_id_standard},
 				m_text	{&m_mod_ksi, m_id_standard},
 				m_array	{&m_mod_ksi, m_id_standard},
-				m_types{&m_null, &m_all, &m_type, &m_bool, &m_int, &m_float, &m_text, &m_array},
+				m_map	{&m_mod_ksi, m_id_standard},
+				m_types{&m_null, &m_all, &m_type, &m_bool, &m_int, &m_float, &m_text, &m_array, &m_map},
 				m_zero_var(nullptr, &m_null)
 			{
 				m_mod_ksi.m_deleter = &just::closers::simple_none<module_space *>::close;
@@ -72,15 +74,11 @@ export namespace ksi {
 			void init() {
 				if( m_init ) { return; }
 				else { m_init = true; }
-				m_null	.init();
+				for( type_pointer v_it : m_types ) {
+					v_it->init();
+				}
 				m_link	.init();
 				m_ref	.init();
-				m_type	.init();
-				m_bool	.init();
-				m_int	.init();
-				m_float	.init();
-				m_text	.init();
-				m_array	.init();
 			}
 
 			static config * instance() {

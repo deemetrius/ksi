@@ -72,6 +72,13 @@ export namespace ksi {
 				return cmp_default(p1, p2);
 			}
 
+			// $map#
+			compare_result operator () (base_compound_map::pointer p1, base_compound_map::pointer p2) const {
+				compare_result v_cmp = cmp_default(p1->get()->count(), p2->get()->count() );
+				if( v_cmp ) { return v_cmp; }
+				return cmp_default(p1, p2);
+			}
+
 			// type_struct
 			compare_result operator () (base_compound_struct::pointer p1, base_compound_struct::pointer p2) const {
 				compare_result v_cmp = cmp_default(m_type_1->m_id, m_type_2->m_id);
@@ -84,11 +91,12 @@ export namespace ksi {
 			compare_result operator () (T1 p1, T2 p2) const { return cmp_default(m_type_1->m_id, m_type_2->m_id); }
 		};
 
-		compare_result compare(const any_var & p1, const any_var & p2) {
-			op_compare v_cmp{p1.m_type, p2.m_type};
+		compare_result compare(const any & p1, const any & p2) {
+			any_const_pointer v_p1 = p1.any_get_const(), v_p2 = p2.any_get_const();
+			op_compare v_cmp{v_p1->m_type, v_p2->m_type};
 			t_variant v1, v2;
-			p1.variant_set(v1);
-			p2.variant_set(v2);
+			v_p1->variant_set(v1);
+			v_p2->variant_set(v2);
 			return std::visit<compare_result>(v_cmp, v1, v2);
 		}
 

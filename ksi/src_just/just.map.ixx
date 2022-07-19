@@ -38,6 +38,7 @@ export namespace just {
 		using t_list = node_list<t_node>;
 		using iterator = t_list::t_node_iterator;
 		using t_range_reverse = t_list::t_node_range_reverse;
+		//using t_base_node_pointer = t_node::node_pointer;
 
 		// data
 		t_map	m_map;
@@ -52,7 +53,12 @@ export namespace just {
 			m_map.clear();
 		}
 
-		t_index count() const { std::ssize(m_map); }
+		t_index count() const { return std::ssize(m_map); }
+
+		t_node::pointer find(const t_key & p_key) {
+			t_key_iterator v_it = m_map.find(p_key);
+			return (v_it == m_map.end() ) ? nullptr : &(*v_it).second;
+		}
 
 		template <typename ... T_args>
 		t_add_result maybe_emplace(const t_key & p_key, T_args && ... p_args) {

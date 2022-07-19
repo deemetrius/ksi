@@ -56,6 +56,7 @@ export namespace just {
 	template <typename T_node, bool C_reverse = false>
 	struct node_list_iterator {
 		using t_node_pointer = T_node *;
+		using target_pointer = T_node::target_pointer;
 
 		// data
 		t_node_pointer	m_current, m_next;
@@ -73,7 +74,8 @@ export namespace just {
 		bool operator == (const node_list_iterator & p_other) const { return m_current == p_other.m_current; }
 		bool operator != (const node_list_iterator & p_other) const { return m_current != p_other.m_current; }
 
-		t_node_pointer operator * () { return m_current; }
+		//t_node_pointer operator * () { return m_current; }
+		target_pointer operator * () { return m_current->node_target(); }
 	};
 
 	template <typename T_target>

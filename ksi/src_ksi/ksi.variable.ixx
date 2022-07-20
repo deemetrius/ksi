@@ -83,6 +83,13 @@ export namespace ksi {
 
 		//
 
+		struct creation_args {
+			// data
+			t_text_value	m_name;
+			bool			m_is_local = false;
+			log_pos			m_log_pos;
+		};
+
 		struct type_data {
 			// data
 			module_pointer	m_module;
@@ -99,6 +106,12 @@ export namespace ksi {
 			}
 
 			void name(const t_text_value & p_name);
+
+			void args_set(const creation_args & p_args) {
+				m_is_local = p_args.m_is_local;
+				m_log_pos = p_args.m_log_pos;
+				name(p_args.m_name);
+			}
 		};
 
 		struct category :
@@ -108,14 +121,10 @@ export namespace ksi {
 		{
 			using pointer = category *;
 
-			category(const t_text_value & p_name, module_pointer p_module, bool p_is_local, t_integer & p_id,
-				const log_pos & p_log_pos = log_pos{}
-			) :
+			category(module_pointer p_module, t_integer & p_id, const creation_args & p_args) :
 				type_data{p_module, p_id}
 			{
-				m_is_local = p_is_local;
-				m_log_pos = p_log_pos;
-				name(p_name);
+				args_set(p_args);
 			}
 		};
 
@@ -592,17 +601,13 @@ export namespace ksi {
 			t_props		m_props;
 
 			type_struct(
-				const t_text_value & p_name,
 				module_pointer p_module,
 				t_integer & p_id,
-				bool p_is_local,
-				const log_pos & p_log_pos = log_pos{}
+				const creation_args & p_args
 			) : type_compound{p_module, p_id}
 			{
 				m_is_struct = true;
-				m_is_local = p_is_local;
-				m_log_pos = p_log_pos;
-				name(p_name);
+				args_set(p_args);
 			}
 
 			bool prop_add(

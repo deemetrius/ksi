@@ -57,15 +57,6 @@ export namespace ksi {
 			}
 		};
 
-		/*struct token_base_pos :
-			public token_base
-		{
-			// data
-			log_pos		m_log_pos;
-
-			token_base_pos(const log_pos & p_log_pos) : m_log_pos{p_log_pos} {}
-		};*/
-
 		struct token_module_name :
 			public token_base
 		{
@@ -85,20 +76,14 @@ export namespace ksi {
 			public token_base
 		{
 			// data
-			log_pos			m_log_pos;
-			t_text_value	m_name;
-			bool			m_is_local;
+			var::creation_args	m_args;
 
-			token_type_add(const log_pos & p_log_pos, const t_text_value & p_name, bool p_is_local) :
-				m_log_pos{p_log_pos}, m_name{p_name}, m_is_local{p_is_local}
-			{}
+			token_type_add(const var::creation_args & p_args) : m_args{p_args} {}
 
 			t_text_value name() const override { return "token_type_add"_jt; }
 
 			void perform(prepare_data::pointer p_data) override {
-				p_data->m_type_name = m_name;
-				p_data->m_type_pos = m_log_pos;
-				p_data->m_type_is_local = m_is_local;
+				p_data->m_type_args = m_args;
 				p_data->m_type_extends.clear();
 			}
 		};
@@ -126,16 +111,16 @@ export namespace ksi {
 			void perform(prepare_data::pointer p_data) override {
 				if( ! p_data->struct_add() ) {
 					t_text_value v_message = just::implode<t_text_value::type>(
-						{"deduce error: Duplicate type name: ", p_data->m_type_name}
+						{"deduce error: Duplicate type name: ", p_data->m_type_args.m_name}
 					);
-					p_data->error(p_data->m_type_pos.message(v_message) );
+					p_data->error(p_data->m_type_args.m_log_pos.message(v_message) );
 				}
 				var::type_struct_pointer v_struct = p_data->m_ext_module_current->struct_last();
 				v_struct->init_base();
 				for( type_extend_info & v_it : p_data->m_type_extends ) {
 					if( var::type_pointer v_type_source = p_data->type_find(v_it) ) {
 						p_data->m_error_count += v_struct->inherit_from(
-							{p_data->m_type_pos.m_path, v_it.m_pos}, v_type_source, p_data->m_log
+							{p_data->m_type_args.m_log_pos.m_path, v_it.m_pos}, v_type_source, p_data->m_log
 						);
 					}
 				}

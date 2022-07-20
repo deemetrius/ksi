@@ -418,7 +418,7 @@ export namespace ksi {
 
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 						p_tokens.m_types.append(
-							new tokens::token_type_add({p_state.m_path, m_pos}, m_name, m_is_local)
+							new tokens::token_type_add({m_name, m_is_local, {p_state.m_path, m_pos}})
 						);
 						p_state.m_fn_parse = &rule_type_kind::parse;
 					}

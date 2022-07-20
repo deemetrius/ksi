@@ -109,11 +109,11 @@ namespace ksi {
 		static_data::static_data(const t_text_value & p_type_name, t_integer p_id) :
 			m_id_props{p_id + n_id_delta_static_props},
 			m_id_consts{p_id + n_id_delta_static_consts},
-			m_struct_props{just::implode<t_text_value::type>({p_type_name, ".$static_props"}),
-				&g_config->m_mod_hidden, m_id_props, true
+			m_struct_props{&g_config->m_mod_hidden, m_id_props,
+				{just::implode<t_text_value::type>({p_type_name, ".$static_props"}), true}
 			},
-			m_struct_consts{just::implode<t_text_value::type>({p_type_name, ".$static_consts#"}),
-				&g_config->m_mod_hidden, m_id_consts, true
+			m_struct_consts{&g_config->m_mod_hidden, m_id_consts,
+				{just::implode<t_text_value::type>({p_type_name, ".$static_consts#"}), true}
 			}
 		{}
 

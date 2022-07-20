@@ -73,8 +73,8 @@ export namespace ksi {
 			m_module->m_structs.splice(m_structs);
 		}
 
-		bool category_add(t_integer & p_id, const t_text_value & p_name, bool p_is_local, const log_pos & p_log_pos) {
-			var::category::pointer v_cat = new var::category(p_name, m_module, p_is_local, p_id, p_log_pos);
+		bool category_add(t_integer & p_id, const var::creation_args & p_args) {
+			var::category::pointer v_cat = new var::category(m_module, p_id, p_args);
 			m_cats_list.append(v_cat);
 			return v_cat->m_is_added = category_reg(v_cat);
 		}
@@ -83,8 +83,8 @@ export namespace ksi {
 			return m_cats_list.m_zero.node_empty() ? nullptr : m_cats_list.m_zero.m_prev->node_target();
 		}
 
-		bool struct_add(t_integer & p_id, const t_text_value & p_name, bool p_is_local, const log_pos & p_log_pos) {
-			var::type_struct_pointer v_struct = new var::type_struct(p_name, m_module, p_id, p_is_local, p_log_pos);
+		bool struct_add(t_integer & p_id, const var::creation_args & p_args) {
+			var::type_struct_pointer v_struct = new var::type_struct(m_module, p_id, p_args);
 			m_structs.append(v_struct);
 			return v_struct->m_is_added = type_reg(v_struct);
 		}
@@ -130,9 +130,7 @@ export namespace ksi {
 		t_ext_modules_map			m_ext_modules_map;
 		module_extension::pointer	m_ext_module_current = nullptr;
 		module_extension::pointer	m_ext_module_global = nullptr;
-		t_text_value				m_type_name;
-		bool						m_type_is_local;
-		log_pos						m_type_pos;
+		var::creation_args			m_type_args;
 		t_type_extends				m_type_extends;
 
 		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {
@@ -150,9 +148,9 @@ export namespace ksi {
 			return (v_it == m_ext_modules_map.end() ) ? nullptr : (*v_it).second;
 		}
 
-		bool category_add(const t_text_value & p_name, bool p_is_local, const log_pos & p_log_pos) {
-			bool ret = m_ext_module_current->category_add(m_data.m_id_cat_custom, p_name, p_is_local, p_log_pos);
-			if( ! p_is_local ) {
+		bool category_add(const var::creation_args & p_args) {
+			bool ret = m_ext_module_current->category_add(m_data.m_id_cat_custom, p_args);
+			if( ! p_args.m_is_local ) {
 				var::category::pointer v_cat = m_ext_module_current->category_last();
 				v_cat->m_is_global = m_ext_module_global->category_reg(v_cat);
 			}
@@ -160,8 +158,8 @@ export namespace ksi {
 		}
 
 		bool struct_add() {
-			bool ret = m_ext_module_current->struct_add(m_data.m_id_struct, m_type_name, m_type_is_local, m_type_pos);
-			if( ! m_type_is_local ) {
+			bool ret = m_ext_module_current->struct_add(m_data.m_id_struct, m_type_args);
+			if( ! m_type_args.m_is_local ) {
 				var::type_struct_pointer v_struct = m_ext_module_current->struct_last();
 				v_struct->m_is_global = m_ext_module_global->type_reg(v_struct);
 			}
@@ -172,7 +170,7 @@ export namespace ksi {
 		var::type_pointer impl_type_find(T_module * p_module, const type_extend_info & p_type_extend) {
 			var::type_pointer v_ret = p_module->type_find(p_type_extend.m_type_name);
 			if( v_ret == nullptr ) {
-				error({m_type_pos.m_path, just::implode<t_text_value::type>(
+				error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
 					{"deduce error: Type not yet defined: ", p_type_extend.m_type_name, p_type_extend.m_module_name}
 				), p_type_extend.m_pos});
 			}
@@ -193,7 +191,7 @@ export namespace ksi {
 				if( v_ext_module == nullptr ) {
 					module_space::pointer v_module = m_space->module_find(p_type_extend.m_module_name);
 					if( v_module == nullptr ) {
-						error({m_type_pos.m_path, just::implode<t_text_value::type>(
+						error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
 							{"deduce error: Module not yet defined: ", p_type_extend.m_module_name}
 						), p_type_extend.m_pos});
 						return nullptr;

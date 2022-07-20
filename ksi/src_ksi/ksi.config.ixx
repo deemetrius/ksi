@@ -53,7 +53,7 @@ export namespace ksi {
 			config() :
 				m_mod_ksi{"@ksi#"_jt},
 				m_mod_hidden{"@hidden#"_jt},
-				m_cat_any	{"_any#"_jt, &m_mod_ksi, false, m_id_cat_standard},
+				m_cat_any	{&m_mod_ksi, m_id_cat_standard, {"_any#"_jt} },
 				m_link		{&m_mod_hidden, m_id_special},
 				m_ref		{&m_mod_hidden, m_id_special},
 				m_null		{&m_mod_ksi, m_id_standard},

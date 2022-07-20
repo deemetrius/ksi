@@ -21,6 +21,7 @@ export namespace ksi {
 			fs::path		m_path;
 			log_list		m_log_system;
 			log_pointer		m_log = &m_log_system;
+			t_int_ptr		m_tab_size = n_tab_size;
 			output_pointer	m_out = &just::g_console;
 			bool			m_init = false;
 			module_space	m_mod_ksi;

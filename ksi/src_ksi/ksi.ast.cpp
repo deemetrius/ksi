@@ -8,17 +8,6 @@ namespace ksi {
 
 	using namespace just::text_literals;
 
-	/*module_base * prepare_data::module_find(const t_text_value & p_module_name) {
-		if(
-			typename t_ext_modules_map::iterator v_it = m_ext_modules_map.find(p_module_name);
-			v_it != m_ext_modules_map.end()
-			) {
-			return (*v_it).second;
-		}
-		typename t_modules_map::iterator v_it = m_modules_map.find(p_module_name);
-		return (v_it == m_modules_map.end() ) ? nullptr : (*v_it).second;
-	}*/
-
 	file_status prepare_data::load_folder(const fs::path & p_path) {
 		fs::path v_path = fs::weakly_canonical(p_path);
 		if( file_status v_res = check_path(v_path); v_res != file_status::unknown ) {
@@ -179,7 +168,7 @@ namespace ksi {
 		m_files.insert_or_assign(p_path, file_status::in_process);
 		//
 		tokens::nest_tokens v_tokens;
-		if( ! rules::parse_declarative(p_path, v_file_res.m_value, v_tokens, m_log) ) {
+		if( ! rules::parse_declarative(p_path, v_file_res.m_value, v_tokens, m_log, var::g_config->m_tab_size) ) {
 			++m_error_count;
 			m_files.insert_or_assign(p_path, file_status::with_error);
 			return file_status::with_error;

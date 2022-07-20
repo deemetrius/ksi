@@ -171,7 +171,7 @@ export namespace ksi {
 			var::type_pointer v_ret = p_module->type_find(p_type_extend.m_type_name);
 			if( v_ret == nullptr ) {
 				error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
-					{"deduce error: Type not yet defined: ", p_type_extend.m_type_name, p_type_extend.m_module_name}
+					{"deduce error: Type was not defined yet: ", p_type_extend.m_type_name, p_type_extend.m_module_name}
 				), p_type_extend.m_pos});
 			}
 			return v_ret;
@@ -192,7 +192,7 @@ export namespace ksi {
 					module_space::pointer v_module = m_space->module_find(p_type_extend.m_module_name);
 					if( v_module == nullptr ) {
 						error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
-							{"deduce error: Module not yet defined: ", p_type_extend.m_module_name}
+							{"deduce error: Module was not defined yet: ", p_type_extend.m_module_name}
 						), p_type_extend.m_pos});
 						return nullptr;
 					}

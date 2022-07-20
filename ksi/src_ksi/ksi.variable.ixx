@@ -28,6 +28,8 @@ export namespace ksi {
 	using t_integer		= just::t_int_max;
 	using t_floating	= double;
 
+	constexpr t_int_ptr n_tab_size = 4;
+
 	struct module_base;
 	using module_pointer = module_base *;
 

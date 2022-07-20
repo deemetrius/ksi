@@ -26,13 +26,25 @@ export namespace ksi {
 			// data
 			t_raw_const		m_line_start;
 			t_index			m_line = 1;
+			t_index			m_tab_extra = 0;
 
 			void next_line(t_raw_const p_line_start) {
 				++m_line;
 				m_line_start = p_line_start;
 			}
 
-			position pos(t_raw_const p_text) const { return {m_line, p_text - m_line_start +1}; }
+			position pos(t_raw_const p_text) const { return {m_line, p_text - m_line_start + m_tab_extra +1}; }
+		};
+
+		struct state_base {
+			// data
+			line_info		m_line;
+			t_int_ptr		m_tab_size = n_tab_size;
+
+			void tab(t_raw_const p_text) {
+				t_index v_extra = (p_text - m_line.m_line_start + m_line.m_tab_extra) % m_tab_size;
+				m_line.m_tab_extra += m_tab_size -1 - v_extra;
+			}
 		};
 
 		enum class nest {
@@ -64,11 +76,12 @@ export namespace ksi {
 
 		//
 
-		struct state {
+		struct state :
+			public state_base
+		{
 			// data
 			fs::path		m_path;
 			t_raw_const		m_text_pos;
-			line_info		m_line;
 			fn_parse		m_fn_parse;
 			nest			m_nest;
 			kind			m_kind = kind::start;
@@ -78,10 +91,12 @@ export namespace ksi {
 			bool			m_nice = false;
 			bool			m_done = false;
 
-			state(const fs::path p_path, t_raw_const p_text_pos, fn_parse p_fn_parse, nest p_nest) :
+			state(const fs::path p_path, t_raw_const p_text_pos, fn_parse p_fn_parse, nest p_nest,
+				t_int_ptr p_tab_size = n_tab_size
+			) :
+				state_base{{p_text_pos}, p_tab_size},
 				m_path{p_path},
 				m_text_pos{p_text_pos},
-				m_line{p_text_pos},
 				m_fn_parse{p_fn_parse},
 				m_nest{p_nest}
 			{}
@@ -183,8 +198,9 @@ export namespace ksi {
 									v_nest = nest_comments::multiline;
 								} else {
 									switch( *v_text_pos ) {
-									case ' ':
 									case '\t':
+										p_state.tab(v_text_pos);
+									case ' ':
 										v_continue = true;
 										++v_text_pos;
 										break;
@@ -760,9 +776,10 @@ export namespace ksi {
 			fs::path p_path,
 			const t_text_value & p_contents,
 			tokens::nest_tokens & p_tokens,
-			log_pointer p_log
+			log_pointer p_log,
+			t_int_ptr p_tab_size = n_tab_size
 		) {
-			state v_state{p_path, p_contents.data(), &all::rule_module_name::parse, nest::declarative};
+			state v_state{p_path, p_contents.data(), &all::rule_module_name::parse, nest::declarative, p_tab_size};
 			do {
 				v_state.m_fn_parse(v_state, p_tokens, p_log);
 			} while( ! v_state.m_done );

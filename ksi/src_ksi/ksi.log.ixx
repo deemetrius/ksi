@@ -44,7 +44,7 @@ export namespace ksi {
 		
 		virtual ~log_base() = default;
 		
-		virtual void add(log_message && p_message) {}
+		virtual void add(const log_message & p_message) {}
 		virtual void out(just::output_base & p_out) {}
 	};
 
@@ -55,7 +55,7 @@ export namespace ksi {
 			// data
 			log_message		m_message;
 			
-			t_node(log_message && p_message) : m_message{std::move(p_message)} {}
+			t_node(const log_message & p_message) : m_message{p_message} {}
 		};
 
 		using t_list = just::list<t_node>;
@@ -63,8 +63,8 @@ export namespace ksi {
 		// data
 		t_list	m_list;
 
-		void add(log_message && p_message) override {
-			m_list.append(new t_node{std::move(p_message)});
+		void add(const log_message & p_message) override {
+			m_list.append(new t_node{p_message});
 		}
 
 		void out(just::output_base & p_out) override {

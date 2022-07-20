@@ -14,7 +14,8 @@ export namespace ksi {
 	namespace var {
 	
 		struct config {
-			using t_types = std::array<type_pointer, 9>;
+			using t_types = std::vector<type_pointer>;
+			using t_cats = std::vector<category::pointer>;
 
 			// data
 			fs::path		m_path;
@@ -25,14 +26,18 @@ export namespace ksi {
 			module_space	m_mod_ksi;
 			module_space	m_mod_hidden;
 			//
-			t_integer		m_id_standard	= n_id_standard;
-			t_integer		m_id_special	= n_id_special;
-			t_integer		m_id_all		= n_id_all;
+			t_integer		m_id_cat_standard	= n_id_cat_standard;
+			t_integer		m_id_standard		= n_id_standard;
+			t_integer		m_id_special		= n_id_special;
+			t_integer		m_id_all			= n_id_all;
 			//
-			type_null		m_null;
-			type_all		m_all;
+			category		m_cat_any;
+			//
 			type_link		m_link;
 			type_ref		m_ref;
+			type_null		m_null;
+			type_all		m_all;
+			type_category	m_category;
 			type_type		m_type;
 			type_bool		m_bool;
 			type_int		m_int;
@@ -41,30 +46,39 @@ export namespace ksi {
 			type_array		m_array;
 			type_map		m_map;
 			//
+			t_cats			m_cats;
 			t_types			m_types;
 			any_var			m_zero_var;
 
 			config() :
 				m_mod_ksi{"@ksi#"_jt},
 				m_mod_hidden{"@hidden#"_jt},
-				m_null	{&m_mod_ksi, m_id_standard},
-				m_all	{&m_mod_ksi, m_id_all},
-				m_link	{&m_mod_hidden, m_id_special},
-				m_ref	{&m_mod_hidden, m_id_special},
-				m_type	{&m_mod_ksi, m_id_standard},
-				m_bool	{&m_mod_ksi, m_id_standard},
-				m_int	{&m_mod_ksi, m_id_standard},
-				m_float	{&m_mod_ksi, m_id_standard},
-				m_text	{&m_mod_ksi, m_id_standard},
-				m_array	{&m_mod_ksi, m_id_standard},
-				m_map	{&m_mod_ksi, m_id_standard},
-				m_types{&m_null, &m_all, &m_type, &m_bool, &m_int, &m_float, &m_text, &m_array, &m_map},
+				m_cat_any	{"_any#"_jt, &m_mod_ksi, false, m_id_cat_standard},
+				m_link		{&m_mod_hidden, m_id_special},
+				m_ref		{&m_mod_hidden, m_id_special},
+				m_null		{&m_mod_ksi, m_id_standard},
+				m_all		{&m_mod_ksi, m_id_all},
+				m_category	{&m_mod_ksi, m_id_standard},
+				m_type		{&m_mod_ksi, m_id_standard},
+				m_bool		{&m_mod_ksi, m_id_standard},
+				m_int		{&m_mod_ksi, m_id_standard},
+				m_float		{&m_mod_ksi, m_id_standard},
+				m_text		{&m_mod_ksi, m_id_standard},
+				m_array		{&m_mod_ksi, m_id_standard},
+				m_map		{&m_mod_ksi, m_id_standard},
+				m_cats{&m_cat_any},
+				m_types{&m_null, &m_all, &m_category, &m_type, &m_bool, &m_int, &m_float, &m_text, &m_array, &m_map},
 				m_zero_var(nullptr, &m_null)
 			{
 				m_mod_ksi.m_deleter = &just::closers::simple_none<module_space *>::close;
 				m_mod_hidden.m_deleter = &just::closers::simple_none<module_space *>::close;
 				//
+				for( category::pointer v_cat : m_cats ) { category_reg(v_cat); }
 				for( type_pointer v_type : m_types ) { type_reg(v_type); }
+			}
+
+			static void category_reg(category::pointer p_cat) {
+				p_cat->m_is_added = p_cat->m_module->category_reg(p_cat);
 			}
 
 			static void type_reg(type_pointer p_type) {

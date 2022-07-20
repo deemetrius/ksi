@@ -33,6 +33,11 @@ export namespace ksi {
 			// data
 			type_pointer	m_type_1, m_type_2;
 
+			// $category#
+			compare_result operator () (category::pointer p1, category::pointer p2) const {
+				return cmp_default(p1->m_id, p2->m_id);
+			}
+
 			// $type#
 			compare_result operator () (type_pointer p1, type_pointer p2) const { return cmp_default(p1->m_id, p2->m_id); }
 			
@@ -60,27 +65,27 @@ export namespace ksi {
 			}
 
 			// $text#
-			compare_result operator () (base_compound_text::pointer p1, base_compound_text::pointer p2) const {
-				int v_cmp = just::text_traits::cmp(p1->get()->m_text->m_text, p2->get()->m_text->m_text);
+			compare_result operator () (compound_text_pointer p1, compound_text_pointer p2) const {
+				int v_cmp = just::text_traits::cmp(p1->m_text->m_text, p2->m_text->m_text);
 				return cmp_default(v_cmp, 0);
 			}
 
 			// $array#
-			compare_result operator () (base_compound_array::pointer p1, base_compound_array::pointer p2) const {
-				compare_result v_cmp = cmp_default(p1->get()->count(), p2->get()->count() );
+			compare_result operator () (compound_array_pointer p1, compound_array_pointer p2) const {
+				compare_result v_cmp = cmp_default(p1->count(), p2->count() );
 				if( v_cmp ) { return v_cmp; }
 				return cmp_default(p1, p2);
 			}
 
 			// $map#
-			compare_result operator () (base_compound_map::pointer p1, base_compound_map::pointer p2) const {
-				compare_result v_cmp = cmp_default(p1->get()->count(), p2->get()->count() );
+			compare_result operator () (compound_map_pointer p1, compound_map_pointer p2) const {
+				compare_result v_cmp = cmp_default(p1->count(), p2->count() );
 				if( v_cmp ) { return v_cmp; }
 				return cmp_default(p1, p2);
 			}
 
 			// type_struct
-			compare_result operator () (base_compound_struct::pointer p1, base_compound_struct::pointer p2) const {
+			compare_result operator () (compound_struct_pointer p1, compound_struct_pointer p2) const {
 				compare_result v_cmp = cmp_default(m_type_1->m_id, m_type_2->m_id);
 				if( v_cmp ) { return v_cmp; }
 				return cmp_default(p1, p2);

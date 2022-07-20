@@ -130,7 +130,7 @@ export namespace ksi {
 					);
 					p_data->error(p_data->m_type_pos.message(v_message) );
 				}
-				var::type_struct_pointer v_struct = p_data->m_ext_module_current->last_struct();
+				var::type_struct_pointer v_struct = p_data->m_ext_module_current->struct_last();
 				v_struct->init_base();
 				for( type_extend_info & v_it : p_data->m_type_extends ) {
 					if( var::type_pointer v_type_source = p_data->type_find(v_it) ) {
@@ -148,7 +148,7 @@ export namespace ksi {
 			t_text_value name() const override { return "token_struct_end"_jt; }
 
 			void perform(prepare_data::pointer p_data) override {
-				p_data->m_ext_module_current->last_struct()->m_static->init();
+				p_data->m_ext_module_current->struct_last()->m_static->init();
 			}
 		};
 
@@ -169,7 +169,7 @@ export namespace ksi {
 			t_text_value name() const override { return "token_struct_prop_name"_jt; }
 
 			void perform(prepare_data::pointer p_data) override {
-				var::type_struct_pointer v_type_struct = p_data->m_ext_module_current->last_struct();
+				var::type_struct_pointer v_type_struct = p_data->m_ext_module_current->struct_last();
 				if( ! v_type_struct->prop_add(m_name, m_value) ) {
 					typename var::type_struct::t_props::t_find_result v_res = v_type_struct->m_props.find(m_name);
 					var::type_pointer v_type = v_res.m_value->m_type_source;

@@ -9,7 +9,7 @@ namespace ksi {
 
 	namespace var {
 
-		void type_base::name(const t_text_value & p_name) {
+		void type_data::name(const t_text_value & p_name) {
 			m_name = p_name;
 			m_name_full = just::implode<t_text_value::type>({p_name, m_module->name()});
 		}
@@ -41,6 +41,11 @@ namespace ksi {
 		// $type#
 		any::any(type_pointer p_value) : m_type{&g_config->m_type} {
 			m_value.m_type = p_value;
+		}
+
+		// $category#
+		any::any(category::pointer p_value) : m_type{&g_config->m_category} {
+			m_value.m_category = p_value;
 		}
 
 		// copy
@@ -311,6 +316,15 @@ namespace ksi {
 			return p_any->m_value.m_link->write(p_out);
 		}
 
+		bool type_category::write(
+			output_pointer p_out,
+			any_const_pointer p_any,
+			const any & p_separator,
+			set_deep & p_deep
+		) {
+			return p_out->write(p_any->m_value.m_category->m_name_full.data() );
+		}
+
 		bool type_type::write(
 			output_pointer p_out,
 			any_const_pointer p_any,
@@ -570,6 +584,7 @@ namespace ksi {
 
 		// variant_set()
 
+		void type_category::variant_set(any_const_pointer p_any, t_variant & p_variant) { p_variant = p_any->m_value.m_category; }
 		void type_type::variant_set(any_const_pointer p_any, t_variant & p_variant) { p_variant = p_any->m_value.m_type; }
 		void type_bool::variant_set(any_const_pointer p_any, t_variant & p_variant) { p_variant = p_any->m_value.m_bool; }
 		void type_int::variant_set(any_const_pointer p_any, t_variant & p_variant) { p_variant = p_any->m_value.m_int; }

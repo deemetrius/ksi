@@ -55,6 +55,7 @@ export namespace ksi {
 		template <bool C_types>
 		void init() {
 			if constexpr( C_types ) {
+				m_cats_map = m_module->m_cats_map;
 				m_types = m_module->m_types;
 			}
 			for( typename t_types_used::t_info && v_it : m_module->m_types_used ) {
@@ -63,21 +64,33 @@ export namespace ksi {
 		}
 
 		void apply() {
+			m_module->m_cats_map = m_cats_map;
 			m_module->m_types = m_types;
 			std::ranges::swap(m_types_used, m_module->m_types_used);
 			m_types_used.clear();
 			init<false>();
+			m_module->m_cats_list.splice(m_cats_list);
 			m_module->m_structs.splice(m_structs);
 		}
 
-		var::type_struct_pointer last_struct() {
-			return m_structs.m_zero.node_empty() ? nullptr : m_structs.m_zero.m_prev->node_target();
+		bool category_add(t_integer & p_id, const t_text_value & p_name, bool p_is_local, const log_pos & p_log_pos) {
+			var::category::pointer v_cat = new var::category(p_name, m_module, p_is_local, p_id, p_log_pos);
+			m_cats_list.append(v_cat);
+			return v_cat->m_is_added = category_reg(v_cat);
+		}
+
+		var::category::pointer category_last() {
+			return m_cats_list.m_zero.node_empty() ? nullptr : m_cats_list.m_zero.m_prev->node_target();
 		}
 
 		bool struct_add(t_integer & p_id, const t_text_value & p_name, bool p_is_local, const log_pos & p_log_pos) {
 			var::type_struct_pointer v_struct = new var::type_struct(p_name, m_module, p_id, p_is_local, p_log_pos);
 			m_structs.append(v_struct);
 			return v_struct->m_is_added = type_reg(v_struct);
+		}
+
+		var::type_struct_pointer struct_last() {
+			return m_structs.m_zero.node_empty() ? nullptr : m_structs.m_zero.m_prev->node_target();
 		}
 	};
 
@@ -137,10 +150,19 @@ export namespace ksi {
 			return (v_it == m_ext_modules_map.end() ) ? nullptr : (*v_it).second;
 		}
 
+		bool category_add(const t_text_value & p_name, bool p_is_local, const log_pos & p_log_pos) {
+			bool ret = m_ext_module_current->category_add(m_data.m_id_cat_custom, p_name, p_is_local, p_log_pos);
+			if( ! p_is_local ) {
+				var::category::pointer v_cat = m_ext_module_current->category_last();
+				v_cat->m_is_global = m_ext_module_global->category_reg(v_cat);
+			}
+			return ret;
+		}
+
 		bool struct_add() {
-			bool ret{ m_ext_module_current->struct_add(m_data.m_id_struct, m_type_name, m_type_is_local, m_type_pos) };
+			bool ret = m_ext_module_current->struct_add(m_data.m_id_struct, m_type_name, m_type_is_local, m_type_pos);
 			if( ! m_type_is_local ) {
-				var::type_struct_pointer v_struct = m_ext_module_current->last_struct();
+				var::type_struct_pointer v_struct = m_ext_module_current->struct_last();
 				v_struct->m_is_global = m_ext_module_global->type_reg(v_struct);
 			}
 			return ret;

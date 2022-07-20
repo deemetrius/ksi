@@ -25,7 +25,8 @@ export namespace ksi {
 
 	struct space_data {
 		// data
-		t_integer	m_id_struct = var::n_id_struct;
+		t_integer	m_id_struct		= var::n_id_struct;
+		t_integer	m_id_cat_custom	= var::n_id_cat_custom;
 	};
 
 	struct space_base {

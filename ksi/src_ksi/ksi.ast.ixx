@@ -138,9 +138,9 @@ export namespace ksi {
 			m_data = m_space->m_data;
 		}
 
-		void error(log_message && p_message) {
+		void error(const log_message & p_message) {
 			++m_error_count;
-			m_log->add(std::move(p_message) );
+			m_log->add(p_message);
 		}
 
 		module_extension::pointer ext_module_find(const t_text_value & p_module_name) {

@@ -72,6 +72,26 @@ export namespace ksi {
 			}
 		};
 
+		struct token_category_add :
+			public token_base
+		{
+			// data
+			var::creation_args	m_args;
+
+			token_category_add(const var::creation_args & p_args) : m_args{p_args} {}
+
+			t_text_value name() const override { return "token_category_add"_jt; }
+
+			void perform(prepare_data::pointer p_data) override {
+				if( ! p_data->category_add(m_args) ) {
+					t_text_value v_message = just::implode<t_text_value::type>(
+						{"deduce error: Duplicate category name: ", m_args.m_name}
+					);
+					p_data->error(m_args.m_log_pos.message(v_message) );
+				}
+			}
+		};
+
 		struct token_type_add :
 			public token_base
 		{

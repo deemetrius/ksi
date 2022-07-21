@@ -110,7 +110,7 @@ export namespace ksi {
 
 			void add_from(includes & p_from) {
 				for( t_node_pointer v_it : p_from.m_direct ) {
-					add(v_it->m_value);
+					if( m_indirect.find(v_it) == nullptr ) { add(v_it->m_value); }
 				}
 			}
 

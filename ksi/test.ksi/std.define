@@ -1,6 +1,8 @@
 
 @std
 
+_range ( )
+
 $range
 struct ( from, to = true )
 

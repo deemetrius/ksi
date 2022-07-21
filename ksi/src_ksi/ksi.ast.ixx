@@ -73,6 +73,8 @@ export namespace ksi {
 			m_module->m_structs.splice(m_structs);
 		}
 
+		//
+
 		bool category_add(t_integer & p_id, const var::creation_args & p_args) {
 			var::category::pointer v_cat = new var::category(m_module, p_id, p_args);
 			m_cats_list.append(v_cat);
@@ -82,6 +84,8 @@ export namespace ksi {
 		var::category::pointer category_last() {
 			return m_cats_list.m_zero.node_empty() ? nullptr : m_cats_list.m_zero.m_prev->node_target();
 		}
+
+		//
 
 		bool struct_add(t_integer & p_id, const var::creation_args & p_args) {
 			var::type_struct_pointer v_struct = new var::type_struct(m_module, p_id, p_args);
@@ -102,10 +106,10 @@ export namespace ksi {
 		unknown
 	};
 
-	struct type_extend_info {
+	struct extend_info {
 		// data
 		position					m_pos;
-		t_text_value				m_type_name;
+		t_text_value				m_name;
 		t_text_value				m_module_name;
 	};
 
@@ -119,7 +123,7 @@ export namespace ksi {
 		using t_ext_modules_list = just::list<module_extension,
 			just::closers::compound_call_deleter<false>::template t_closer
 		>;
-		using t_type_extends = std::vector<type_extend_info>;
+		using t_type_extends = std::vector<extend_info>;
 
 		// data
 		t_space_pointer				m_space;
@@ -166,20 +170,24 @@ export namespace ksi {
 			return ret;
 		}
 
+		//
+
 		template <typename T_module>
-		var::type_pointer impl_type_find(T_module * p_module, const type_extend_info & p_type_extend) {
-			var::type_pointer v_ret = p_module->type_find(p_type_extend.m_type_name);
+		var::category::pointer impl_category_find(
+			const fs::path & p_path, T_module * p_module, const extend_info & p_extend
+		) {
+			var::category::pointer v_ret = p_module->category_find(p_extend.m_name);
 			if( v_ret == nullptr ) {
-				error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
-					{"deduce error: Type was not defined yet: ", p_type_extend.m_type_name, p_type_extend.m_module_name}
-				), p_type_extend.m_pos});
+				error({p_path, just::implode<t_text_value::type>(
+					{"deduce error: Category was not defined yet: ", p_extend.m_name, p_extend.m_module_name}
+				), p_extend.m_pos});
 			}
 			return v_ret;
 		}
 
-		var::type_pointer type_find(const type_extend_info & p_type_extend) {
+		var::category::pointer category_find(const fs::path & p_path, const extend_info & p_extend) {
 			module_extension::pointer v_ext_module = nullptr;
-			switch( p_type_extend.m_module_name.size() ) {
+			switch( p_extend.m_module_name.size() ) {
 			case 0:
 				v_ext_module = m_ext_module_global;
 				break;
@@ -187,20 +195,60 @@ export namespace ksi {
 				v_ext_module = m_ext_module_current;
 				break;
 			default:
-				v_ext_module = ext_module_find(p_type_extend.m_module_name);
+				v_ext_module = ext_module_find(p_extend.m_module_name);
 				if( v_ext_module == nullptr ) {
-					module_space::pointer v_module = m_space->module_find(p_type_extend.m_module_name);
+					module_space::pointer v_module = m_space->module_find(p_extend.m_module_name);
 					if( v_module == nullptr ) {
-						error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
-							{"deduce error: Module was not defined yet: ", p_type_extend.m_module_name}
-						), p_type_extend.m_pos});
+						error({p_path, just::implode<t_text_value::type>(
+							{"deduce error: Module was not defined yet: ", p_extend.m_module_name}
+						), p_extend.m_pos});
 						return nullptr;
 					}
-					return impl_type_find(v_module, p_type_extend);
+					return impl_category_find(p_path, v_module, p_extend);
 				}
 			}
-			return impl_type_find(v_ext_module, p_type_extend);
+			return impl_category_find(p_path, v_ext_module, p_extend);
 		}
+
+		//
+
+		template <typename T_module>
+		var::type_pointer impl_type_find(T_module * p_module, const extend_info & p_extend) {
+			var::type_pointer v_ret = p_module->type_find(p_extend.m_name);
+			if( v_ret == nullptr ) {
+				error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
+					{"deduce error: Type was not defined yet: ", p_extend.m_name, p_extend.m_module_name}
+				), p_extend.m_pos});
+			}
+			return v_ret;
+		}
+
+		var::type_pointer type_find(const extend_info & p_extend) {
+			module_extension::pointer v_ext_module = nullptr;
+			switch( p_extend.m_module_name.size() ) {
+			case 0:
+				v_ext_module = m_ext_module_global;
+				break;
+			case 1:
+				v_ext_module = m_ext_module_current;
+				break;
+			default:
+				v_ext_module = ext_module_find(p_extend.m_module_name);
+				if( v_ext_module == nullptr ) {
+					module_space::pointer v_module = m_space->module_find(p_extend.m_module_name);
+					if( v_module == nullptr ) {
+						error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
+							{"deduce error: Module was not defined yet: ", p_extend.m_module_name}
+						), p_extend.m_pos});
+						return nullptr;
+					}
+					return impl_type_find(v_module, p_extend);
+				}
+			}
+			return impl_type_find(v_ext_module, p_extend);
+		}
+
+		//
 
 		module_space::pointer module_get(const t_text_value & p_name) {
 			if( typename t_modules_map::iterator v_it = m_space->m_modules_map.find(p_name);

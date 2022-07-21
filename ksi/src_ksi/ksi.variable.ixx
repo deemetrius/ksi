@@ -85,6 +85,36 @@ export namespace ksi {
 
 		//
 
+		template <typename T, typename T_compare = std::ranges::less>
+		struct includes {
+			using type = T;
+			using t_items = just::map<T, T, T_compare>;
+			using t_add_result = t_items::t_add_result;
+			using t_node_pointer = t_items::t_node::pointer;
+
+			// data
+			t_items		m_direct, m_indirect;
+
+			bool add(type p_item) {
+				t_add_result v_res = m_direct.maybe_emplace(p_item, p_item);
+				if( !v_res.second ) { return false; }
+				m_indirect.remove(p_item);
+				for( t_node_pointer v_it : p_item->m_includes.m_direct ) {
+					m_indirect.maybe_emplace(v_it->m_value, v_it->m_value);
+				}
+				for( t_node_pointer v_it : p_item->m_includes.m_indirect ) {
+					m_indirect.maybe_emplace(v_it->m_value, v_it->m_value);
+				}
+				return true;
+			}
+
+			bool contains(type p_item) {
+				return (m_direct.find(p_item) != nullptr) || (m_indirect.find(p_item) != nullptr);
+			}
+		};
+
+		//
+
 		struct creation_args {
 			// data
 			t_text_value	m_name;
@@ -122,6 +152,10 @@ export namespace ksi {
 			public just::bases::with_deleter<category *>
 		{
 			using pointer = category *;
+			using t_includes = includes<pointer>;
+
+			// data
+			t_includes	m_includes;
 
 			category(module_pointer p_module, t_integer & p_id, const creation_args & p_args) :
 				type_data{p_module, p_id}
@@ -187,9 +221,10 @@ export namespace ksi {
 			using type_data::type_data;
 
 			// data
-			bool			m_is_compound	= false;
-			bool			m_is_struct		= false;
-			t_static		m_static;
+			bool					m_is_compound	= false;
+			bool					m_is_struct		= false;
+			category::t_includes	m_categories;
+			t_static				m_static;
 
 			void init_base();
 			void init() {

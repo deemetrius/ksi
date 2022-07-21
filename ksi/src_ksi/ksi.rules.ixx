@@ -406,7 +406,7 @@ export namespace ksi {
 					}
 
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						p_tokens.m_types.append( new tokens::token_module_name(m_name) );
+						p_tokens.m_cats.append( new tokens::token_module_name(m_name) );
 						p_state.m_fn_parse = &rule_decl::parse;
 					}
 				};
@@ -465,6 +465,35 @@ export namespace ksi {
 				{
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 						p_state.m_fn_parse = &rule_decl::parse;
+					}
+				};
+			};
+
+			struct t_category_includes_name {
+				static constexpr kind s_kind{ kind::special };
+				static t_text_value name() { return "t_category_includes_name"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data
+				{
+					// data
+					extend_info		m_extend;
+
+					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						bool ret = traits::take_name_with_prefix(p_state, '_', m_extend.m_name, m_extend.m_pos);
+						if( ret ) {
+							position v_pos;
+							if( traits::take_name_with_prefix(p_state, '@', m_extend.m_module_name, v_pos) ) {}
+							else if( *p_state.m_text_pos == '@' ) {
+								++p_state.m_text_pos;
+								m_extend.m_module_name = "@"_jt;
+							}
+						}
+						return ret;
+					}
+
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_tokens.m_cats.append( new tokens::token_category_add_base(p_state.m_path, m_extend) );
 					}
 				};
 			};
@@ -551,25 +580,23 @@ export namespace ksi {
 				struct t_data
 				{
 					// data
-					type_extend_info	m_type_extend;
+					extend_info		m_extend;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						bool ret = traits::take_name_with_prefix(p_state, '$',
-							m_type_extend.m_type_name, m_type_extend.m_pos
-						);
+						bool ret = traits::take_name_with_prefix(p_state, '$', m_extend.m_name, m_extend.m_pos);
 						if( ret ) {
 							position v_pos;
-							if( traits::take_name_with_prefix(p_state, '@', m_type_extend.m_module_name, v_pos) ) {}
+							if( traits::take_name_with_prefix(p_state, '@', m_extend.m_module_name, v_pos) ) {}
 							else if( *p_state.m_text_pos == '@' ) {
 								++p_state.m_text_pos;
-								m_type_extend.m_module_name = "@"_jt;
+								m_extend.m_module_name = "@"_jt;
 							}
 						}
 						return ret;
 					}
 
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						p_tokens.m_types.append( new tokens::token_type_add_base(m_type_extend) );
+						p_tokens.m_types.append( new tokens::token_type_add_base(m_extend) );
 					}
 				};
 			};
@@ -741,7 +768,7 @@ export namespace ksi {
 			{};
 
 			struct rule_category_includes :
-				public rule_alt<true, t_space, t_category_close>
+				public rule_alt<true, t_space, t_category_close, t_category_includes_name>
 			{};
 
 			struct rule_type_kind :

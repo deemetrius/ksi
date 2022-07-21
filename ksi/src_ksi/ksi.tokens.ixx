@@ -72,6 +72,8 @@ export namespace ksi {
 			}
 		};
 
+		//
+
 		struct token_category_add :
 			public token_base
 		{
@@ -91,6 +93,42 @@ export namespace ksi {
 				}
 			}
 		};
+
+		struct token_category_add_base :
+			public token_base
+		{
+			// data
+			fs::path		m_path;
+			extend_info		m_extend;
+
+			token_category_add_base(const fs::path & p_path, const extend_info & p_extend) :
+				m_path(p_path), m_extend{p_extend} {}
+
+			t_text_value name() const override { return "token_category_add_base"_jt; }
+
+			void perform(prepare_data::pointer p_data) override {
+				var::category::pointer v_cat_base = p_data->category_find(m_path, m_extend);
+				if( v_cat_base ) {
+					var::category::pointer v_cat_target = p_data->m_ext_module_current->category_last();
+					if( v_cat_base == v_cat_target ) {
+						t_text_value v_message = just::implode<t_text_value::type>(
+							{"deduce error: Category could not include itself: ", v_cat_target->m_name_full}
+						);
+						p_data->error({m_path, v_message, m_extend.m_pos});
+						return;
+					}
+					if( ! v_cat_target->m_includes.add(v_cat_base) ) {
+						t_text_value v_message = just::implode<t_text_value::type>({
+							"deduce error: Category ", v_cat_base->m_name_full,
+							" was already included to: ", v_cat_target->m_name_full
+						});
+						p_data->error({m_path, v_message, m_extend.m_pos});
+					}
+				}
+			} // fn
+		};
+
+		//
 
 		struct token_type_add :
 			public token_base
@@ -112,14 +150,14 @@ export namespace ksi {
 			public token_base
 		{
 			// data
-			type_extend_info	m_type_extend;
+			extend_info		m_extend;
 
-			token_type_add_base(const type_extend_info & p_type_extend) : m_type_extend{p_type_extend} {}
+			token_type_add_base(const extend_info & p_extend) : m_extend{p_extend} {}
 
 			t_text_value name() const override { return "token_type_add_base"_jt; }
 
 			void perform(prepare_data::pointer p_data) override {
-				p_data->m_type_extends.push_back(m_type_extend);
+				p_data->m_type_extends.push_back(m_extend);
 			}
 		};
 
@@ -137,7 +175,7 @@ export namespace ksi {
 				}
 				var::type_struct_pointer v_struct = p_data->m_ext_module_current->struct_last();
 				v_struct->init_base();
-				for( type_extend_info & v_it : p_data->m_type_extends ) {
+				for( extend_info & v_it : p_data->m_type_extends ) {
 					if( var::type_pointer v_type_source = p_data->type_find(v_it) ) {
 						p_data->m_error_count += v_struct->inherit_from(
 							{p_data->m_type_args.m_log_pos.m_path, v_it.m_pos}, v_type_source, p_data->m_log
@@ -189,6 +227,8 @@ export namespace ksi {
 				}
 			} // fn
 		};
+
+		//
 
 		void nest_tokens::put_literal_prop_default(nest_tokens::pointer p_nest, const var::any_var & p_value) {
 			token_struct_prop_name::pointer v_prop_token = static_cast<token_struct_prop_name::pointer>(

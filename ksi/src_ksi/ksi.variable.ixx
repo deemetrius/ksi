@@ -110,7 +110,7 @@ export namespace ksi {
 
 			void add_from(includes & p_from) {
 				for( t_node_pointer v_it : p_from.m_direct ) {
-					if( m_indirect.find(v_it) == nullptr ) { add(v_it->m_value); }
+					if( m_indirect.find(v_it->m_value) == nullptr ) { add(v_it->m_value); }
 				}
 			}
 
@@ -631,16 +631,26 @@ export namespace ksi {
 			type_pointer	m_type_source;
 		};
 
-		struct type_struct :
-			public type_compound,
-			public just::node_list<type_struct>,
-			public just::bases::with_deleter<type_struct *>
-		{
-			using t_bases = std::set<type_pointer>;
-			using t_props = just::hive<t_text_value, property_info, just::text_less>;
+		struct extender {
+			using pointer = extender *;
+			using t_bases = just::map<type_pointer, pointer>;
+			using t_bases_iter = t_bases::t_node::pointer;
 
 			// data
 			t_bases		m_bases;
+
+			virtual type_pointer type() = 0;
+		};
+
+		struct type_struct :
+			public type_compound,
+			public extender,
+			public just::node_list<type_struct>,
+			public just::bases::with_deleter<type_struct *>
+		{
+			using t_props = just::hive<t_text_value, property_info, just::text_less>;
+
+			// data
 			t_props		m_props;
 
 			type_struct(
@@ -652,6 +662,8 @@ export namespace ksi {
 				m_is_struct = true;
 				args_set(p_args);
 			}
+
+			type_pointer type() override { return this; }
 
 			bool prop_add(
 				const t_text_value & p_prop_name,
@@ -672,14 +684,14 @@ export namespace ksi {
 					) ) );
 					return 1;
 				}
-				if( m_bases.contains(p_type_source) ) {
+				if( m_bases.find(p_type_source) ) {
 					p_log->add(p_log_pos.message(just::implode<t_text_value::type>(
 						{"deduce error: Base type in extends is listed more than once: ", p_type_source->m_name_full}
 					) ) );
 					return 1;
 				}
-				m_bases.insert(p_type_source);
 				type_struct_pointer v_type_source = static_cast<type_struct_pointer>(p_type_source);
+				m_bases.maybe_emplace(p_type_source, v_type_source);
 				t_index v_ret = 0;
 				for( typename t_props::t_info && v_it : v_type_source->m_props ) {
 					if( ! prop_add(v_it.m_key, v_it.m_value->m_value, p_type_source) ) {

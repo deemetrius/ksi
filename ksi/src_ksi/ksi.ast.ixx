@@ -36,6 +36,64 @@ export namespace ksi {
 		return v_ret;
 	}
 
+	struct prepare_data;
+	using prepare_data_pointer = prepare_data *;
+
+	namespace tokens {
+
+		struct token_base :
+			public just::node_list<token_base>,
+			public just::bases::with_deleter<token_base *>
+		{
+			virtual ~token_base() = default;
+
+			virtual t_text_value name() const = 0;
+			virtual void perform(prepare_data_pointer p_data) {}
+		};
+
+		struct nest_tokens {
+			using pointer = nest_tokens *;
+			using t_tokens = just::list<token_base, just::closers::compound_call_deleter<false>::template t_closer>;
+
+			static void put_literal_prop_default(pointer p_nest, const var::any_var & p_value);
+
+			using t_put_literal = decltype(&put_literal_prop_default);
+
+			// data
+			t_tokens		m_cats, m_types, m_functions;
+			t_put_literal	m_fn_put_literal = &put_literal_prop_default;
+
+			void clear() {
+				m_cats.clear();
+				m_types.clear();
+				m_functions.clear();
+			}
+
+			void splice(nest_tokens & p_other) {
+				m_cats		.splice(p_other.m_cats);
+				m_types		.splice(p_other.m_types);
+				m_functions	.splice(p_other.m_functions);
+			}
+
+			void perform(prepare_data_pointer p_data) {
+				for( t_tokens::t_node_pointer p_node : m_cats ) {
+					p_node->node_target()->perform(p_data);
+				}
+				for( t_tokens::t_node_pointer p_node : m_types ) {
+					p_node->node_target()->perform(p_data);
+				}
+				for( t_tokens::t_node_pointer p_node : m_functions ) {
+					p_node->node_target()->perform(p_data);
+				}
+			}
+
+			void put_literal(const var::any_var & p_value) {
+				m_fn_put_literal(this, p_value);
+			}
+		};
+
+	} // ns
+
 	struct module_extension :
 		public module_base,
 		public just::node_list<module_extension>,
@@ -136,6 +194,8 @@ export namespace ksi {
 		module_extension::pointer	m_ext_module_global = nullptr;
 		var::creation_args			m_type_args;
 		t_type_extends				m_type_extends;
+		t_type_extends				m_type_refers;
+		tokens::nest_tokens			m_late;
 
 		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {
 			m_ext_module_global = ext_module_open("@global#"_jt);
@@ -145,6 +205,16 @@ export namespace ksi {
 		void error(const log_message & p_message) {
 			++m_error_count;
 			m_log->add(p_message);
+		}
+
+		bool late() {
+			if( m_error_count ) { return false; }
+			m_late.perform(this);
+			if( m_error_count == 0 ) {
+				m_late.clear();
+				return true;
+			}
+			return false;
 		}
 
 		module_extension::pointer ext_module_find(const t_text_value & p_module_name) {

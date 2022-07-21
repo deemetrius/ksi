@@ -28,7 +28,7 @@ int main(int p_args_count, char * p_args[], char * p_env[]) {
 		ksi::prepare_data v_data(&v_space, &v_log);
 		if( v_data.load_folder(p_args[1]) != ksi::file_status::loaded ) {
 			just::g_console << "error: Unable to load path: " << p_args[1] << just::g_new_line;
-		} else {
+		} else if( v_data.late() ) {
 			v_data.apply();
 			ksi::module_space::pointer v_module = v_space.m_module_global;
 			just::g_console << "Types of @global# :\n";

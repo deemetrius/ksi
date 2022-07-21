@@ -44,6 +44,15 @@ export namespace just {
 		t_map	m_map;
 		t_list	m_list;
 
+		map() = default;
+
+		// no no
+		map(const map &) = delete;
+		map(map &&) = delete;
+		map & operator = (const map &) = delete;
+		map & operator = (map &&) = delete;
+
+		// iteration
 		iterator begin() { return {m_list.m_next}; }
 		iterator end() { return {&m_list}; }
 		t_range_reverse range_reverse() { return m_list.node_range_reverse(); }

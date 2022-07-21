@@ -108,6 +108,12 @@ export namespace ksi {
 				return true;
 			}
 
+			void add_from(includes & p_from) {
+				for( t_node_pointer v_it : p_from.m_direct ) {
+					add(v_it->m_value);
+				}
+			}
+
 			bool contains(type p_item) {
 				return (m_direct.find(p_item) != nullptr) || (m_indirect.find(p_item) != nullptr);
 			}

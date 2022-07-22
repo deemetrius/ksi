@@ -117,17 +117,17 @@ export namespace ksi {
 			}
 		};
 
-		struct after_token_refers :
+		struct late_token_refers :
 			public token_base
 		{
-			t_text_value name() const override { return "after_token_refers"_jt; }
+			t_text_value name() const override { return "late_token_refers"_jt; }
 
 			// data
 			fs::path						m_path;
 			var::type_pointer				m_type;
 			prepare_data::t_entity_items	m_type_refers;
 
-			after_token_refers(const fs::path & p_path, var::type_pointer p_type,
+			late_token_refers(const fs::path & p_path, var::type_pointer p_type,
 				prepare_data::t_entity_items && p_type_refers
 			) : m_path{p_path}, m_type{p_type}, m_type_refers{std::move(p_type_refers)} {}
 
@@ -155,21 +155,36 @@ export namespace ksi {
 			}
 		};
 
-		struct after_token_extends :
+		struct late_token_extends :
 			public token_base
 		{
-			t_text_value name() const override { return "after_token_extends"_jt; }
+			t_text_value name() const override { return "late_token_extends"_jt; }
 
 			// data
 			var::extender::pointer	m_type;
 
-			after_token_extends(var::extender::pointer p_type) : m_type(p_type) {}
+			late_token_extends(var::extender::pointer p_type) : m_type(p_type) {}
 
 			void perform(prepare_data::pointer p_data) override {
 				var::type_pointer v_type = m_type->type();
 				for( var::extender::t_bases_iter v_it : m_type->m_bases ) {
 					v_type->m_categories.add_from( v_it->m_value->type()->m_categories );
 				}
+			}
+		};
+
+		struct late_token_type_init_categories :
+			public token_base
+		{
+			t_text_value name() const override { return "late_token_type_init_categories"_jt; }
+
+			// data
+			var::type_pointer	m_type;
+
+			late_token_type_init_categories(var::type_pointer p_type) : m_type{p_type} {}
+
+			void perform(prepare_data::pointer p_data) override {
+				m_type->init_categories();
 			}
 		};
 
@@ -187,14 +202,17 @@ export namespace ksi {
 				}
 				var::type_struct_pointer v_struct = p_data->m_ext_module_current->struct_last();
 				v_struct->init_start();
+				bool v_need_late_cats = false;
 				if( p_data->m_type_refers.size() ) {
+					v_need_late_cats = true;
 					p_data->m_late.m_types.append(
-						new tokens::after_token_refers(p_data->m_type_args.m_log_pos.m_path, v_struct,
+						new tokens::late_token_refers(p_data->m_type_args.m_log_pos.m_path, v_struct,
 							std::move(p_data->m_type_refers)
 						)
 					);
 				}
 				if( p_data->m_type_extends.size() ) {
+					v_need_late_cats = true;
 					for( entity_info & v_it : p_data->m_type_extends ) {
 						if( var::type_pointer v_type_source = p_data->type_find(v_it) ) {
 							p_data->m_error_count += v_struct->inherit_from(
@@ -203,9 +221,16 @@ export namespace ksi {
 						}
 					}
 					p_data->m_late.m_types.append(
-						new tokens::after_token_extends(v_struct)
+						new tokens::late_token_extends(v_struct)
 					);
-				} // if
+				}
+				if( v_need_late_cats ) {
+					p_data->m_late.m_types.append(
+						new tokens::late_token_type_init_categories(v_struct)
+					);
+				} else {
+					v_struct->init_categories();
+				}
 			} // fn
 		};
 

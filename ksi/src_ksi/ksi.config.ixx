@@ -32,7 +32,11 @@ export namespace ksi {
 			t_integer		m_id_special		= n_id_special;
 			t_integer		m_id_all			= n_id_all;
 			//
-			category		m_cat_any;
+			category		m_cat_simple;
+			category		m_cat_number;
+			category		m_cat_simple_number;
+			category		m_cat_compound;
+			category		m_cat_struct;
 			//
 			type_link		m_link;
 			type_ref		m_ref;
@@ -52,27 +56,35 @@ export namespace ksi {
 			any_var			m_zero_var;
 
 			config() :
-				m_mod_ksi{"@ksi#"_jt},
-				m_mod_hidden{"@hidden#"_jt},
-				m_cat_any	{&m_mod_ksi, m_id_cat_standard, {"_any#"_jt} },
-				m_link		{&m_mod_hidden, m_id_special},
-				m_ref		{&m_mod_hidden, m_id_special},
-				m_null		{&m_mod_ksi, m_id_standard},
-				m_all		{&m_mod_ksi, m_id_all},
-				m_category	{&m_mod_ksi, m_id_standard},
-				m_type		{&m_mod_ksi, m_id_standard},
-				m_bool		{&m_mod_ksi, m_id_standard},
-				m_int		{&m_mod_ksi, m_id_standard},
-				m_float		{&m_mod_ksi, m_id_standard},
-				m_text		{&m_mod_ksi, m_id_standard},
-				m_array		{&m_mod_ksi, m_id_standard},
-				m_map		{&m_mod_ksi, m_id_standard},
-				m_cats{&m_cat_any},
+				m_mod_ksi		{"@ksi#"_jt},
+				m_mod_hidden	{"@hidden#"_jt},
+				m_cat_simple		{&m_mod_ksi, m_id_cat_standard, {"_simple#"_jt} },
+				m_cat_number		{&m_mod_ksi, m_id_cat_standard, {"_number#"_jt} },
+				m_cat_simple_number	{&m_mod_ksi, m_id_cat_standard, {"_simple_number#"_jt} },
+				m_cat_compound		{&m_mod_ksi, m_id_cat_standard, {"_compound#"_jt} },
+				m_cat_struct		{&m_mod_ksi, m_id_cat_standard, {"_struct#"_jt} },
+				m_link			{&m_mod_hidden, m_id_special},
+				m_ref			{&m_mod_hidden, m_id_special},
+				m_null			{&m_mod_ksi, m_id_standard},
+				m_all			{&m_mod_ksi, m_id_all},
+				m_category		{&m_mod_ksi, m_id_standard},
+				m_type			{&m_mod_ksi, m_id_standard},
+				m_bool			{&m_mod_ksi, m_id_standard},
+				m_int			{&m_mod_ksi, m_id_standard},
+				m_float			{&m_mod_ksi, m_id_standard},
+				m_text			{&m_mod_ksi, m_id_standard},
+				m_array			{&m_mod_ksi, m_id_standard},
+				m_map			{&m_mod_ksi, m_id_standard},
+				m_cats{&m_cat_simple, &m_cat_number, &m_cat_simple_number, &m_cat_compound},
 				m_types{&m_null, &m_all, &m_category, &m_type, &m_bool, &m_int, &m_float, &m_text, &m_array, &m_map},
 				m_zero_var(nullptr, &m_null)
 			{
 				m_mod_ksi.m_deleter = &just::closers::simple_none<module_space *>::close;
 				m_mod_hidden.m_deleter = &just::closers::simple_none<module_space *>::close;
+				//
+				m_cat_simple_number.m_includes.add(&m_cat_simple);
+				m_cat_simple_number.m_includes.add(&m_cat_number);
+				m_cat_struct.m_includes.add(&m_cat_compound);
 				//
 				for( category::pointer v_cat : m_cats ) { category_reg(v_cat); }
 				for( type_pointer v_type : m_types ) { type_reg(v_type); }
@@ -90,6 +102,7 @@ export namespace ksi {
 				if( m_init ) { return; }
 				else { m_init = true; }
 				for( type_pointer v_it : m_types ) {
+					v_it->init_categories();
 					v_it->init();
 				}
 				m_link	.init();

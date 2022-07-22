@@ -14,6 +14,22 @@ namespace ksi {
 			m_name_full = just::implode<t_text_value::type>({p_name, m_module->name()});
 		}
 
+		void type_simple::init_categories() {
+			m_categories.add(&g_config->m_cat_simple);
+		}
+
+		void type_simple_number::init_categories() {
+			m_categories.add(&g_config->m_cat_simple_number);
+		}
+
+		void type_compound::init_categories() {
+			m_categories.add(&g_config->m_cat_compound);
+		}
+
+		void type_struct::init_categories() {
+			m_categories.add(&g_config->m_cat_struct);
+		}
+
 		// $null#
 		any::any() : m_type{&g_config->m_null} {}
 

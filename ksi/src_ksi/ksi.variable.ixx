@@ -248,6 +248,7 @@ export namespace ksi {
 			static_data_pointer get_static();
 
 			virtual void				init_target() {}
+			virtual void				init_categories() {}
 			virtual compound_pointer	var_owner(var_const_pointer p_var) = 0;
 			virtual void				var_owner_set(var_pointer p_var, compound_pointer p_owner) = 0;
 			virtual link_pointer		link_make_maybe(var_pointer p_var) = 0;
@@ -314,6 +315,7 @@ export namespace ksi {
 		{
 			using type_base::type_base;
 
+			void init_categories() override;
 			auto var_owner(var_const_pointer p_var) -> compound_pointer override;
 			void var_owner_set(var_pointer p_var, compound_pointer p_owner) override;
 			auto link_make_maybe(var_pointer p_var) -> link_pointer override;
@@ -396,12 +398,20 @@ export namespace ksi {
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 		};
 
-		struct type_int :
+		struct type_simple_number :
 			public type_simple
+		{
+			using type_simple::type_simple;
+
+			void init_categories() override;
+		};
+
+		struct type_int :
+			public type_simple_number
 		{
 			using t_limits = std::numeric_limits<t_integer>;
 
-			type_int(module_pointer p_module, t_integer & p_id) : type_simple{p_module, p_id} {
+			type_int(module_pointer p_module, t_integer & p_id) : type_simple_number{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$int#"_jt);
 			}
@@ -417,7 +427,7 @@ export namespace ksi {
 		};
 
 		struct type_float :
-			public type_simple
+			public type_simple_number
 		{
 			using t_limits = std::numeric_limits<t_floating>;
 
@@ -425,7 +435,7 @@ export namespace ksi {
 			static constexpr t_floating s_infinity_negative	= -t_limits::infinity();
 			static constexpr t_floating s_nan				= t_limits::quiet_NaN();
 
-			type_float(module_pointer p_module, t_integer & p_id) : type_simple{p_module, p_id} {
+			type_float(module_pointer p_module, t_integer & p_id) : type_simple_number{p_module, p_id} {
 				using namespace just::text_literals;
 				name("$float#"_jt);
 			}
@@ -449,6 +459,7 @@ export namespace ksi {
 				m_is_compound = true;
 			}
 
+			void init_categories() override;
 			auto var_owner(var_const_pointer p_var) -> compound_pointer override;
 			void var_owner_set(var_pointer p_var, compound_pointer p_owner) override;
 			auto link_make_maybe(var_pointer p_var) -> link_pointer override;
@@ -723,6 +734,7 @@ export namespace ksi {
 				return v_ret;
 			}
 
+			void init_categories() override;
 			auto element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 			var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;

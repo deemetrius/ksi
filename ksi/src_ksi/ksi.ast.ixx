@@ -164,7 +164,7 @@ export namespace ksi {
 		unknown
 	};
 
-	struct extend_info {
+	struct entity_info {
 		// data
 		position					m_pos;
 		t_text_value				m_name;
@@ -181,7 +181,7 @@ export namespace ksi {
 		using t_ext_modules_list = just::list<module_extension,
 			just::closers::compound_call_deleter<false>::template t_closer
 		>;
-		using t_type_extends = std::vector<extend_info>;
+		using t_entity_items = std::vector<entity_info>;
 
 		// data
 		t_space_pointer				m_space;
@@ -193,8 +193,8 @@ export namespace ksi {
 		module_extension::pointer	m_ext_module_current = nullptr;
 		module_extension::pointer	m_ext_module_global = nullptr;
 		var::creation_args			m_type_args;
-		t_type_extends				m_type_extends;
-		t_type_extends				m_type_refers;
+		t_entity_items				m_type_extends;
+		t_entity_items				m_type_refers;
 		tokens::nest_tokens			m_late;
 
 		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {
@@ -244,7 +244,7 @@ export namespace ksi {
 
 		template <typename T_module>
 		var::category::pointer impl_category_find(
-			const fs::path & p_path, T_module * p_module, const extend_info & p_extend
+			const fs::path & p_path, T_module * p_module, const entity_info & p_extend
 		) {
 			var::category::pointer v_ret = p_module->category_find(p_extend.m_name);
 			if( v_ret == nullptr ) {
@@ -255,7 +255,7 @@ export namespace ksi {
 			return v_ret;
 		}
 
-		var::category::pointer category_find(const fs::path & p_path, const extend_info & p_extend) {
+		var::category::pointer category_find(const fs::path & p_path, const entity_info & p_extend) {
 			module_extension::pointer v_ext_module = nullptr;
 			switch( p_extend.m_module_name.size() ) {
 			case 0:
@@ -283,7 +283,7 @@ export namespace ksi {
 		//
 
 		template <typename T_module>
-		var::type_pointer impl_type_find(T_module * p_module, const extend_info & p_extend) {
+		var::type_pointer impl_type_find(T_module * p_module, const entity_info & p_extend) {
 			var::type_pointer v_ret = p_module->type_find(p_extend.m_name);
 			if( v_ret == nullptr ) {
 				error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
@@ -293,7 +293,7 @@ export namespace ksi {
 			return v_ret;
 		}
 
-		var::type_pointer type_find(const extend_info & p_extend) {
+		var::type_pointer type_find(const entity_info & p_extend) {
 			module_extension::pointer v_ext_module = nullptr;
 			switch( p_extend.m_module_name.size() ) {
 			case 0:

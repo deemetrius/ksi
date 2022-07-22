@@ -54,9 +54,9 @@ export namespace ksi {
 		{
 			// data
 			fs::path		m_path;
-			extend_info		m_extend;
+			entity_info		m_extend;
 
-			token_category_add_base(const fs::path & p_path, const extend_info & p_extend) :
+			token_category_add_base(const fs::path & p_path, const entity_info & p_extend) :
 				m_path(p_path), m_extend{p_extend} {}
 
 			t_text_value name() const override { return "token_category_add_base"_jt; }
@@ -98,6 +98,7 @@ export namespace ksi {
 			void perform(prepare_data::pointer p_data) override {
 				p_data->m_type_args = m_args;
 				p_data->m_type_extends.clear();
+				p_data->m_type_refers.clear();
 			}
 		};
 
@@ -107,12 +108,35 @@ export namespace ksi {
 			t_text_value name() const override { return "token_type_add_category"_jt; }
 
 			// data
-			extend_info		m_refer;
+			entity_info		m_refer;
 
-			token_type_add_category(const extend_info & p_refer) : m_refer{p_refer} {}
+			token_type_add_category(const entity_info & p_refer) : m_refer{p_refer} {}
 
 			void perform(prepare_data::pointer p_data) override {
 				p_data->m_type_refers.push_back(m_refer);
+			}
+		};
+
+		struct after_token_refers :
+			public token_base
+		{
+			t_text_value name() const override { return "after_token_refers"_jt; }
+
+			// data
+			fs::path						m_path;
+			var::type_pointer				m_type;
+			prepare_data::t_entity_items	m_type_refers;
+
+			after_token_refers(const fs::path & p_path, var::type_pointer p_type,
+				prepare_data::t_entity_items && p_type_refers
+			) : m_path{p_path}, m_type{p_type}, m_type_refers{std::move(p_type_refers)} {}
+
+			void perform(prepare_data::pointer p_data) override {
+				for( entity_info & v_it : m_type_refers ) {
+					if( var::category::pointer v_cat = p_data->category_find(m_path, v_it) ) {
+						m_type->m_categories.add(v_cat);
+					}
+				}
 			}
 		};
 
@@ -120,9 +144,9 @@ export namespace ksi {
 			public token_base
 		{
 			// data
-			extend_info		m_extend;
+			entity_info		m_extend;
 
-			token_type_add_base(const extend_info & p_extend) : m_extend{p_extend} {}
+			token_type_add_base(const entity_info & p_extend) : m_extend{p_extend} {}
 
 			t_text_value name() const override { return "token_type_add_base"_jt; }
 
@@ -131,15 +155,15 @@ export namespace ksi {
 			}
 		};
 
-		struct after_token_extend :
+		struct after_token_extends :
 			public token_base
 		{
-			t_text_value name() const override { return "after_token_extend"_jt; }
+			t_text_value name() const override { return "after_token_extends"_jt; }
 
 			// data
 			var::extender::pointer	m_type;
 
-			after_token_extend(var::extender::pointer p_type) : m_type(p_type) {}
+			after_token_extends(var::extender::pointer p_type) : m_type(p_type) {}
 
 			void perform(prepare_data::pointer p_data) override {
 				var::type_pointer v_type = m_type->type();
@@ -163,8 +187,15 @@ export namespace ksi {
 				}
 				var::type_struct_pointer v_struct = p_data->m_ext_module_current->struct_last();
 				v_struct->init_base();
+				if( p_data->m_type_refers.size() ) {
+					p_data->m_late.m_types.append(
+						new tokens::after_token_refers(p_data->m_type_args.m_log_pos.m_path, v_struct,
+							std::move(p_data->m_type_refers)
+						)
+					);
+				}
 				if( p_data->m_type_extends.size() ) {
-					for( extend_info & v_it : p_data->m_type_extends ) {
+					for( entity_info & v_it : p_data->m_type_extends ) {
 						if( var::type_pointer v_type_source = p_data->type_find(v_it) ) {
 							p_data->m_error_count += v_struct->inherit_from(
 								{p_data->m_type_args.m_log_pos.m_path, v_it.m_pos}, v_type_source, p_data->m_log
@@ -172,7 +203,7 @@ export namespace ksi {
 						}
 					}
 					p_data->m_late.m_types.append(
-						new tokens::after_token_extend(v_struct)
+						new tokens::after_token_extends(v_struct)
 					);
 				} // if
 			} // fn

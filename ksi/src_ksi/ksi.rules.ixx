@@ -477,7 +477,7 @@ export namespace ksi {
 				struct t_data
 				{
 					// data
-					extend_info		m_extend;
+					entity_info		m_extend;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 						bool ret = traits::take_name_with_prefix(p_state, '_', m_extend.m_name, m_extend.m_pos);
@@ -580,7 +580,7 @@ export namespace ksi {
 				struct t_data
 				{
 					// data
-					extend_info		m_extend;
+					entity_info		m_extend;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 						bool ret = traits::take_name_with_prefix(p_state, '$', m_extend.m_name, m_extend.m_pos);

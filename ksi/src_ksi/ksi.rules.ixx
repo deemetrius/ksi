@@ -70,8 +70,9 @@ export namespace ksi {
 
 		enum flags : flags_raw {
 			flag_allow_plain	= 1 << 0,
-			flag_was_extends	= 1 << 1,
-			flag_was_colon		= 1 << 2,
+			flag_was_refers		= 1 << 1,
+			flag_was_extends	= 1 << 2,
+			flag_was_colon		= 1 << 3,
 		};
 
 		//
@@ -104,6 +105,7 @@ export namespace ksi {
 			position pos() const { return m_line.pos(m_text_pos); }
 
 			bool flag_check(flags_raw p_flag) { return (m_flags & p_flag) == p_flag; }
+			bool flag_check_any(flags_raw p_flag) { return m_flags & p_flag; }
 			void flag_set(flags_raw p_flag) { m_flags |= p_flag; }
 			void flag_unset(flags_raw p_flag) { m_flags &= ~p_flag; }
 
@@ -529,6 +531,82 @@ export namespace ksi {
 				};
 			};
 
+			// refers
+
+			struct t_kw_refers {
+				static constexpr kind s_kind{ kind::special };
+				static t_text_value name() { return "t_kw_refers"_jt; }
+				static bool check(state & p_state) { return ! p_state.flag_check_any(flag_was_refers | flag_was_extends); }
+
+				struct t_data :
+					public is_keyword<"refers">
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_state.flag_set(flag_was_refers);
+						p_state.m_fn_parse = &rule_refers_open::parse;
+					}
+				};
+			};
+
+			struct t_refers_open {
+				static constexpr kind s_kind{ kind::start };
+				static t_text_value name() { return "t_refers_open"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data :
+					public is_char<'('>
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_state.m_fn_parse = &rule_refers_inside::parse;
+					}
+				};
+			};
+
+			struct t_refers_close {
+				static constexpr kind s_kind{ kind::special };
+				static t_text_value name() { return "t_refers_close"_jt; }
+				static bool check(state & p_state) { return p_state.m_kind != kind::start; }
+
+				struct t_data :
+					public is_char<')'>
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_state.m_fn_parse = &rule_type_kind::parse;
+					}
+				};
+			};
+
+			struct t_refers_category_name {
+				static constexpr kind s_kind{ kind::special };
+				static t_text_value name() { return "t_refers_category_name"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data
+				{
+					// data
+					entity_info		m_entity;
+
+					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						bool ret = traits::take_name_with_prefix(p_state, '_', m_entity.m_name, m_entity.m_pos);
+						if( ret ) {
+							position v_pos;
+							if( traits::take_name_with_prefix(p_state, '@', m_entity.m_module_name, v_pos) ) {}
+							else if( *p_state.m_text_pos == '@' ) {
+								++p_state.m_text_pos;
+								m_entity.m_module_name = "@"_jt;
+							}
+						}
+						return ret;
+					}
+
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_tokens.m_types.append( new tokens::token_type_add_category(m_entity) );
+					}
+				};
+			};
+
+			// extends
+
 			struct t_kw_extends {
 				static constexpr kind s_kind{ kind::special };
 				static t_text_value name() { return "t_kw_extends"_jt; }
@@ -553,7 +631,7 @@ export namespace ksi {
 					public is_char<'('>
 				{
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						p_state.m_fn_parse = &rule_extends_type::parse;
+						p_state.m_fn_parse = &rule_extends_inside::parse;
 					}
 				};
 			};
@@ -580,26 +658,28 @@ export namespace ksi {
 				struct t_data
 				{
 					// data
-					entity_info		m_extend;
+					entity_info		m_entity;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						bool ret = traits::take_name_with_prefix(p_state, '$', m_extend.m_name, m_extend.m_pos);
+						bool ret = traits::take_name_with_prefix(p_state, '$', m_entity.m_name, m_entity.m_pos);
 						if( ret ) {
 							position v_pos;
-							if( traits::take_name_with_prefix(p_state, '@', m_extend.m_module_name, v_pos) ) {}
+							if( traits::take_name_with_prefix(p_state, '@', m_entity.m_module_name, v_pos) ) {}
 							else if( *p_state.m_text_pos == '@' ) {
 								++p_state.m_text_pos;
-								m_extend.m_module_name = "@"_jt;
+								m_entity.m_module_name = "@"_jt;
 							}
 						}
 						return ret;
 					}
 
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						p_tokens.m_types.append( new tokens::token_type_add_base(m_extend) );
+						p_tokens.m_types.append( new tokens::token_type_add_base(m_entity) );
 					}
 				};
 			};
+
+			// struct
 
 			struct t_kw_struct {
 				static constexpr kind s_kind{ kind::special };
@@ -625,7 +705,7 @@ export namespace ksi {
 					public is_char<'('>
 				{
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						p_state.m_fn_parse = &rule_struct_prop::parse;
+						p_state.m_fn_parse = &rule_struct_inside::parse;
 					}
 				};
 			};
@@ -641,7 +721,7 @@ export namespace ksi {
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 						p_tokens.m_types.append( new tokens::token_struct_end() );
 						p_state.m_fn_parse = &rule_decl::parse;
-						p_state.flag_unset(flag_was_extends);
+						p_state.flag_unset(flag_was_refers | flag_was_extends);
 					}
 				};
 			};
@@ -650,7 +730,6 @@ export namespace ksi {
 				static constexpr kind s_kind{ kind::special };
 				static t_text_value name() { return "t_struct_prop_name"_jt; }
 				static bool check(state & p_state) {
-					//return just::is_one_of(p_state.m_kind, kind::start, kind::special, kind::n_literal, kind::separator);
 					return p_state.m_kind != kind::n_operator;
 				}
 
@@ -714,6 +793,20 @@ export namespace ksi {
 				};
 			};
 
+			struct t_literal_all {
+				static constexpr kind s_kind{ kind::n_literal };
+				static t_text_value name() { return "t_literal_all"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data :
+					public is_keyword<"all">
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						if( p_state.m_nest != nest::declarative ) { p_tokens.put_literal(var::variant_all{}); }
+					}
+				};
+			};
+
 			struct t_literal_false {
 				static constexpr kind s_kind{ kind::n_literal };
 				static t_text_value name() { return "t_literal_false"_jt; }
@@ -743,7 +836,12 @@ export namespace ksi {
 			};
 
 			struct rule_literal :
-				public rule_alt<false, t_literal_null, t_literal_false, t_literal_true>
+				public rule_alt<false,
+					t_literal_null,
+					t_literal_all,
+					t_literal_false,
+					t_literal_true
+				>
 			{
 				static constexpr kind s_kind{ kind::keep };
 				static t_text_value name() { return "rule_literal"_jt; }
@@ -756,38 +854,36 @@ export namespace ksi {
 			//
 
 			struct rule_module_name :
-				public rule_alt<true, t_space, t_module_name>
-			{};
+				public rule_alt<true, t_space, t_module_name> {};
 
 			struct rule_decl :
-				public rule_alt<true, t_space, t_eof, t_category_def_name, t_type_def_name>
-			{};
+				public rule_alt<true, t_space, t_eof, t_category_def_name, t_type_def_name> {};
 
 			struct rule_category_open :
-				public rule_alt<true, t_space, t_category_open>
-			{};
+				public rule_alt<true, t_space, t_category_open> {};
 
 			struct rule_category_includes :
-				public rule_alt<true, t_space, t_category_close, t_category_includes_name>
-			{};
+				public rule_alt<true, t_space, t_category_close, t_category_includes_name> {};
 
 			struct rule_type_kind :
-				public rule_alt<true, t_space, t_kw_extends, t_kw_struct>
-			{};
+				public rule_alt<true, t_space, t_kw_refers, t_kw_extends, t_kw_struct> {};
+
+			struct rule_refers_open :
+				public rule_alt<true, t_space, t_refers_open> {};
+
+			struct rule_refers_inside :
+				public rule_alt<true, t_space, t_refers_close, t_refers_category_name> {};
 
 			struct rule_extends_open :
-				public rule_alt<true, t_space, t_extends_open>
-			{};
+				public rule_alt<true, t_space, t_extends_open> {};
 
-			struct rule_extends_type :
-				public rule_alt<true, t_space, t_extends_close, t_extends_type_name>
-			{};
+			struct rule_extends_inside :
+				public rule_alt<true, t_space, t_extends_close, t_extends_type_name> {};
 
 			struct rule_struct_open :
-				public rule_alt<true, t_space, t_struct_open>
-			{};
+				public rule_alt<true, t_space, t_struct_open> {};
 
-			struct rule_struct_prop :
+			struct rule_struct_inside :
 				public rule_alt<true, t_space,
 					t_struct_close,
 					t_struct_prop_name,

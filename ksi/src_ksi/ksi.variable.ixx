@@ -100,11 +100,9 @@ export namespace ksi {
 				if( !v_res.second ) { return false; }
 				m_indirect.remove(p_item);
 				for( t_node_pointer v_it : p_item->m_includes.m_direct ) {
-					//m_indirect.maybe_emplace(v_it->m_value, v_it->m_value);
 					add_indirect(v_it->m_value);
 				}
 				for( t_node_pointer v_it : p_item->m_includes.m_indirect ) {
-					//m_indirect.maybe_emplace(v_it->m_value, v_it->m_value);
 					add_indirect(v_it->m_value);
 				}
 				return true;

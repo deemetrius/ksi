@@ -4,7 +4,7 @@
 _range ( )
 
 $range
--- refers ( _range )
+refers ( _range )
 struct ( from, to = true )
 
 $range_step

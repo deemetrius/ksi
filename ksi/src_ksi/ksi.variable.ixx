@@ -919,7 +919,6 @@ export namespace ksi {
 			static_data_pointer v_static = get_static();
 			v_static->m_struct_consts.prop_add("min#"_jt, t_limits::min() );
 			v_static->m_struct_consts.prop_add("max#"_jt, t_limits::max() );
-			v_static->init();
 		}
 
 		void type_float::init_target() {
@@ -931,7 +930,6 @@ export namespace ksi {
 			v_static->m_struct_consts.prop_add("infinity_negative#"_jt,	-t_limits::infinity() );
 			v_static->m_struct_consts.prop_add("nan#"_jt,				t_limits::quiet_NaN() );
 			v_static->m_struct_consts.prop_add("epsilon#"_jt,			t_limits::epsilon() );
-			v_static->init();
 		}
 
 		// element()

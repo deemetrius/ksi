@@ -186,7 +186,7 @@ export namespace ksi {
 					p_data->error(p_data->m_type_args.m_log_pos.message(v_message) );
 				}
 				var::type_struct_pointer v_struct = p_data->m_ext_module_current->struct_last();
-				v_struct->init_base();
+				v_struct->init_start();
 				if( p_data->m_type_refers.size() ) {
 					p_data->m_late.m_types.append(
 						new tokens::after_token_refers(p_data->m_type_args.m_log_pos.m_path, v_struct,
@@ -215,7 +215,7 @@ export namespace ksi {
 			t_text_value name() const override { return "token_struct_end"_jt; }
 
 			void perform(prepare_data::pointer p_data) override {
-				p_data->m_ext_module_current->struct_last()->m_static->init();
+				p_data->m_ext_module_current->struct_last()->init_end();
 			}
 		};
 

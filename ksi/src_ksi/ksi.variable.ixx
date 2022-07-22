@@ -238,13 +238,16 @@ export namespace ksi {
 			category::t_includes	m_categories;
 			t_static				m_static;
 
-			void init_base();
+			void init_start();
+			void init_end() { m_static->init(); }
 			void init() {
-				init_base();
-				m_static->init();
+				init_start();
+				init_target();
+				init_end();
 			}
 			static_data_pointer get_static();
 
+			virtual void				init_target() {}
 			virtual compound_pointer	var_owner(var_const_pointer p_var) = 0;
 			virtual void				var_owner_set(var_pointer p_var, compound_pointer p_owner) = 0;
 			virtual link_pointer		link_make_maybe(var_pointer p_var) = 0;
@@ -403,7 +406,7 @@ export namespace ksi {
 				name("$int#"_jt);
 			}
 
-			void init();
+			void init_target() override;
 			bool write(
 				output_pointer p_out,
 				any_const_pointer p_any,
@@ -427,7 +430,7 @@ export namespace ksi {
 				name("$float#"_jt);
 			}
 
-			void init();
+			void init_target() override;
 			bool write(
 				output_pointer p_out,
 				any_const_pointer p_any,
@@ -903,7 +906,7 @@ export namespace ksi {
 
 		// init()
 
-		inline void type_base::init_base() {
+		inline void type_base::init_start() {
 			m_static = std::make_unique<static_data>(m_name, m_id);
 		}
 
@@ -911,18 +914,16 @@ export namespace ksi {
 			return static_cast<static_data_pointer>(m_static.get() );
 		}
 
-		void type_int::init() {
+		void type_int::init_target() {
 			using namespace just::text_literals;
-			init_base();
 			static_data_pointer v_static = get_static();
 			v_static->m_struct_consts.prop_add("min#"_jt, t_limits::min() );
 			v_static->m_struct_consts.prop_add("max#"_jt, t_limits::max() );
 			v_static->init();
 		}
 
-		void type_float::init() {
+		void type_float::init_target() {
 			using namespace just::text_literals;
-			init_base();
 			static_data_pointer v_static = get_static();
 			v_static->m_struct_consts.prop_add("min#"_jt,				t_limits::min() );
 			v_static->m_struct_consts.prop_add("max#"_jt,				t_limits::max() );

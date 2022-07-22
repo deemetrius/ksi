@@ -155,9 +155,16 @@ export namespace just {
 		// data
 		t_node	m_zero;
 		
+		list() = default;
 		~list() requires(s_need_close) {
 			clear();
 		}
+
+		// no no
+		list(const list &) = delete;
+		list(list &&) = delete;
+		list & operator = (const list &) = delete;
+		list & operator = (list &&) = delete;
 
 		void clear() {
 			if constexpr( s_need_close ) {

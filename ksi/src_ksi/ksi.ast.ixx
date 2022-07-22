@@ -117,7 +117,7 @@ export namespace ksi {
 				m_types = m_module->m_types;
 			}
 			for( typename t_types_used::t_info && v_it : m_module->m_types_used ) {
-				m_types_used.maybe_emplace(v_it.m_key, *v_it.m_value);
+				m_types_used.maybe_emplace(v_it.key(), *v_it.m_value);
 			}
 		}
 

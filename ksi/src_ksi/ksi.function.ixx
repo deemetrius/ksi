@@ -12,9 +12,23 @@ export import ksi.var;
 
 export namespace ksi {
 	
+	using namespace just::text_literals;
+
 	struct space;
-	struct context {};
-	struct call_stack {};
+	struct function_body_base;
+
+	using function_body_base_pointer = function_body_base *;
+
+	struct call_space {
+		using t_args = std::vector<var::any_var>;
+
+		// data
+		t_args	m_args;
+		t_args	m_vars;
+
+		call_space(function_body_base_pointer v_body);
+	};
+
 	struct stack {
 		using t_items = just::array_alias<var::any_var, just::capacity_step<16, 16> >;
 
@@ -85,6 +99,8 @@ export namespace ksi {
 		}
 	};
 
+	//
+
 	struct instr_data {
 		using const_reference = const instr_data &;
 
@@ -96,18 +112,19 @@ export namespace ksi {
 	};
 
 	struct instr_type {
-		static void do_nothing(space * p_space, call_stack * p_call, stack * p_stack,
+		static void do_nothing(space * p_space, call_space * p_call, stack * p_stack,
 			log_base::pointer p_log, instr_data::const_reference p_data
 		) {}
 
 		using t_fn = decltype(&do_nothing);
-		using t_text = const just::text::t_impl_base *;
+		using t_text = const t_text_value::t_impl_base *;
 		using const_pointer = const instr_type *;
 
 		// data
 		t_text	m_name;
 		t_fn	m_fn;
-		bool	m_nothing = false;
+
+		bool empty() const { return m_fn == &do_nothing; }
 	};
 
 	struct instr {
@@ -123,12 +140,49 @@ export namespace ksi {
 		t_instructions	m_instructions;
 	};
 
-	struct function_body {
+	//
+
+	struct function_body_base {
+		using t_args = just::hive<t_text_value, std::monostate, just::text_less>;
+
+		// data
+		module_base::pointer	m_module;
+		t_args					m_args;
+		t_args					m_vars;
+
+		function_body_base() {
+			m_vars.maybe_emplace("ret"_jt);
+		}
+	};
+
+	struct function_body :
+		public function_body_base,
+		public just::node_list<function_body>,
+		public just::bases::with_deleter<function_body *>
+	{
+		using pointer = function_body *;
 		using t_groups = std::vector<instr_group>;
 
 		// data
-		fs::path	m_path;
+		log_pos		m_log_pos;
 		t_groups	m_groups;
 	};
+
+	struct function {
+		using t_over_type = std::map<var::type_pointer, function_body::pointer, std::ranges::less>;
+		using t_over_category = std::map<var::category::pointer, function_body::pointer, std::ranges::less>;
+
+		// data
+		function_body::pointer	m_common = nullptr;
+		t_over_type				m_by_type;
+		t_over_category			m_by_category;
+	};
+
+	//
+
+	call_space::call_space(function_body_base_pointer v_body) :
+		m_args{v_body->m_args.count()},
+		m_vars{v_body->m_vars.count()}
+	{}
 
 } // ns

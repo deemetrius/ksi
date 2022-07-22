@@ -34,9 +34,12 @@ export namespace just {
 
 		struct t_info {
 			// data
-			t_index				m_index;
-			t_key				m_key;
-			t_value_pointer		m_value;
+			t_index				m_index = 0;
+			t_map_iterator		m_map_iterator;
+			//t_key				m_key;
+			t_value_pointer		m_value = nullptr;
+
+			const t_key & key() const { return (*m_map_iterator).first; }
 		};
 
 		struct t_find_result : public t_info {
@@ -69,7 +72,7 @@ export namespace just {
 
 			t_info operator * () const {
 				t_index v_index = (*m_map_iterator).second;
-				return {v_index, (*m_map_iterator).first, m_vector->data() + v_index};
+				return {v_index, m_map_iterator, m_vector->data() + v_index};
 			}
 		};
 
@@ -97,7 +100,7 @@ export namespace just {
 			}
 
 			t_info operator * () const {
-				return {m_index, (*m_hive->m_keys[m_index]).first, m_hive->m_vector.data() + m_index};
+				return {m_index, m_hive->m_keys[m_index], m_hive->m_vector.data() + m_index};
 			}
 		};
 
@@ -115,23 +118,23 @@ export namespace just {
 		}
 
 		t_find_result find(const t_key & p_key) {
-			t_map_iterator res = m_map.find(p_key);
-			return res == m_map.end() ? t_find_result{} :
-				t_find_result{(*res).second, (*res).first, m_vector.data() + (*res).second, true}
-			;
+			t_map_iterator v_it = m_map.find(p_key);
+			if( v_it == m_map.end() ) { return {}; }
+			t_index v_index = (*v_it).second;
+			return {v_index, v_it, m_vector.data() + v_index, true};
 		}
 
 		template <typename ... T_args>
 		t_find_result maybe_emplace(const t_key & p_key, T_args && ... p_args) {
-			t_index v_position = m_vector.size();
-			t_map_insert_result res = m_map.insert({p_key, v_position});
-			if( res.second ) {
+			t_index v_index = m_vector.size();
+			t_map_insert_result v_res = m_map.insert({p_key, v_index});
+			if( v_res.second ) {
 				array_append(m_vector, std::forward<T_args>(p_args) ...);
-				m_keys.push_back(res.first);
+				m_keys.push_back(v_res.first);
 			} else {
-				v_position = (*res.first).second;
+				v_index = (*v_res.first).second;
 			}
-			return {v_position, (*res.first).first, m_vector.data() + v_position, res.second};
+			return {v_index, v_res.first, m_vector.data() + v_index, v_res.second};
 		}
 
 		void clear() {

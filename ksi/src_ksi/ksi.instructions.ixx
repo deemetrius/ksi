@@ -12,7 +12,7 @@ export namespace ksi {
 
 	struct instructions {
 		static constexpr instr_type
-			s_do_nothing{"do_nothing"_jt, &instr_type::do_nothing, true}
+			s_do_nothing{"do_nothing"_jt, &instr_type::do_nothing}
 		;
 	};
 

@@ -714,11 +714,11 @@ export namespace ksi {
 				m_bases.maybe_emplace(p_type_source, v_type_source);
 				t_index v_ret = 0;
 				for( typename t_props::t_info && v_it : v_type_source->m_props ) {
-					if( ! prop_add(v_it.m_key, v_it.m_value->m_value, p_type_source) ) {
-						typename t_props::t_find_result v_res = m_props.find(v_it.m_key);
+					if( ! prop_add(v_it.key(), v_it.m_value->m_value, p_type_source) ) {
+						typename t_props::t_find_result v_res = m_props.find(v_it.key() );
 						type_pointer v_type = v_res.m_value->m_type_source;
 						p_log->add(p_log_pos.message(just::implode<t_text_value::type>({
-							"deduce error: Property \"", v_it.m_key, "\" defined in type \"", p_type_source->m_name_full,
+							"deduce error: Property \"", v_it.key(), "\" defined in type \"", p_type_source->m_name_full,
 							"\" is already inherited from type: ",
 							v_type->m_name_full
 						}) ) );
@@ -870,11 +870,7 @@ export namespace ksi {
 			any_var					m_count;
 
 			compound_struct(type_struct_pointer p_type) : m_type{p_type} {
-				t_integer v_count = 0;
-				if( p_type->m_is_struct ) {
-					type_struct_pointer v_type_struct = static_cast<type_struct_pointer>(p_type);
-					v_count = v_type_struct->props_count();
-				}
+				t_integer v_count = p_type->props_count();
 				if( v_count ) {
 					{
 						t_items v_items(v_count);

@@ -707,6 +707,12 @@ export namespace ksi {
 					) ) );
 					return 1;
 				}
+				if( p_type_source == this ) {
+					p_log->add(p_log_pos.message(just::implode<t_text_value::type>(
+						{"deduce error: Struct type can not extend itself: ", p_type_source->m_name_full}
+					) ) );
+					return 1;
+				}
 				if( m_bases.find(p_type_source) ) {
 					p_log->add(p_log_pos.message(just::implode<t_text_value::type>(
 						{"deduce error: Base type in extends is listed more than once: ", p_type_source->m_name_full}

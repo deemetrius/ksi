@@ -242,9 +242,9 @@ export namespace ksi {
 
 		//
 
-		template <typename T_module>
+		//template <typename T_module>
 		var::category::pointer impl_category_find(
-			const fs::path & p_path, T_module * p_module, const entity_info & p_extend
+			const fs::path & p_path, /* T_module * */ module_base::pointer p_module, const entity_info & p_extend
 		) {
 			var::category::pointer v_ret = p_module->category_find(p_extend.m_name);
 			if( v_ret == nullptr ) {
@@ -282,8 +282,8 @@ export namespace ksi {
 
 		//
 
-		template <typename T_module>
-		var::type_pointer impl_type_find(T_module * p_module, const entity_info & p_extend) {
+		//template <typename T_module>
+		var::type_pointer impl_type_find(/* T_module * */ module_base::pointer p_module, const entity_info & p_extend) {
 			var::type_pointer v_ret = p_module->type_find(p_extend.m_name);
 			if( v_ret == nullptr ) {
 				error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(

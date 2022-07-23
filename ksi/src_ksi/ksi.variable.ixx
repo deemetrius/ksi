@@ -30,8 +30,11 @@ export namespace ksi {
 
 	constexpr t_int_ptr n_tab_size = 4;
 
-	struct module_base;
-	using module_pointer = module_base *;
+	struct is_module {
+		virtual t_text_value name() const = 0;
+	};
+	
+	using module_pointer = is_module *;
 
 	namespace var {
 

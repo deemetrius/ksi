@@ -91,11 +91,11 @@ export namespace ksi {
 			}
 
 			static void category_reg(category::pointer p_cat) {
-				p_cat->m_is_added = p_cat->m_module->category_reg(p_cat);
+				p_cat->m_is_added = module_base::cast(p_cat->m_module)->category_reg(p_cat);
 			}
 
 			static void type_reg(type_pointer p_type) {
-				p_type->m_is_added = p_type->m_module->type_reg(p_type);
+				p_type->m_is_added = module_base::cast(p_type->m_module)->type_reg(p_type);
 			}
 
 			void init() {

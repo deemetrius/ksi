@@ -210,6 +210,7 @@ export namespace ksi {
 		var::creation_args			m_type_args;
 		t_entity_items				m_type_extends;
 		t_entity_items				m_type_refers;
+		log_pos						m_fn_log_pos;
 		tokens::nest_tokens			m_late;
 
 		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {

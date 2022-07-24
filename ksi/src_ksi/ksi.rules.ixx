@@ -414,6 +414,8 @@ export namespace ksi {
 				};
 			};
 
+			// category
+
 			struct t_category_def_name {
 				static constexpr kind s_kind{ kind::special };
 				static t_text_value name() { return "t_category_def_name"_jt; }
@@ -452,7 +454,7 @@ export namespace ksi {
 					public is_char<'('>
 				{
 					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						p_state.m_fn_parse = &rule_category_includes::parse;
+						p_state.m_fn_parse = &rule_category_inside::parse;
 					}
 				};
 			};
@@ -500,7 +502,7 @@ export namespace ksi {
 				};
 			};
 
-			//
+			// type
 
 			struct t_type_def_name {
 				static constexpr kind s_kind{ kind::special };
@@ -777,7 +779,66 @@ export namespace ksi {
 				};
 			};
 
-			//
+			// function
+
+			struct t_function_def_name {
+				static constexpr kind s_kind{ kind::special };
+				static t_text_value name() { return "t_function_def_name"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data {
+					// data
+					t_text_value	m_name;
+					position		m_pos;
+					bool			m_is_local = false;
+
+					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						bool ret = traits::take_name_with_prefix(p_state, '&', m_name, m_pos);
+						if( ret && *p_state.m_text_pos == '@' ) {
+							++p_state.m_text_pos;
+							m_is_local = true;
+						}
+						return ret;
+					}
+
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_tokens.m_functions.append(
+							new tokens::token_function_add({m_name, m_is_local, {p_state.m_path, m_pos}})
+						);
+						p_state.m_fn_parse = &rule_function_open::parse;
+					}
+				};
+			};
+
+			struct t_function_open {
+				static constexpr kind s_kind{ kind::start };
+				static t_text_value name() { return "t_function_open"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data :
+					public is_char<'('>
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_state.m_fn_parse = &rule_function_inside::parse;
+					}
+				};
+			};
+
+			struct t_function_close {
+				static constexpr kind s_kind{ kind::special };
+				static t_text_value name() { return "t_function_close"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data :
+					public is_char<')'>
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						p_state.m_fn_parse = &rule_decl::parse;
+					}
+				};
+			};
+
+			// literal
 
 			struct t_literal_null {
 				static constexpr kind s_kind{ kind::n_literal };
@@ -857,12 +918,17 @@ export namespace ksi {
 				public rule_alt<true, t_space, t_module_name> {};
 
 			struct rule_decl :
-				public rule_alt<true, t_space, t_eof, t_category_def_name, t_type_def_name> {};
+				public rule_alt<true, t_space, t_eof,
+					t_category_def_name,
+					t_type_def_name,
+					t_function_def_name
+				>
+			{};
 
 			struct rule_category_open :
 				public rule_alt<true, t_space, t_category_open> {};
 
-			struct rule_category_includes :
+			struct rule_category_inside :
 				public rule_alt<true, t_space, t_category_close, t_category_includes_name> {};
 
 			struct rule_type_kind :
@@ -892,6 +958,12 @@ export namespace ksi {
 					t_struct_prop_separator
 				>
 			{};
+
+			struct rule_function_open :
+				public rule_alt<true, t_space, t_function_open> {};
+
+			struct rule_function_inside :
+				public rule_alt<true, t_space, t_function_close> {};
 
 		};
 

@@ -10,3 +10,5 @@ struct ( from, to = true )
 $range_step
 extends ( $range )
 struct ( step )
+
+&contains ( )

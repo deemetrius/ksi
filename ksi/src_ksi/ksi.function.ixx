@@ -15,22 +15,20 @@ export namespace ksi {
 	using namespace just::text_literals;
 
 	struct space;
-	//struct module_base;
-	struct function_body_base;
+	struct function_body;
 
-	//using module_base_pointer = module_base *;
-	using function_body_base_pointer = function_body_base *;
+	using function_body_pointer = function_body *;
 
 	struct call_space {
 		using pointer = call_space *;
 		using t_args = std::vector<var::any_var>;
 
 		// data
-		function_body_base_pointer	m_body;
-		t_args						m_args;
-		t_args						m_vars;
+		function_body_pointer	m_body;
+		t_args					m_args;
+		t_args					m_vars;
 
-		call_space(function_body_base_pointer p_body);
+		call_space(function_body_pointer p_body);
 	};
 
 	struct stack {
@@ -104,7 +102,8 @@ export namespace ksi {
 
 	//
 
-	struct function_body_base {
+	struct function_body {
+		using pointer = function_body *;
 		using t_args = just::hive<t_text_value, std::monostate, just::text_less>;
 
 		// data
@@ -112,22 +111,26 @@ export namespace ksi {
 		t_args			m_args;
 		t_args			m_vars;
 
-		function_body_base(module_pointer p_module) : m_module{p_module} {
+		function_body(module_pointer p_module) : m_module{p_module} {
 			m_vars.maybe_emplace("ret"_jt);
 		}
 	};
 
-	struct function_body :
-		public function_body_base,
-		public just::node_list<function_body>,
-		public just::bases::with_deleter<function_body *>
+	struct function_body_user :
+		public function_body,
+		public just::node_list<function_body_user>,
+		public just::bases::with_deleter<function_body_user *>
 	{
-		using pointer = function_body *;
+		using pointer = function_body_user *;
 		using t_groups = std::vector<instr_group>;
 
 		// data
 		log_pos		m_log_pos;
 		t_groups	m_groups;
+
+		function_body_user(module_pointer p_module, const log_pos & p_log_pos) :
+			function_body{p_module}, m_log_pos{p_log_pos}
+		{}
 	};
 
 	struct function :
@@ -140,16 +143,16 @@ export namespace ksi {
 		using t_over_category = std::map<var::category::pointer, function_body::pointer, std::ranges::less>;
 
 		// data
-		function_body::pointer	m_common = nullptr;
-		t_over_type				m_by_type;
-		t_over_category			m_by_category;
+		function_body::pointer		m_common = nullptr;
+		t_over_type					m_by_type;
+		t_over_category				m_by_category;
 
 		function(module_pointer	p_module, const t_text_value & p_name) : with_name{p_module} { name(p_name); }
 	};
 
 	//
 
-	call_space::call_space(function_body_base_pointer p_body) :
+	call_space::call_space(function_body_pointer p_body) :
 		m_body{p_body},
 		m_args{p_body->m_args.count()},
 		m_vars{p_body->m_vars.count()}

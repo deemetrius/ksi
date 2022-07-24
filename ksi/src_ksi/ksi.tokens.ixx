@@ -279,6 +279,23 @@ export namespace ksi {
 
 		//
 
+		struct token_function_add :
+			public token_base
+		{
+			t_text_value name() const override { return "token_function_add"_jt; }
+
+			// data
+			var::creation_args	m_args;
+
+			token_function_add(const var::creation_args & p_args) : m_args{p_args} {}
+
+			void perform(prepare_data::pointer p_data) override {
+				p_data->function_add(m_args);
+			}
+		};
+
+		//
+
 		void nest_tokens::put_literal_prop_default(nest_tokens::pointer p_nest, const var::any_var & p_value) {
 			token_struct_prop_name::pointer v_prop_token = static_cast<token_struct_prop_name::pointer>(
 				p_nest->m_types.m_zero.m_prev

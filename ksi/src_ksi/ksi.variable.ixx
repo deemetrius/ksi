@@ -137,22 +137,28 @@ export namespace ksi {
 			log_pos			m_log_pos;
 		};
 
-		struct type_data {
+		struct with_name {
 			// data
 			module_pointer	m_module;
+			bool			m_is_added = false;
+			t_text_value	m_name;
+			t_text_value	m_name_full;
+
+			void name(const t_text_value & p_name);
+		};
+
+		struct type_data :
+			public with_name
+		{
+			// data
 			t_integer		m_id;
 			log_pos			m_log_pos;
 			bool			m_is_local		= false;
 			bool			m_is_global		= false;
-			bool			m_is_added		= false;
-			t_text_value	m_name;
-			t_text_value	m_name_full;
 
-			type_data(module_pointer p_module, t_integer & p_id) : m_module{p_module}, m_id{p_id} {
+			type_data(module_pointer p_module, t_integer & p_id) : with_name{p_module}, m_id{p_id} {
 				++p_id;
 			}
-
-			void name(const t_text_value & p_name);
 
 			void args_set(const creation_args & p_args) {
 				m_is_local = p_args.m_is_local;

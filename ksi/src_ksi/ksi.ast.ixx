@@ -105,30 +105,33 @@ export namespace ksi {
 		module_space::pointer	m_module;
 
 		module_extension(module_space::pointer p_module) : m_module{p_module} {
-			init<true>();
+			init();
 		}
 
 		t_text_value name() const override { return m_module->m_name; }
 
-		template <bool C_types>
+		//template <bool C_types>
 		void init() {
-			if constexpr( C_types ) {
+			//if constexpr( C_types ) {
 				m_cats_map = m_module->m_cats_map;
 				m_types = m_module->m_types;
-			}
-			for( typename t_types_used::t_info && v_it : m_module->m_types_used ) {
+				m_functions_map = m_module->m_functions_map;
+			//}
+			/*for( typename t_types_used::t_info && v_it : m_module->m_types_used ) {
 				m_types_used.maybe_emplace(v_it.key(), *v_it.m_value);
-			}
+			}*/
 		}
 
 		void apply() {
 			m_module->m_cats_map = m_cats_map;
 			m_module->m_types = m_types;
-			std::ranges::swap(m_types_used, m_module->m_types_used);
-			m_types_used.clear();
-			init<false>();
+			m_module->m_functions_map = m_functions_map;
+			//std::ranges::swap(m_types_used, m_module->m_types_used);
+			//m_types_used.clear();
+			//init<false>();
 			m_module->m_cats_list.splice(m_cats_list);
 			m_module->m_structs.splice(m_structs);
+			m_module->m_functions_list.splice(m_functions_list);
 		}
 
 		//
@@ -153,6 +156,18 @@ export namespace ksi {
 
 		var::type_struct_pointer struct_last() {
 			return m_structs.m_zero.node_empty() ? nullptr : m_structs.m_zero.m_prev->node_target();
+		}
+
+		//
+
+		bool function_add(const var::creation_args & p_args) {
+			function::pointer v_fn = new function(m_module, p_args.m_name);
+			m_functions_list.append(v_fn);
+			return v_fn->m_is_added = function_reg(v_fn);
+		}
+
+		function::pointer function_last() {
+			return m_functions_list.m_zero.node_empty() ? nullptr : m_functions_list.m_zero.m_prev->node_target();
 		}
 	};
 
@@ -240,11 +255,18 @@ export namespace ksi {
 			return ret;
 		}
 
+		bool function_add(const var::creation_args & p_args) {
+			bool ret = m_ext_module_current->function_add(p_args);
+			if( ! p_args.m_is_local ) {
+				m_ext_module_global->function_add(p_args);
+			}
+			return ret;
+		}
+
 		//
 
-		//template <typename T_module>
 		var::category::pointer impl_category_find(
-			const fs::path & p_path, /* T_module * */ module_base::pointer p_module, const entity_info & p_extend
+			const fs::path & p_path, module_base::pointer p_module, const entity_info & p_extend
 		) {
 			var::category::pointer v_ret = p_module->category_find(p_extend.m_name);
 			if( v_ret == nullptr ) {
@@ -282,8 +304,7 @@ export namespace ksi {
 
 		//
 
-		//template <typename T_module>
-		var::type_pointer impl_type_find(/* T_module * */ module_base::pointer p_module, const entity_info & p_extend) {
+		var::type_pointer impl_type_find(module_base::pointer p_module, const entity_info & p_extend) {
 			var::type_pointer v_ret = p_module->type_find(p_extend.m_name);
 			if( v_ret == nullptr ) {
 				error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(

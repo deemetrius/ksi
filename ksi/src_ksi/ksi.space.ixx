@@ -20,14 +20,20 @@ export namespace ksi {
 		using t_structs = just::list<var::type_struct, just::closers::compound_call_deleter<false>::template t_closer>;
 		using t_types = std::map<just::text, var::type_pointer, just::text_less>;
 		using t_types_insert = std::pair<t_types::iterator, bool>;
-		using t_types_used = just::hive<just::text, var::type_pointer, just::text_less>;
+		//using t_types_used = just::hive<just::text, var::type_pointer, just::text_less>;
+
+		using t_functions_list = just::list<function, just::closers::compound_call_deleter<false>::template t_closer>;
+		using t_functions_map = std::map<just::text, function::pointer, just::text_less>;
+		using t_functions_insert = std::pair<t_functions_map::iterator, bool>;
 
 		// data
-		t_cats_list		m_cats_list;
-		t_cats_map		m_cats_map;
-		t_structs		m_structs;
-		t_types			m_types;
-		t_types_used	m_types_used;
+		t_cats_list			m_cats_list;
+		t_cats_map			m_cats_map;
+		t_structs			m_structs;
+		t_types				m_types;
+		//t_types_used		m_types_used;
+		t_functions_list	m_functions_list;
+		t_functions_map		m_functions_map;
 
 		static pointer cast(module_pointer p_module) { return static_cast<pointer>(p_module); }
 
@@ -49,6 +55,16 @@ export namespace ksi {
 		var::type_pointer type_find(const t_text_value & p_name) {
 			typename t_types::iterator v_it = m_types.find(p_name);
 			return (v_it == m_types.end() ) ? nullptr : (*v_it).second;
+		}
+
+		bool function_reg(function::pointer p_fn) {
+			typename t_functions_insert v_res = m_functions_map.try_emplace(p_fn->m_name, p_fn);
+			return v_res.second;
+		}
+
+		function::pointer function_find(const t_text_value & p_name) {
+			typename t_functions_map::iterator v_it = m_functions_map.find(p_name);
+			return (v_it == m_functions_map.end() ) ? nullptr : (*v_it).second;
 		}
 	};
 

@@ -130,7 +130,12 @@ export namespace ksi {
 		t_groups	m_groups;
 	};
 
-	struct function {
+	struct function :
+		public var::with_name,
+		public just::node_list<function>,
+		public just::bases::with_deleter<function *>
+	{
+		using pointer = function *;
 		using t_over_type = std::map<var::type_pointer, function_body::pointer, std::ranges::less>;
 		using t_over_category = std::map<var::category::pointer, function_body::pointer, std::ranges::less>;
 
@@ -138,6 +143,8 @@ export namespace ksi {
 		function_body::pointer	m_common = nullptr;
 		t_over_type				m_by_type;
 		t_over_category			m_by_category;
+
+		function(module_pointer	p_module, const t_text_value & p_name) : with_name{p_module} { name(p_name); }
 	};
 
 	//

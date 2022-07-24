@@ -17,6 +17,7 @@ export namespace ksi {
 
 	using t_text_value = just::text;
 	using t_text_value_pointer = t_text_value *;
+	using t_char = t_text_value::type;
 
 	struct position {
 		// data

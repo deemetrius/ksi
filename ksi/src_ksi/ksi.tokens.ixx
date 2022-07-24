@@ -290,7 +290,7 @@ export namespace ksi {
 			token_function_add(const var::creation_args & p_args) : m_args{p_args} {}
 
 			void perform(prepare_data::pointer p_data) override {
-				p_data->m_fn_log_pos = m_args.m_log_pos;
+				//p_data->m_fn_log_pos = m_args.m_log_pos;
 				p_data->function_add(m_args);
 			}
 		};

@@ -144,6 +144,7 @@ export namespace just {
 	
 	template <typename T_target, template <typename T1> typename T_closer = closers::simple_delete>
 	struct list {
+		using type = T_target;
 		using t_node = node_list<T_target>;
 		using t_node_pointer = t_node *;
 		using t_closer = T_closer<T_target *>;

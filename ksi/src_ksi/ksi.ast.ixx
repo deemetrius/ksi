@@ -186,6 +186,33 @@ export namespace ksi {
 		t_text_value				m_module_name;
 	};
 
+	template <typename T>
+	struct overloader_data {
+		using type = T;
+
+		// data
+		function::pointer		m_local;
+		function::pointer		m_global;
+		type					m_key;
+		function_body::pointer	m_body;
+	};
+
+	template <typename T>
+	struct overloader :
+		public overloader_data<T>,
+		public just::node_list<overloader<T> >,
+		public just::bases::with_deleter<overloader<T> *>
+	{
+		using type = T;
+
+		void perform(log_base::pointer p_log) {
+			//over<type>::overload(this->m_local, this->m_key, this->m_body, false, p_log);
+			//if( this->m_global ) { over<type>::overload(this->m_global, this->m_key, this->m_body, false, p_log); }
+			this->m_local->overload(this->m_key, this->m_body, false, p_log);
+			if( this->m_global ) { this->m_global->overload(this->m_key, this->m_body, true, p_log); }
+		}
+	};
+
 	struct prepare_data :
 		public space_base
 	{
@@ -197,6 +224,15 @@ export namespace ksi {
 			just::closers::compound_call_deleter<false>::template t_closer
 		>;
 		using t_entity_items = std::vector<entity_info>;
+		using t_over_common = just::list<overloader<std::monostate>,
+			just::closers::compound_call_deleter<false>::template t_closer
+		>;
+		using t_over_category = just::list<overloader<var::category::pointer>,
+			just::closers::compound_call_deleter<false>::template t_closer
+		>;
+		using t_over_type = just::list<overloader<var::type_pointer>,
+			just::closers::compound_call_deleter<false>::template t_closer
+		>;
 
 		// data
 		t_space_pointer				m_space;
@@ -210,8 +246,12 @@ export namespace ksi {
 		var::creation_args			m_type_args;
 		t_entity_items				m_type_extends;
 		t_entity_items				m_type_refers;
-		log_pos						m_fn_log_pos;
+		//log_pos						m_fn_log_pos;
+		//bool						m_fn_is_local;
 		tokens::nest_tokens			m_late;
+		t_over_common				m_over_common;
+		t_over_category				m_over_category;
+		t_over_type					m_over_type;
 
 		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {
 			m_ext_module_global = ext_module_open("@global#"_jt);
@@ -385,6 +425,18 @@ export namespace ksi {
 					m_space->m_files.emplace(v_it.first);
 				}
 			}
+			for( typename t_over_common::t_node_pointer v_it : m_over_common ) {
+				v_it->node_target()->perform(m_log);
+			}
+			for( typename t_over_category::t_node_pointer v_it : m_over_category ) {
+				v_it->node_target()->perform(m_log);
+			}
+			for( typename t_over_type::t_node_pointer v_it : m_over_type ) {
+				v_it->node_target()->perform(m_log);
+			}
+			m_over_common.clear();
+			m_over_category.clear();
+			m_over_type.clear();
 		}
 
 		file_status check_path(const fs::path & p_path) {

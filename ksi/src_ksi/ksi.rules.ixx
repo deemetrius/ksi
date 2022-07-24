@@ -16,7 +16,6 @@ export namespace ksi {
 
 		struct state;
 
-		using t_char = t_text_value::type;
 		using t_raw_const = t_text_value::const_pointer;
 		using t_raw = t_text_value::pointer;
 

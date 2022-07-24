@@ -5,10 +5,22 @@ _range ( )
 
 $range
 refers ( _range )
-struct ( from, to = true )
+struct ( from, to = all )
 
 $range_step
 extends ( $range )
 struct ( step )
 
-&contains ( )
+&contains /* _range range {number, from_strict = true, to_strict = false} */ ( )
+
+/*
+$range{0 all} => v.r &contains{5}
+v.args = {5, to_strict: true}
+v.r &contains: v.args
+&contains(v.r 5)
+
+v.fn = &contains&
+v.r !v.fn{5}
+v.r !v.fn: v.args
+v.fn(v.r 5)
+*/

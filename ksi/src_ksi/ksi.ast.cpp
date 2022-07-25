@@ -168,7 +168,7 @@ namespace ksi {
 		m_files.insert_or_assign(p_path, file_status::in_process);
 		//
 		tokens::nest_tokens v_tokens;
-		if( ! rules::parse_declarative(p_path, v_file_res.m_value, v_tokens, m_log, var::g_config->m_tab_size) ) {
+		if( ! rules::parse_declarative(this, p_path, v_file_res.m_value, v_tokens, m_log, var::g_config->m_tab_size) ) {
 			++m_error_count;
 			m_files.insert_or_assign(p_path, file_status::with_error);
 			return file_status::with_error;
@@ -184,5 +184,16 @@ namespace ksi {
 		m_files.insert_or_assign(p_path, file_status::with_error);
 		return file_status::with_error;
 	}
+
+	namespace tokens {
+
+		void nest_tokens::put_literal_prop_default(nest_tokens::pointer p_nest, const var::any_var & p_value) {
+			token_struct_prop_name::pointer v_prop_token = static_cast<token_struct_prop_name::pointer>(
+				p_nest->m_types.m_zero.m_prev
+			);
+			v_prop_token->m_value = p_value;
+		}
+
+	} // ns
 
 } // ns

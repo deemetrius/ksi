@@ -11,9 +11,15 @@ $range_step
 extends ( $range )
 struct ( step )
 
-&contains /* _range range {number, from_strict = true, to_strict = false} */ ( )
+&contains range ( ) -- _range range {number, from_strict = true, to_strict = false}
 
 /*
+v.type = $range
+v.type{from: 0}
+v.args = {from: 0}
+v.type! v.args
+v.args as v.type
+
 $range{0 all} => v.r &contains{5}
 v.args = {5, to_strict: true}
 v.r &contains: v.args

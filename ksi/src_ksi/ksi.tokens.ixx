@@ -279,30 +279,72 @@ export namespace ksi {
 
 		//
 
+		struct late_token_function_body_add_base :
+			public token_base
+		{
+			using pointer = late_token_function_body_add_base *;
+
+			// data
+			module_extension::pointer	m_ext_module;
+			log_pos						m_log_pos;
+			function::pointer			m_local = nullptr;
+			function::pointer			m_global = nullptr;
+		};
+
+		struct late_token_function_body_add_common :
+			public late_token_function_body_add_base
+		{
+			t_text_value name() const override { return "late_token_function_body_add_common"_jt; }
+
+			late_token_function_body_add_common() = default;
+
+			void perform(prepare_data::pointer p_data) override {
+				p_data->m_ext_module_current = m_ext_module;
+				function_body_user::pointer v_body = m_ext_module->function_body_user_add(m_log_pos);
+				p_data->m_over_common.append(new overloader<std::monostate>{m_local, m_global, std::monostate{}, v_body});
+			}
+		};
+
 		struct token_function_add :
 			public token_base
 		{
+			using pointer = token_function_add *;
+
 			t_text_value name() const override { return "token_function_add"_jt; }
 
 			// data
-			var::creation_args	m_args;
+			late_token_function_body_add_base::pointer	m_late_token = nullptr;
+			var::creation_args							m_args;
 
 			token_function_add(const var::creation_args & p_args) : m_args{p_args} {}
 
 			void perform(prepare_data::pointer p_data) override {
-				//p_data->m_fn_log_pos = m_args.m_log_pos;
-				p_data->function_add(m_args);
+				prepare_data::t_fn_pair v_res = p_data->function_add(m_args);
+				if( m_late_token ) {
+					m_late_token->m_log_pos = m_args.m_log_pos;
+					module_extension::pointer v_ext_module = p_data->m_ext_module_current;
+					m_late_token->m_ext_module = v_ext_module;
+					m_late_token->m_local = v_res.first;
+					m_late_token->m_global = v_res.second;
+				}
 			}
 		};
 
-		//
+		struct late_token_function_add_arg :
+			public token_base
+		{
+			t_text_value name() const override { return "late_token_function_add_arg"_jt; }
 
-		void nest_tokens::put_literal_prop_default(nest_tokens::pointer p_nest, const var::any_var & p_value) {
-			token_struct_prop_name::pointer v_prop_token = static_cast<token_struct_prop_name::pointer>(
-				p_nest->m_types.m_zero.m_prev
-			);
-			v_prop_token->m_value = p_value;
-		}
+			// data
+			t_text_value	m_name;
+
+			late_token_function_add_arg(const t_text_value & p_name) : m_name{p_name} {}
+
+			void perform(prepare_data::pointer p_data) override {
+				function_body_user::pointer v_body = p_data->m_ext_module_current->function_body_user_last();
+				v_body->arg_add(m_name);
+			}
+		};
 
 	} // ns
 

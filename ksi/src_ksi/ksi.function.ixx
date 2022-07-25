@@ -105,6 +105,7 @@ export namespace ksi {
 	struct function_body {
 		using pointer = function_body *;
 		using t_args = just::hive<t_text_value, std::monostate, just::text_less>;
+		using t_args_insert = t_args::t_find_result;
 
 		// data
 		module_pointer	m_module;
@@ -114,6 +115,11 @@ export namespace ksi {
 
 		function_body(module_pointer p_module, log_pos p_log_pos) : m_module{p_module}, m_log_pos{p_log_pos} {
 			m_vars.maybe_emplace("ret"_jt);
+		}
+
+		bool arg_add(const t_text_value & p_name) {
+			t_args_insert v_res = m_args.maybe_emplace(p_name);
+			return v_res.m_added;
 		}
 	};
 
@@ -149,7 +155,7 @@ export namespace ksi {
 		t_over_type					m_by_type;
 		t_over_category				m_by_category;
 
-		function(module_pointer	p_module, const t_text_value & p_name) : with_name{p_module} { name(p_name); }
+		function(module_pointer	p_module, const t_text_value & p_name) : with_name{p_module} { name(p_name, true); }
 
 		bool overload(var::category::pointer p_key, function_body::pointer p_body,
 			bool p_is_global, log_base::pointer p_log
@@ -184,7 +190,8 @@ export namespace ksi {
 		bool overload(std::monostate p_key, function_body::pointer p_body,
 			bool p_is_global, log_base::pointer p_log
 		) {
-			bool ret = (m_common == nullptr);
+			//just::g_console << "{here: " << m_name_full << " }\n";
+			bool ret = false;
 			if( m_common ) {
 				t_text_value v_fn_name = m_name_full;
 				if( p_is_global ) { v_fn_name = m_name; }
@@ -192,75 +199,13 @@ export namespace ksi {
 					{"notice: Function ", v_fn_name, " was already overloaded in common way."}
 				);
 				p_log->add(p_body->m_log_pos.message(p_message) );
+			} else {
+				ret = true;
+				m_common = p_body;
 			}
-			m_common = p_body;
 			return ret;
 		}
 	};
-
-	/*template <typename T>
-	struct over;
-
-	template <>
-	struct over<std::monostate> {
-		using type = std::monostate;
-
-		static bool overload(function::pointer p_fn, type p_key, function_body::pointer p_body,
-			bool p_is_global, log_base::pointer p_log
-		) {
-			bool ret = (p_fn->m_common == nullptr);
-			if( p_fn->m_common ) {
-				t_text_value v_fn_name = p_fn->m_name_full;
-				if( p_is_global ) { v_fn_name = p_fn->m_name; }
-				t_text_value p_message = just::implode<t_char>(
-					{"notice: Function ", v_fn_name, " was already overloaded in common way."}
-				);
-				p_log->add(p_body->m_log_pos.message(p_message) );
-			}
-			p_fn->m_common = p_body;
-			return ret;
-		}
-	};
-
-	template <>
-	struct over<var::category::pointer> {
-		using type = var::category::pointer;
-
-		static bool overload(function::pointer p_fn, type p_key, function_body::pointer p_body,
-			bool p_is_global, log_base::pointer p_log
-		) {
-			function::t_over_category_insert v_res = p_fn->m_by_category.try_emplace(p_key, p_body);
-			if( !v_res.second ) {
-				t_text_value v_fn_name = p_fn->m_name_full;
-				if( p_is_global ) { v_fn_name = p_fn->m_name; }
-				t_text_value p_message = just::implode<t_char>(
-					{"notice: Function ", v_fn_name, " was already overloaded for category: ", p_key->m_name_full}
-				);
-				p_log->add(p_body->m_log_pos.message(p_message) );
-			}
-			return v_res.second;
-		}
-	};
-
-	template <>
-	struct over<var::type_pointer> {
-		using type = var::type_pointer;
-
-		static bool overload(function::pointer p_fn, type p_key, function_body::pointer p_body,
-			bool p_is_global, log_base::pointer p_log
-		) {
-			function::t_over_type_insert v_res = p_fn->m_by_type.try_emplace(p_key, p_body);
-			if( !v_res.second ) {
-				t_text_value v_fn_name = p_fn->m_name_full;
-				if( p_is_global ) { v_fn_name = p_fn->m_name; }
-				t_text_value p_message = just::implode<t_char>(
-					{"notice: Function ", v_fn_name, " was already overloaded for type: ", p_key->m_name_full}
-				);
-				p_log->add(p_body->m_log_pos.message(p_message) );
-			}
-			return v_res.second;
-		}
-	};*/
 
 	//
 

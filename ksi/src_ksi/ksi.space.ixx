@@ -20,20 +20,23 @@ export namespace ksi {
 		using t_structs = just::list<var::type_struct, just::closers::compound_call_deleter<false>::template t_closer>;
 		using t_types = std::map<just::text, var::type_pointer, just::text_less>;
 		using t_types_insert = std::pair<t_types::iterator, bool>;
-		//using t_types_used = just::hive<just::text, var::type_pointer, just::text_less>;
 
 		using t_functions_list = just::list<function, just::closers::compound_call_deleter<false>::template t_closer>;
 		using t_functions_map = std::map<just::text, function::pointer, just::text_less>;
 		using t_functions_insert = std::pair<t_functions_map::iterator, bool>;
 
+		using t_function_body_list = just::list<function_body_user,
+			just::closers::compound_call_deleter<false>::template t_closer
+		>;
+
 		// data
-		t_cats_list			m_cats_list;
-		t_cats_map			m_cats_map;
-		t_structs			m_structs;
-		t_types				m_types;
-		//t_types_used		m_types_used;
-		t_functions_list	m_functions_list;
-		t_functions_map		m_functions_map;
+		t_cats_list				m_cats_list;
+		t_cats_map				m_cats_map;
+		t_structs				m_structs;
+		t_types					m_types;
+		t_functions_list		m_functions_list;
+		t_functions_map			m_functions_map;
+		t_function_body_list	m_function_body_list;
 
 		static pointer cast(module_pointer p_module) { return static_cast<pointer>(p_module); }
 
@@ -78,7 +81,9 @@ export namespace ksi {
 		// data
 		t_text_value	m_name;
 
-		module_space(const t_text_value & p_name) : m_name{p_name} {}
+		module_space(const t_text_value & p_name, bool p_is_global = false) : m_name{p_name} {
+			m_is_global = p_is_global;
+		}
 
 		t_text_value name() const override { return m_name; }
 	};

@@ -19,7 +19,7 @@ export namespace ksi {
 		using t_raw_const = t_text_value::const_pointer;
 		using t_raw = t_text_value::pointer;
 
-		using fn_parse = bool (*)(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log);
+		using fn_parse = bool (*)(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data);
 
 		struct line_info {
 			// data
@@ -61,6 +61,8 @@ export namespace ksi {
 			constant,
 			variable,
 			n_operator,
+			category,
+			type,
 			function_name,
 			separator
 		};
@@ -90,6 +92,7 @@ export namespace ksi {
 			bool			m_was_space = false;
 			bool			m_nice = false;
 			bool			m_done = false;
+			tokens::token_function_add::pointer		m_token_function_add = nullptr;
 
 			state(const fs::path p_path, t_raw_const p_text_pos, fn_parse p_fn_parse, nest p_nest,
 				t_int_ptr p_tab_size = n_tab_size
@@ -141,7 +144,7 @@ export namespace ksi {
 					return *p_state.m_text_pos == '\0';
 				}
 
-				void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+				void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 					p_state.done_nice();
 				}
 			};
@@ -242,7 +245,7 @@ export namespace ksi {
 					return false;
 				}
 
-				void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {}
+				void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {}
 			};
 		};
 
@@ -294,16 +297,18 @@ export namespace ksi {
 				}
 			}
 
-			static bool parse_inner(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log, fn_message p_fn) {
+			static bool parse_inner(state & p_state, tokens::nest_tokens & p_tokens,
+				prepare_data::pointer p_data, fn_message p_fn
+			) {
 				if( t_first::check(p_state) ) {
 					bool v_nice = false;
 					if constexpr( is_rule_inner_v<t_first> ) {
 						typename t_first::t_data v_data;
-						if( v_data.parse(p_state, p_tokens, p_log) ) {
-							v_data.action(p_state, p_tokens, p_log);
+						if( v_data.parse(p_state, p_tokens, p_data->m_log) ) {
+							v_data.action(p_state, p_tokens, p_data);
 							v_nice = true;
 						}
-					} else if( t_first::parse(p_state, p_tokens, p_log) ) {
+					} else if( t_first::parse(p_state, p_tokens, p_data) ) {
 						v_nice = true;
 					}
 					if( v_nice ) {
@@ -316,17 +321,17 @@ export namespace ksi {
 				}
 				if constexpr( s_take_rest ) {
 					if( !p_state.m_done ) {
-						return t_rest::parse_inner(p_state, p_tokens, p_log, p_fn);
+						return t_rest::parse_inner(p_state, p_tokens, p_data, p_fn);
 					}
 				} else if constexpr( C_none_match_done ) {
-					p_log->add({p_state.m_path, p_fn(p_state), p_state.pos()});
+					p_data->m_log->add({p_state.m_path, p_fn(p_state), p_state.pos()});
 					p_state.done();
 				}
 				return false;
 			}
 
-			static bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-				return parse_inner(p_state, p_tokens, p_log, &message);
+			static bool parse(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+				return parse_inner(p_state, p_tokens, p_data, &message);
 			}
 		};
 
@@ -406,7 +411,7 @@ export namespace ksi {
 						return traits::take_name_with_prefix(p_state, '@', m_name, v_pos);
 					}
 
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_cats.append( new tokens::token_module_name(m_name) );
 						p_state.m_fn_parse = &rule_decl::parse;
 					}
@@ -435,7 +440,7 @@ export namespace ksi {
 						return ret;
 					}
 
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_cats.append(
 							new tokens::token_category_add({m_name, m_is_local, {p_state.m_path, m_pos}})
 						);
@@ -452,7 +457,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<'('>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.m_fn_parse = &rule_category_inside::parse;
 					}
 				};
@@ -466,7 +471,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<')'>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.m_fn_parse = &rule_decl::parse;
 					}
 				};
@@ -495,7 +500,7 @@ export namespace ksi {
 						return ret;
 					}
 
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_cats.append( new tokens::token_category_add_base(p_state.m_path, m_extend) );
 					}
 				};
@@ -523,7 +528,7 @@ export namespace ksi {
 						return ret;
 					}
 
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_types.append(
 							new tokens::token_type_add({m_name, m_is_local, {p_state.m_path, m_pos}})
 						);
@@ -542,7 +547,7 @@ export namespace ksi {
 				struct t_data :
 					public is_keyword<"refers">
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.flag_set(flag_was_refers);
 						p_state.m_fn_parse = &rule_refers_open::parse;
 					}
@@ -557,7 +562,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<'('>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.m_fn_parse = &rule_refers_inside::parse;
 					}
 				};
@@ -571,7 +576,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<')'>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.m_fn_parse = &rule_type_kind::parse;
 					}
 				};
@@ -600,7 +605,7 @@ export namespace ksi {
 						return ret;
 					}
 
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_types.append( new tokens::token_type_add_category(m_entity) );
 					}
 				};
@@ -616,7 +621,7 @@ export namespace ksi {
 				struct t_data :
 					public is_keyword<"extends">
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.flag_set(flag_was_extends);
 						p_state.m_fn_parse = &rule_extends_open::parse;
 					}
@@ -631,7 +636,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<'('>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.m_fn_parse = &rule_extends_inside::parse;
 					}
 				};
@@ -645,7 +650,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<')'>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.m_fn_parse = &rule_type_kind::parse;
 					}
 				};
@@ -674,7 +679,7 @@ export namespace ksi {
 						return ret;
 					}
 
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_types.append( new tokens::token_type_add_base(m_entity) );
 					}
 				};
@@ -690,7 +695,7 @@ export namespace ksi {
 				struct t_data :
 					public is_keyword<"struct">
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_types.append( new tokens::token_struct_add() );
 						p_state.m_fn_parse = &rule_struct_open::parse;
 					}
@@ -705,7 +710,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<'('>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.m_fn_parse = &rule_struct_inside::parse;
 					}
 				};
@@ -719,7 +724,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<')'>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_types.append( new tokens::token_struct_end() );
 						p_state.m_fn_parse = &rule_decl::parse;
 						p_state.flag_unset(flag_was_refers | flag_was_extends);
@@ -744,7 +749,7 @@ export namespace ksi {
 						return traits::take_name(p_state, m_name, m_pos);
 					}
 
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_types.append( new tokens::token_struct_prop_name({p_state.m_path, m_pos}, m_name) );
 					}
 				};
@@ -760,7 +765,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<',', ';'>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {}
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {}
 				};
 			};
 
@@ -774,14 +779,14 @@ export namespace ksi {
 				struct t_data :
 					public is_char<'='>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {}
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {}
 				};
 			};
 
 			// function
 
 			struct t_function_def_name {
-				static constexpr kind s_kind{ kind::special };
+				static constexpr kind s_kind = kind::start;
 				static t_text_value name() { return "t_function_def_name"_jt; }
 				static bool check(state & p_state) { return true; }
 
@@ -800,9 +805,40 @@ export namespace ksi {
 						return ret;
 					}
 
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_functions.append(
-							new tokens::token_function_add({m_name, m_is_local, {p_state.m_path, m_pos}})
+							p_state.m_token_function_add = new tokens::token_function_add({
+								m_name, m_is_local, {p_state.m_path, m_pos}
+							})
+						);
+						p_state.m_fn_parse = &rule_function_arg::parse;
+					}
+				};
+			};
+
+			struct t_function_arg {
+				static constexpr kind s_kind{ kind::variable };
+				static t_text_value name() { return "t_function_arg"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data {
+					// data
+					t_text_value	m_name;
+
+					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						position v_pos;
+						return traits::take_name(p_state, m_name, v_pos);
+					}
+
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+						if( p_state.m_kind == kind::start ) {
+							p_data->m_late.m_functions.append(
+								p_state.m_token_function_add->m_late_token =
+								new tokens::late_token_function_body_add_common()
+							);
+						}
+						p_data->m_late.m_functions.append(
+							new tokens::late_token_function_add_arg(m_name)
 						);
 						p_state.m_fn_parse = &rule_function_open::parse;
 					}
@@ -817,7 +853,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<'('>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.m_fn_parse = &rule_function_inside::parse;
 					}
 				};
@@ -831,7 +867,7 @@ export namespace ksi {
 				struct t_data :
 					public is_char<')'>
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_state.m_fn_parse = &rule_decl::parse;
 					}
 				};
@@ -847,7 +883,7 @@ export namespace ksi {
 				struct t_data :
 					public is_keyword<"null">
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						if( p_state.m_nest != nest::declarative ) { p_tokens.put_literal(var::any_var{}); }
 					}
 				};
@@ -861,7 +897,7 @@ export namespace ksi {
 				struct t_data :
 					public is_keyword<"all">
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						if( p_state.m_nest != nest::declarative ) { p_tokens.put_literal(var::variant_all{}); }
 					}
 				};
@@ -875,7 +911,7 @@ export namespace ksi {
 				struct t_data :
 					public is_keyword<"false">
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.put_literal(false);
 					}
 				};
@@ -889,7 +925,7 @@ export namespace ksi {
 				struct t_data :
 					public is_keyword<"true">
 				{
-					void action(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.put_literal(true);
 					}
 				};
@@ -958,6 +994,9 @@ export namespace ksi {
 				>
 			{};
 
+			struct rule_function_arg :
+				public rule_alt<true, t_space, t_function_arg> {};
+
 			struct rule_function_open :
 				public rule_alt<true, t_space, t_function_open> {};
 
@@ -967,6 +1006,7 @@ export namespace ksi {
 		};
 
 		bool parse_declarative(
+			prepare_data::pointer p_data,
 			fs::path p_path,
 			const t_text_value & p_contents,
 			tokens::nest_tokens & p_tokens,
@@ -975,7 +1015,7 @@ export namespace ksi {
 		) {
 			state v_state{p_path, p_contents.data(), &all::rule_module_name::parse, nest::declarative, p_tab_size};
 			do {
-				v_state.m_fn_parse(v_state, p_tokens, p_log);
+				v_state.m_fn_parse(v_state, p_tokens, p_data);
 			} while( ! v_state.m_done );
 			return v_state.m_nice;
 		}

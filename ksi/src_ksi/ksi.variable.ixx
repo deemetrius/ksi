@@ -31,6 +31,9 @@ export namespace ksi {
 	constexpr t_int_ptr n_tab_size = 4;
 
 	struct is_module {
+		// data
+		bool	m_is_global = false;
+
 		virtual t_text_value name() const = 0;
 	};
 	
@@ -144,7 +147,11 @@ export namespace ksi {
 			t_text_value	m_name;
 			t_text_value	m_name_full;
 
-			void name(const t_text_value & p_name);
+			void name(const t_text_value & p_name, bool p_hide_global = false) {
+				m_name = p_name;
+				if( p_hide_global && m_module->m_is_global ) { m_name_full = p_name; }
+				else { m_name_full = just::implode<t_text_value::type>({p_name, m_module->name()}); }
+			}
 		};
 
 		struct type_data :

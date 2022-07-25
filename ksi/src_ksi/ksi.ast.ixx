@@ -48,7 +48,7 @@ export namespace ksi {
 			virtual ~token_base() = default;
 
 			virtual t_text_value name() const = 0;
-			virtual void perform(prepare_data_pointer p_data) {}
+			virtual void perform(prepare_data_pointer p_data) = 0;
 		};
 
 		struct nest_tokens {
@@ -110,28 +110,21 @@ export namespace ksi {
 
 		t_text_value name() const override { return m_module->m_name; }
 
-		//template <bool C_types>
 		void init() {
-			//if constexpr( C_types ) {
-				m_cats_map = m_module->m_cats_map;
-				m_types = m_module->m_types;
-				m_functions_map = m_module->m_functions_map;
-			//}
-			/*for( typename t_types_used::t_info && v_it : m_module->m_types_used ) {
-				m_types_used.maybe_emplace(v_it.key(), *v_it.m_value);
-			}*/
+			m_cats_map = m_module->m_cats_map;
+			m_types = m_module->m_types;
+			m_functions_map = m_module->m_functions_map;
 		}
 
 		void apply() {
 			m_module->m_cats_map = m_cats_map;
 			m_module->m_types = m_types;
 			m_module->m_functions_map = m_functions_map;
-			//std::ranges::swap(m_types_used, m_module->m_types_used);
-			//m_types_used.clear();
-			//init<false>();
+			//
 			m_module->m_cats_list.splice(m_cats_list);
 			m_module->m_structs.splice(m_structs);
 			m_module->m_functions_list.splice(m_functions_list);
+			m_module->m_function_body_list.splice(m_function_body_list);
 		}
 
 		//
@@ -160,14 +153,29 @@ export namespace ksi {
 
 		//
 
-		bool function_add(const var::creation_args & p_args) {
-			function::pointer v_fn = new function(m_module, p_args.m_name);
+		function::pointer function_add(const var::creation_args & p_args) {
+			function::pointer v_fn = function_find(p_args.m_name);
+			if( v_fn ) { return v_fn; }
+			v_fn = new function(m_module, p_args.m_name);
 			m_functions_list.append(v_fn);
-			return v_fn->m_is_added = function_reg(v_fn);
+			v_fn->m_is_added = function_reg(v_fn);
+			return v_fn;
 		}
 
-		function::pointer function_last() {
+		/*function::pointer function_last() {
 			return m_functions_list.m_zero.node_empty() ? nullptr : m_functions_list.m_zero.m_prev->node_target();
+		}*/
+
+		//
+
+		function_body_user::pointer function_body_user_add(const log_pos & p_log_pos) {
+			function_body_user::pointer v_body = new function_body_user(m_module, p_log_pos);
+			m_function_body_list.append(v_body);
+			return v_body;
+		}
+
+		function_body_user::pointer function_body_user_last() {
+			return m_function_body_list.m_zero.node_empty() ? nullptr : m_function_body_list.m_zero.m_prev->node_target();
 		}
 	};
 
@@ -206,9 +214,7 @@ export namespace ksi {
 		using type = T;
 
 		void perform(log_base::pointer p_log) {
-			//over<type>::overload(this->m_local, this->m_key, this->m_body, false, p_log);
-			//if( this->m_global ) { over<type>::overload(this->m_global, this->m_key, this->m_body, false, p_log); }
-			this->m_local->overload(this->m_key, this->m_body, false, p_log);
+			if( this->m_local ) { this->m_local->overload(this->m_key, this->m_body, false, p_log); }
 			if( this->m_global ) { this->m_global->overload(this->m_key, this->m_body, true, p_log); }
 		}
 	};
@@ -233,6 +239,7 @@ export namespace ksi {
 		using t_over_type = just::list<overloader<var::type_pointer>,
 			just::closers::compound_call_deleter<false>::template t_closer
 		>;
+		using t_fn_pair = std::pair<function::pointer, function::pointer>;
 
 		// data
 		t_space_pointer				m_space;
@@ -246,8 +253,6 @@ export namespace ksi {
 		var::creation_args			m_type_args;
 		t_entity_items				m_type_extends;
 		t_entity_items				m_type_refers;
-		//log_pos						m_fn_log_pos;
-		//bool						m_fn_is_local;
 		tokens::nest_tokens			m_late;
 		t_over_common				m_over_common;
 		t_over_category				m_over_category;
@@ -255,6 +260,7 @@ export namespace ksi {
 
 		prepare_data(t_space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {
 			m_ext_module_global = ext_module_open("@global#"_jt);
+			m_ext_module_global->m_is_global = true;
 			m_data = m_space->m_data;
 		}
 
@@ -296,10 +302,10 @@ export namespace ksi {
 			return ret;
 		}
 
-		bool function_add(const var::creation_args & p_args) {
-			bool ret = m_ext_module_current->function_add(p_args);
+		t_fn_pair function_add(const var::creation_args & p_args) {
+			t_fn_pair ret{ m_ext_module_current->function_add(p_args), nullptr };
 			if( ! p_args.m_is_local ) {
-				m_ext_module_global->function_add(p_args);
+				ret.second = m_ext_module_global->function_add(p_args);
 			}
 			return ret;
 		}

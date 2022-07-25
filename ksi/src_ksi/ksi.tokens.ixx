@@ -291,17 +291,41 @@ export namespace ksi {
 			function::pointer			m_global = nullptr;
 		};
 
-		struct late_token_function_body_add_common :
+		struct late_token_function_body_add_over_common :
 			public late_token_function_body_add_base
 		{
-			t_text_value name() const override { return "late_token_function_body_add_common"_jt; }
+			t_text_value name() const override { return "late_token_function_body_add_over_common"_jt; }
 
-			late_token_function_body_add_common() = default;
+			late_token_function_body_add_over_common() = default;
 
 			void perform(prepare_data::pointer p_data) override {
 				p_data->m_ext_module_current = m_ext_module;
 				function_body_user::pointer v_body = m_ext_module->function_body_user_add(m_log_pos);
 				p_data->m_over_common.append(new overloader<std::monostate>{m_local, m_global, std::monostate{}, v_body});
+			}
+		};
+
+		struct late_token_function_body_add_over_category :
+			public late_token_function_body_add_base
+		{
+			t_text_value name() const override { return "late_token_function_body_add_over_category"_jt; }
+
+			// data
+			fs::path		m_path;
+			entity_info		m_entity;
+
+			late_token_function_body_add_over_category(fs::path p_path, const entity_info & p_entity) :
+				m_path{p_path}, m_entity{p_entity}
+			{}
+
+			void perform(prepare_data::pointer p_data) override {
+				p_data->m_ext_module_current = m_ext_module;
+				function_body_user::pointer v_body = m_ext_module->function_body_user_add(m_log_pos);
+				if( var::category::pointer v_key = p_data->category_find(m_path, m_entity) ) {
+					p_data->m_over_category.append(new overloader<var::category::pointer>{
+						m_local, m_global, v_key, v_body
+					});
+				}
 			}
 		};
 

@@ -359,11 +359,15 @@ export namespace ksi {
 			}
 		};
 
+		template <bool C_allow_std = false>
 		struct traits {
 			static bool impl_take_name(t_raw_const & p_text_pos) {
 				if( std::isalpha(*p_text_pos) ) {
 					++p_text_pos;
 					while( *p_text_pos == '_' || std::isalnum(*p_text_pos) ) { ++p_text_pos; }
+					if constexpr( C_allow_std ) {
+						if( *p_text_pos == '#' ) { ++p_text_pos; }
+					}
 					return true;
 				}
 				return false;
@@ -393,6 +397,31 @@ export namespace ksi {
 			}
 		};
 
+		template <bool C_allow_std, t_char T_prefix>
+		struct is_entity
+		{
+			// data
+			entity_info		m_entity;
+
+			bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+				bool ret = traits<C_allow_std>::take_name_with_prefix(p_state, T_prefix, m_entity.m_name, m_entity.m_pos);
+				if( ret ) {
+					position v_pos;
+					if( traits<C_allow_std>::take_name_with_prefix(p_state, '@', m_entity.m_module_name, v_pos) ) {}
+					else if( *p_state.m_text_pos == '@' ) {
+						++p_state.m_text_pos;
+						m_entity.m_module_name = "@"_jt;
+					}
+				}
+				return ret;
+			}
+		};
+
+		template <bool C_allow_std>
+		struct is_category :
+			public is_entity<C_allow_std, '_'>
+		{};
+
 		//
 
 		struct all {
@@ -408,7 +437,7 @@ export namespace ksi {
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 						position v_pos;
-						return traits::take_name_with_prefix(p_state, '@', m_name, v_pos);
+						return traits<>::take_name_with_prefix(p_state, '@', m_name, v_pos);
 					}
 
 					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
@@ -432,7 +461,7 @@ export namespace ksi {
 					bool			m_is_local = false;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						bool ret = traits::take_name_with_prefix(p_state, '_', m_name, m_pos);
+						bool ret = traits<>::take_name_with_prefix(p_state, '_', m_name, m_pos);
 						if( ret && *p_state.m_text_pos == '@' ) {
 							++p_state.m_text_pos;
 							m_is_local = true;
@@ -482,26 +511,11 @@ export namespace ksi {
 				static t_text_value name() { return "t_category_includes_name"_jt; }
 				static bool check(state & p_state) { return true; }
 
-				struct t_data
+				struct t_data :
+					is_category<false>
 				{
-					// data
-					entity_info		m_extend;
-
-					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						bool ret = traits::take_name_with_prefix(p_state, '_', m_extend.m_name, m_extend.m_pos);
-						if( ret ) {
-							position v_pos;
-							if( traits::take_name_with_prefix(p_state, '@', m_extend.m_module_name, v_pos) ) {}
-							else if( *p_state.m_text_pos == '@' ) {
-								++p_state.m_text_pos;
-								m_extend.m_module_name = "@"_jt;
-							}
-						}
-						return ret;
-					}
-
 					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-						p_tokens.m_cats.append( new tokens::token_category_add_base(p_state.m_path, m_extend) );
+						p_tokens.m_cats.append( new tokens::token_category_add_base(p_state.m_path, m_entity) );
 					}
 				};
 			};
@@ -520,7 +534,7 @@ export namespace ksi {
 					bool			m_is_local = false;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						bool ret = traits::take_name_with_prefix(p_state, '$', m_name, m_pos);
+						bool ret = traits<>::take_name_with_prefix(p_state, '$', m_name, m_pos);
 						if( ret && *p_state.m_text_pos == '@' ) {
 							++p_state.m_text_pos;
 							m_is_local = true;
@@ -587,24 +601,9 @@ export namespace ksi {
 				static t_text_value name() { return "t_refers_category_name"_jt; }
 				static bool check(state & p_state) { return true; }
 
-				struct t_data
+				struct t_data :
+					public is_category<false>
 				{
-					// data
-					entity_info		m_entity;
-
-					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						bool ret = traits::take_name_with_prefix(p_state, '_', m_entity.m_name, m_entity.m_pos);
-						if( ret ) {
-							position v_pos;
-							if( traits::take_name_with_prefix(p_state, '@', m_entity.m_module_name, v_pos) ) {}
-							else if( *p_state.m_text_pos == '@' ) {
-								++p_state.m_text_pos;
-								m_entity.m_module_name = "@"_jt;
-							}
-						}
-						return ret;
-					}
-
 					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_types.append( new tokens::token_type_add_category(m_entity) );
 					}
@@ -667,10 +666,10 @@ export namespace ksi {
 					entity_info		m_entity;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						bool ret = traits::take_name_with_prefix(p_state, '$', m_entity.m_name, m_entity.m_pos);
+						bool ret = traits<>::take_name_with_prefix(p_state, '$', m_entity.m_name, m_entity.m_pos);
 						if( ret ) {
 							position v_pos;
-							if( traits::take_name_with_prefix(p_state, '@', m_entity.m_module_name, v_pos) ) {}
+							if( traits<>::take_name_with_prefix(p_state, '@', m_entity.m_module_name, v_pos) ) {}
 							else if( *p_state.m_text_pos == '@' ) {
 								++p_state.m_text_pos;
 								m_entity.m_module_name = "@"_jt;
@@ -746,7 +745,7 @@ export namespace ksi {
 					t_text_value	m_name;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						return traits::take_name(p_state, m_name, m_pos);
+						return traits<>::take_name(p_state, m_name, m_pos);
 					}
 
 					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
@@ -786,7 +785,7 @@ export namespace ksi {
 			// function
 
 			struct t_function_def_name {
-				static constexpr kind s_kind = kind::start;
+				static constexpr kind s_kind{ kind::start };
 				static t_text_value name() { return "t_function_def_name"_jt; }
 				static bool check(state & p_state) { return true; }
 
@@ -797,7 +796,7 @@ export namespace ksi {
 					bool			m_is_local = false;
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						bool ret = traits::take_name_with_prefix(p_state, '&', m_name, m_pos);
+						bool ret = traits<>::take_name_with_prefix(p_state, '&', m_name, m_pos);
 						if( ret && *p_state.m_text_pos == '@' ) {
 							++p_state.m_text_pos;
 							m_is_local = true;
@@ -816,6 +815,23 @@ export namespace ksi {
 				};
 			};
 
+			struct t_function_overload_by_category {
+				static constexpr kind s_kind{ kind::category };
+				static t_text_value name() { return "t_function_overload_by_category"_jt; }
+				static bool check(state & p_state) { return p_state.m_kind == kind::start; }
+
+				struct t_data :
+					is_category<true>
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+						p_data->m_late.m_functions.append(
+							p_state.m_token_function_add->m_late_token =
+							new tokens::late_token_function_body_add_over_category(p_state.m_path, m_entity)
+						);
+					}
+				};
+			};
+
 			struct t_function_arg {
 				static constexpr kind s_kind{ kind::variable };
 				static t_text_value name() { return "t_function_arg"_jt; }
@@ -827,14 +843,14 @@ export namespace ksi {
 
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 						position v_pos;
-						return traits::take_name(p_state, m_name, v_pos);
+						return traits<>::take_name(p_state, m_name, v_pos);
 					}
 
 					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						if( p_state.m_kind == kind::start ) {
 							p_data->m_late.m_functions.append(
 								p_state.m_token_function_add->m_late_token =
-								new tokens::late_token_function_body_add_common()
+								new tokens::late_token_function_body_add_over_common()
 							);
 						}
 						p_data->m_late.m_functions.append(
@@ -995,7 +1011,7 @@ export namespace ksi {
 			{};
 
 			struct rule_function_arg :
-				public rule_alt<true, t_space, t_function_arg> {};
+				public rule_alt<true, t_space, t_function_overload_by_category, t_function_arg> {};
 
 			struct rule_function_open :
 				public rule_alt<true, t_space, t_function_open> {};

@@ -964,6 +964,18 @@ export namespace ksi {
 				struct t_data {
 					t_integer	m_value;
 
+					static bool is_digit_binary(t_char p_char) { return just::is_one_of(p_char, '0', '1'); }
+					static bool is_digit_octal(t_char p_char) { return p_char >= '0' && p_char < '8'; }
+
+					static bool is_digit(t_char p_char, int p_radix) {
+						switch( p_radix ) {
+						case 2: return is_digit_binary(p_char);
+						case 8: return is_digit_octal(p_char);
+						case 16: return std::isxdigit(p_char);
+						}
+						return std::isdigit(p_char);
+					}
+
 					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 						using namespace std::literals::string_view_literals;
 						t_raw_const v_pos_start = p_state.m_text_pos, v_pos_end;
@@ -986,18 +998,21 @@ export namespace ksi {
 							case 'b':
 								v_radix = 2;
 								v_pos_start += 2;
+								if( *v_pos_start == '_' ) { ++v_pos_start; }
 								v_pos_end = v_pos_start;
-								while( just::is_one_of(*v_pos_end, '0', '1') ) { ++v_pos_end; }
+								while( is_digit_binary(*v_pos_end) ) { ++v_pos_end; }
 								break;
 							case 'o':
 								v_radix = 8;
 								v_pos_start += 2;
+								if( *v_pos_start == '_' ) { ++v_pos_start; }
 								v_pos_end = v_pos_start;
-								while( *v_pos_end >= '0' && *v_pos_end <= '7' ) { ++v_pos_end; }
+								while( is_digit_octal(*v_pos_end) ) { ++v_pos_end; }
 								break;
 							case 'h':
 								v_radix = 16;
 								v_pos_start += 2;
+								if( *v_pos_start == '_' ) { ++v_pos_start; }
 								v_pos_end = v_pos_start;
 								while( std::isxdigit(*v_pos_end) ) { ++v_pos_end; }
 								break;
@@ -1009,8 +1024,17 @@ export namespace ksi {
 						if( v_pos_start == v_pos_end && v_radix == 10 ) { return false; }
 						t_text_value v_text = just::text_traits::from_range(v_pos_start, v_pos_end);
 						v_text = just::implode<t_char>({v_prefix, v_text});
+						//
+						v_pos_start = v_pos_end;
+						while( *v_pos_start == '_' && is_digit(v_pos_start[1], v_radix) ) {
+							++v_pos_start;
+							v_pos_end = v_pos_start +1;
+							while( is_digit(*v_pos_end, v_radix) ) { ++v_pos_end; }
+							t_text_value v_text_ending = just::text_traits::from_range(v_pos_start, v_pos_end);
+							v_text = just::implode<t_char>({v_text, v_text_ending});
+						}
 						errno = 0;
-						m_value = std::strtoll(v_pos_start, nullptr, v_radix);
+						m_value = std::strtoll(v_text.data(), nullptr, v_radix);
 						if( errno == ERANGE ) {
 							t_text_value v_message = (v_is_negative ?
 								"warning: Integer literal is out of bounds so $int#.max# will be used instead."_jt :
@@ -1023,6 +1047,7 @@ export namespace ksi {
 					} // fn
 
 					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+						//just::g_console << m_value << just::g_new_line;
 						p_tokens.put_literal(m_value);
 					}
 				};

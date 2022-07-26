@@ -9,7 +9,7 @@ struct ( from, to = all )
 
 $range_step
 extends ( $range )
-struct ( step )
+struct ( step = 1 )
 
 &contains _range range ( ) -- {number, from_strict = true, to_strict = false}
 

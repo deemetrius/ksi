@@ -20,8 +20,8 @@ int main(int p_args_count, char * p_args[], char * p_env[]) {
 		//
 		{
 			//ksi::var::any_var v1 = ksi::var::type_float::s_infinity, v2 = ksi::var::variant_all{};
-			ksi::var::any_var v1 = "hello"_jt, v2 = "hello"_jt;
-			just::g_console << ksi::var::compare(v1, v2) << just::g_new_line;
+			//ksi::var::any_var v1 = "hello"_jt, v2 = "hello"_jt;
+			//just::g_console << ksi::var::compare(v1, v2) << just::g_new_line;
 		}
 		//
 		ksi::space v_space;

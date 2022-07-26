@@ -6,6 +6,7 @@ export module ksi.rules;
 
 import <type_traits>;
 import <cctype>;
+import <cerrno>;
 export import ksi.tokens;
 
 export namespace ksi {
@@ -708,7 +709,7 @@ export namespace ksi {
 			struct t_struct_close {
 				static constexpr kind s_kind{ kind::special };
 				static t_text_value name() { return "t_struct_close"_jt; }
-				static bool check(state & p_state) { return true; }
+				static bool check(state & p_state) { return p_state.m_kind != kind::n_operator; }
 
 				struct t_data :
 					public is_char<')'>
@@ -722,9 +723,10 @@ export namespace ksi {
 			};
 
 			struct t_struct_prop_name {
-				static constexpr kind s_kind{ kind::special };
+				static constexpr kind s_kind{ kind::variable };
 				static t_text_value name() { return "t_struct_prop_name"_jt; }
 				static bool check(state & p_state) {
+					if( p_state.m_kind == kind::n_literal && (p_state.m_was_space == false) ) { return false; }
 					return p_state.m_kind != kind::n_operator;
 				}
 
@@ -748,7 +750,7 @@ export namespace ksi {
 				static constexpr kind s_kind{ kind::separator };
 				static t_text_value name() { return "t_struct_prop_separator"_jt; }
 				static bool check(state & p_state) {
-					return ! just::is_one_of(p_state.m_kind, kind::start, kind::separator);
+					return ! just::is_one_of(p_state.m_kind, kind::start, kind::n_operator, kind::separator);
 				}
 
 				struct t_data :
@@ -762,7 +764,7 @@ export namespace ksi {
 				static constexpr kind s_kind{ kind::n_operator };
 				static t_text_value name() { return "t_struct_prop_assign"_jt; }
 				static bool check(state & p_state) {
-					return ! just::is_one_of(p_state.m_kind, kind::n_operator, kind::n_literal);
+					return p_state.m_kind == kind::variable;
 				}
 
 				struct t_data :
@@ -954,12 +956,85 @@ export namespace ksi {
 				};
 			};
 
+			struct t_literal_int {
+				static constexpr kind s_kind{ kind::n_literal };
+				static t_text_value name() { return "t_literal_int"_jt; }
+				static bool check(state & p_state) { return true; }
+
+				struct t_data {
+					t_integer	m_value;
+
+					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+						using namespace std::literals::string_view_literals;
+						t_raw_const v_pos_start = p_state.m_text_pos, v_pos_end;
+						std::string_view v_prefix = "0"sv;
+						bool v_is_negative = false;
+						switch( *v_pos_start ) {
+						case '-':
+							++v_pos_start;
+							v_prefix = "-0"sv;
+							v_is_negative = true;
+							break;
+						case '+':
+							++v_pos_start;
+							break;
+						}
+						int v_radix = 10;
+						v_pos_end = v_pos_start;
+						if( *v_pos_start == '0' ) {
+							switch( v_pos_start[1] ) {
+							case 'b':
+								v_radix = 2;
+								v_pos_start += 2;
+								v_pos_end = v_pos_start;
+								while( just::is_one_of(*v_pos_end, '0', '1') ) { ++v_pos_end; }
+								break;
+							case 'o':
+								v_radix = 8;
+								v_pos_start += 2;
+								v_pos_end = v_pos_start;
+								while( *v_pos_end >= '0' && *v_pos_end <= '7' ) { ++v_pos_end; }
+								break;
+							case 'h':
+								v_radix = 16;
+								v_pos_start += 2;
+								v_pos_end = v_pos_start;
+								while( std::isxdigit(*v_pos_end) ) { ++v_pos_end; }
+								break;
+							}
+						}
+						if( v_radix == 10 ) {
+							while( std::isdigit(*v_pos_end) ) { ++v_pos_end; }
+						}
+						if( v_pos_start == v_pos_end && v_radix == 10 ) { return false; }
+						t_text_value v_text = just::text_traits::from_range(v_pos_start, v_pos_end);
+						v_text = just::implode<t_char>({v_prefix, v_text});
+						errno = 0;
+						m_value = std::strtoll(v_pos_start, nullptr, v_radix);
+						if( errno == ERANGE ) {
+							t_text_value v_message = (v_is_negative ?
+								"warning: Integer literal is out of bounds so $int#.max# will be used instead."_jt :
+								"warning: Integer literal is out of bounds so $int#.min# will be used instead."_jt
+							);
+							p_log->add({p_state.m_path, v_message, p_state.pos()});
+						}
+						p_state.m_text_pos = v_pos_end;
+						return true;
+					} // fn
+
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+						p_tokens.put_literal(m_value);
+					}
+				};
+			};
+
 			struct rule_literal :
 				public rule_alt<false,
 					t_literal_null,
 					t_literal_all,
 					t_literal_false,
-					t_literal_true
+					t_literal_true,
+					t_literal_int
 				>
 			{
 				static constexpr kind s_kind{ kind::keep };

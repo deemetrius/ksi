@@ -193,6 +193,11 @@ export namespace ksi {
 		{
 			t_text_value name() const override { return "token_struct_add"_jt; }
 
+			// data
+			fs::path	m_path;
+
+			token_struct_add(const fs::path & p_path) : m_path{p_path} {}
+
 			void perform(prepare_data::pointer p_data) override {
 				if( ! p_data->struct_add() ) {
 					t_text_value v_message = just::implode<t_text_value::type>(
@@ -214,7 +219,7 @@ export namespace ksi {
 				if( p_data->m_type_extends.size() ) {
 					v_need_late_cats = true;
 					for( entity_info & v_it : p_data->m_type_extends ) {
-						if( var::type_pointer v_type_source = p_data->type_find(v_it) ) {
+						if( var::type_pointer v_type_source = p_data->type_find(m_path, v_it) ) {
 							p_data->m_error_count += v_struct->inherit_from(
 								{p_data->m_type_args.m_log_pos.m_path, v_it.m_pos}, v_type_source, p_data->m_log
 							);
@@ -323,6 +328,30 @@ export namespace ksi {
 				function_body_user::pointer v_body = m_ext_module->function_body_user_add(m_log_pos);
 				if( var::category::pointer v_key = p_data->category_find(m_path, m_entity) ) {
 					p_data->m_over_category.append(new overloader<var::category::pointer>{
+						m_local, m_global, v_key, v_body
+					});
+				}
+			}
+		};
+
+		struct late_token_function_body_add_over_type :
+			public late_token_function_body_add_base
+		{
+			t_text_value name() const override { return "late_token_function_body_add_over_type"_jt; }
+
+			// data
+			fs::path		m_path;
+			entity_info		m_entity;
+
+			late_token_function_body_add_over_type(fs::path p_path, const entity_info & p_entity) :
+				m_path{p_path}, m_entity{p_entity}
+			{}
+
+			void perform(prepare_data::pointer p_data) override {
+				p_data->m_ext_module_current = m_ext_module;
+				function_body_user::pointer v_body = m_ext_module->function_body_user_add(m_log_pos);
+				if( var::type_pointer v_key = p_data->type_find(m_path, m_entity) ) {
+					p_data->m_over_type.append(new overloader<var::type_pointer>{
 						m_local, m_global, v_key, v_body
 					});
 				}

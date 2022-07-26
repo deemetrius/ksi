@@ -351,17 +351,19 @@ export namespace ksi {
 
 		//
 
-		var::type_pointer impl_type_find(module_base::pointer p_module, const entity_info & p_extend) {
+		var::type_pointer impl_type_find(const fs::path p_path,
+			module_base::pointer p_module, const entity_info & p_extend
+		) {
 			var::type_pointer v_ret = p_module->type_find(p_extend.m_name);
 			if( v_ret == nullptr ) {
-				error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
+				error({p_path, just::implode<t_text_value::type>(
 					{"deduce error: Type was not defined yet: ", p_extend.m_name, p_extend.m_module_name}
 				), p_extend.m_pos});
 			}
 			return v_ret;
 		}
 
-		var::type_pointer type_find(const entity_info & p_extend) {
+		var::type_pointer type_find(const fs::path p_path, const entity_info & p_extend) {
 			module_extension::pointer v_ext_module = nullptr;
 			switch( p_extend.m_module_name.size() ) {
 			case 0:
@@ -375,15 +377,15 @@ export namespace ksi {
 				if( v_ext_module == nullptr ) {
 					module_space::pointer v_module = m_space->module_find(p_extend.m_module_name);
 					if( v_module == nullptr ) {
-						error({m_type_args.m_log_pos.m_path, just::implode<t_text_value::type>(
+						error({p_path, just::implode<t_text_value::type>(
 							{"deduce error: Module was not defined yet: ", p_extend.m_module_name}
 						), p_extend.m_pos});
 						return nullptr;
 					}
-					return impl_type_find(v_module, p_extend);
+					return impl_type_find(p_path, v_module, p_extend);
 				}
 			}
-			return impl_type_find(v_ext_module, p_extend);
+			return impl_type_find(p_path, v_ext_module, p_extend);
 		}
 
 		//

@@ -422,6 +422,11 @@ export namespace ksi {
 			public is_entity<C_allow_std, '_'>
 		{};
 
+		template <bool C_allow_std>
+		struct is_type :
+			public is_entity<C_allow_std, '$'>
+		{};
+
 		//
 
 		struct all {
@@ -660,24 +665,9 @@ export namespace ksi {
 				static t_text_value name() { return "t_extends_type_name"_jt; }
 				static bool check(state & p_state) { return true; }
 
-				struct t_data
+				struct t_data :
+					public is_type<false>
 				{
-					// data
-					entity_info		m_entity;
-
-					bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-						bool ret = traits<>::take_name_with_prefix(p_state, '$', m_entity.m_name, m_entity.m_pos);
-						if( ret ) {
-							position v_pos;
-							if( traits<>::take_name_with_prefix(p_state, '@', m_entity.m_module_name, v_pos) ) {}
-							else if( *p_state.m_text_pos == '@' ) {
-								++p_state.m_text_pos;
-								m_entity.m_module_name = "@"_jt;
-							}
-						}
-						return ret;
-					}
-
 					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 						p_tokens.m_types.append( new tokens::token_type_add_base(m_entity) );
 					}
@@ -695,7 +685,7 @@ export namespace ksi {
 					public is_keyword<"struct">
 				{
 					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-						p_tokens.m_types.append( new tokens::token_struct_add() );
+						p_tokens.m_types.append(new tokens::token_struct_add{p_state.m_path});
 						p_state.m_fn_parse = &rule_struct_open::parse;
 					}
 				};
@@ -827,6 +817,23 @@ export namespace ksi {
 						p_data->m_late.m_functions.append(
 							p_state.m_token_function_add->m_late_token =
 							new tokens::late_token_function_body_add_over_category(p_state.m_path, m_entity)
+						);
+					}
+				};
+			};
+
+			struct t_function_overload_by_type {
+				static constexpr kind s_kind{ kind::type };
+				static t_text_value name() { return "t_function_overload_by_type"_jt; }
+				static bool check(state & p_state) { return p_state.m_kind == kind::start; }
+
+				struct t_data :
+					is_type<true>
+				{
+					void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+						p_data->m_late.m_functions.append(
+							p_state.m_token_function_add->m_late_token =
+							new tokens::late_token_function_body_add_over_type(p_state.m_path, m_entity)
 						);
 					}
 				};
@@ -1011,7 +1018,12 @@ export namespace ksi {
 			{};
 
 			struct rule_function_arg :
-				public rule_alt<true, t_space, t_function_overload_by_category, t_function_arg> {};
+				public rule_alt<true, t_space,
+					t_function_overload_by_category,
+					t_function_overload_by_type,
+					t_function_arg
+				>
+			{};
 
 			struct rule_function_open :
 				public rule_alt<true, t_space, t_function_open> {};

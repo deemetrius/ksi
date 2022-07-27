@@ -22,6 +22,7 @@ export namespace ksi {
 
 	using namespace just::text_literals;
 
+	using t_size		= just::t_size;
 	using t_index		= just::t_index;
 	using t_int_ptr		= just::t_int_ptr;
 	using t_uint_ptr	= just::t_uint_ptr;

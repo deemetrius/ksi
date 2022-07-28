@@ -110,6 +110,7 @@ struct t_function_params_open {
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 			p_state.m_fn_parse = &rule_function_params_inside::parse;
 			p_state.flag_set(flag_was_fn_params);
+			p_tokens.m_fn_put_literal = &tokens::nest_tokens::put_literal_fn_param_default;
 		}
 	};
 };
@@ -159,6 +160,20 @@ struct t_function_param_separator {
 
 	struct t_data :
 		public is_char<',', ';'>
+	{
+		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {}
+	};
+};
+
+struct t_function_param_assign {
+	static constexpr kind s_kind{ kind::n_operator };
+	static t_text_value name() { return "t_function_param_assign"_jt; }
+	static bool check(state & p_state) {
+		return p_state.m_kind == kind::variable;
+	}
+
+	struct t_data :
+		public is_char<'='>
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {}
 	};

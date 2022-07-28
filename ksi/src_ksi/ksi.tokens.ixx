@@ -403,6 +403,8 @@ export namespace ksi {
 		struct late_token_function_add_param :
 			public token_base
 		{
+			using pointer = late_token_function_add_param *;
+
 			t_text_value name() const override { return "late_token_function_add_param"_jt; }
 
 			// data
@@ -418,7 +420,7 @@ export namespace ksi {
 
 			void perform(prepare_data::pointer p_data) override {
 				function_body_user::pointer v_body = p_data->m_ext_module_current->function_body_user_last();
-				if( ! v_body->arg_add(m_name) ) {
+				if( ! v_body->arg_add(m_name, m_value) ) {
 					t_text_value v_message = just::implode<t_char>(
 						{"deduce error: Duplicate function param name: "sv, m_name}
 					);

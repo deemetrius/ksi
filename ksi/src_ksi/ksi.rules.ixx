@@ -225,6 +225,8 @@ export namespace ksi {
 				public rule_alt<true, t_space,
 					t_function_params_close,
 					t_function_param_name,
+					t_function_param_assign,
+					rule_literal,
 					t_function_param_separator
 				>
 			{};

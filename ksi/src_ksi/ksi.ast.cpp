@@ -187,15 +187,26 @@ namespace ksi {
 
 	namespace tokens {
 
-		void nest_tokens::put_literal_prop_default(
+		void nest_tokens::put_literal_struct_prop_default(
 			nest_tokens::pointer p_nest,
 			const var::any_var & p_value,
 			prepare_data_pointer p_data
 		) {
-			token_struct_prop_name::pointer v_prop_token = static_cast<token_struct_prop_name::pointer>(
+			token_struct_prop_name::pointer v_token = static_cast<token_struct_prop_name::pointer>(
 				p_nest->m_types.m_zero.m_prev
 			);
-			v_prop_token->m_value = p_value;
+			v_token->m_value = p_value;
+		}
+
+		void nest_tokens::put_literal_fn_param_default(
+			nest_tokens::pointer p_nest,
+			const var::any_var & p_value,
+			prepare_data_pointer p_data
+		) {
+			late_token_function_add_param::pointer v_token = static_cast<late_token_function_add_param::pointer>(
+				p_data->m_late.m_functions.m_zero.m_prev
+			);
+			v_token->m_value = p_value;
 		}
 
 	} // ns

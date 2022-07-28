@@ -131,7 +131,6 @@ struct t_literal_int {
 				++v_pos_start;
 				v_pos_end = v_pos_start +1;
 				while( is_digit(*v_pos_end, v_radix) ) { ++v_pos_end; }
-				//t_text_value v_text_ending = just::text_traits::from_range(v_pos_start, v_pos_end);
 				std::string_view v_text_ending{v_pos_start, static_cast<t_size>(v_pos_end - v_pos_start)};
 				v_text = just::implode<t_char>({v_text, v_text_ending});
 			}
@@ -169,7 +168,6 @@ struct t_literal_float {
 				++p_pos_start;
 				p_pos_end = p_pos_start +1;
 				while( std::isdigit(*p_pos_end) ) { ++p_pos_end; }
-				//t_text_value v_text_ending = just::text_traits::from_range(p_pos_start, p_pos_end);
 				std::string_view v_text_ending{p_pos_start, static_cast<t_size>(p_pos_end - p_pos_start)};
 				p_text = just::implode<t_char>({p_text, v_text_ending});
 			}
@@ -177,12 +175,10 @@ struct t_literal_float {
 
 		bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 			t_raw_const v_pos_start = p_state.m_text_pos, v_pos_end;
-			//std::string_view v_prefix = ""sv;
 			bool v_is_negative = false;
 			switch( *v_pos_start ) {
 			case '-':
 				++v_pos_start;
-				//v_prefix = "-"sv;
 				v_is_negative = true;
 				break;
 			case '+':

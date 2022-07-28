@@ -20,6 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\pre.h" />
+    <ClInclude Include="..\src_ksi\ksi.rules.basic.h" />
+    <ClInclude Include="..\src_ksi\ksi.rules.def_category.h" />
+    <ClInclude Include="..\src_ksi\ksi.rules.def_function.h" />
+    <ClInclude Include="..\src_ksi\ksi.rules.literals.h" />
+    <ClInclude Include="..\src_ksi\ksi.rules.def_struct.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src_bin\main.cpp" />

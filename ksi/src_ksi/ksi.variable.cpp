@@ -7,11 +7,13 @@ import ksi.var.ops;
 
 namespace ksi {
 
+	using namespace std::literals::string_view_literals;
+
 	namespace var {
 
 		/*void with_name::name(const t_text_value & p_name) {
 			m_name = p_name;
-			m_name_full = just::implode<t_text_value::type>({p_name, m_module->name()});
+			m_name_full = just::implode<t_char>({p_name, m_module->name()});
 		}*/
 
 		void type_simple::init_categories() {
@@ -126,10 +128,10 @@ namespace ksi {
 			m_id_props{p_id + n_id_delta_static_props},
 			m_id_consts{p_id + n_id_delta_static_consts},
 			m_struct_props{&g_config->m_mod_hidden, m_id_props,
-				{just::implode<t_text_value::type>({p_type_name, ".$static_props"}), true}
+				{just::implode<t_char>({p_type_name, ".$static_props"sv}), true}
 			},
 			m_struct_consts{&g_config->m_mod_hidden, m_id_consts,
-				{just::implode<t_text_value::type>({p_type_name, ".$static_consts#"}), true}
+				{just::implode<t_char>({p_type_name, ".$static_consts#"sv}), true}
 			}
 		{}
 

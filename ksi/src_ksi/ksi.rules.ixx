@@ -13,10 +13,10 @@ export import ksi.tokens;
 export namespace ksi {
 
 	using namespace just::text_literals;
+	using namespace std::literals::string_view_literals;
 
 	namespace rules {
 
-		using namespace std::literals::string_view_literals;
 
 		struct state;
 
@@ -284,10 +284,10 @@ export namespace ksi {
 			static t_text_value message(state & p_state) {
 				t_items v_items;
 				add_items(p_state, v_items);
-				t_text_value v_text = just::implode_items<t_char, t_text_value>(v_items, ", ");
+				t_text_value v_text = just::implode_items<t_char, t_text_value>(v_items, ", "sv);
 				std::string_view v_symbol = "symbol";
 				if( *p_state.m_text_pos == '\0' ) { v_symbol = "EOF"; }
-				return just::implode<t_char>({"parse error: Unexpected ", v_symbol, ". Expected (", v_text, ")"});
+				return just::implode<t_char>({"parse error: Unexpected "sv, v_symbol, ". Expected ("sv, v_text, ")"sv});
 			}
 
 			using fn_message = decltype(&message);

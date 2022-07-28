@@ -11,6 +11,7 @@ export import ksi.config;
 export namespace ksi {
 
 	using namespace just::text_literals;
+	using namespace std::literals::string_view_literals;
 
 	using file_read_result = just::result<just::text>;
 
@@ -317,8 +318,8 @@ export namespace ksi {
 		) {
 			var::category::pointer v_ret = p_module->category_find(p_extend.m_name);
 			if( v_ret == nullptr ) {
-				error({p_path, just::implode<t_text_value::type>(
-					{"deduce error: Category was not defined yet: ", p_extend.m_name, p_extend.m_module_name}
+				error({p_path, just::implode<t_char>(
+					{"deduce error: Category was not defined yet: "sv, p_extend.m_name, p_extend.m_module_name}
 				), p_extend.m_pos});
 			}
 			return v_ret;
@@ -338,8 +339,8 @@ export namespace ksi {
 				if( v_ext_module == nullptr ) {
 					module_space::pointer v_module = m_space->module_find(p_extend.m_module_name);
 					if( v_module == nullptr ) {
-						error({p_path, just::implode<t_text_value::type>(
-							{"deduce error: Module was not defined yet: ", p_extend.m_module_name}
+						error({p_path, just::implode<t_char>(
+							{"deduce error: Module was not defined yet: "sv, p_extend.m_module_name}
 						), p_extend.m_pos});
 						return nullptr;
 					}
@@ -356,8 +357,8 @@ export namespace ksi {
 		) {
 			var::type_pointer v_ret = p_module->type_find(p_extend.m_name);
 			if( v_ret == nullptr ) {
-				error({p_path, just::implode<t_text_value::type>(
-					{"deduce error: Type was not defined yet: ", p_extend.m_name, p_extend.m_module_name}
+				error({p_path, just::implode<t_char>(
+					{"deduce error: Type was not defined yet: "sv, p_extend.m_name, p_extend.m_module_name}
 				), p_extend.m_pos});
 			}
 			return v_ret;
@@ -377,8 +378,8 @@ export namespace ksi {
 				if( v_ext_module == nullptr ) {
 					module_space::pointer v_module = m_space->module_find(p_extend.m_module_name);
 					if( v_module == nullptr ) {
-						error({p_path, just::implode<t_text_value::type>(
-							{"deduce error: Module was not defined yet: ", p_extend.m_module_name}
+						error({p_path, just::implode<t_char>(
+							{"deduce error: Module was not defined yet: "sv, p_extend.m_module_name}
 						), p_extend.m_pos});
 						return nullptr;
 					}

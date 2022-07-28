@@ -21,6 +21,7 @@ export import ksi.log;
 export namespace ksi {
 
 	using namespace just::text_literals;
+	using namespace std::literals::string_view_literals;
 
 	using t_size		= just::t_size;
 	using t_index		= just::t_index;
@@ -151,7 +152,7 @@ export namespace ksi {
 			void name(const t_text_value & p_name, bool p_hide_global = false) {
 				m_name = p_name;
 				if( p_hide_global && m_module->m_is_global ) { m_name_full = p_name; }
-				else { m_name_full = just::implode<t_text_value::type>({p_name, m_module->name()}); }
+				else { m_name_full = just::implode<t_char>({p_name, m_module->name()}); }
 			}
 		};
 
@@ -716,20 +717,20 @@ export namespace ksi {
 
 			t_index inherit_from(const log_pos & p_log_pos, type_pointer p_type_source, log_pointer p_log) {
 				if( !p_type_source->m_is_struct ) {
-					p_log->add(p_log_pos.message(just::implode<t_text_value::type>(
-						{"deduce error: Not struct type in extends: ", p_type_source->m_name_full}
+					p_log->add(p_log_pos.message(just::implode<t_char>(
+						{"deduce error: Not struct type in extends: "sv, p_type_source->m_name_full}
 					) ) );
 					return 1;
 				}
 				if( p_type_source == this ) {
-					p_log->add(p_log_pos.message(just::implode<t_text_value::type>(
-						{"deduce error: Struct type can not extend itself: ", p_type_source->m_name_full}
+					p_log->add(p_log_pos.message(just::implode<t_char>(
+						{"deduce error: Struct type can not extend itself: "sv, p_type_source->m_name_full}
 					) ) );
 					return 1;
 				}
 				if( m_bases.find(p_type_source) ) {
-					p_log->add(p_log_pos.message(just::implode<t_text_value::type>(
-						{"deduce error: Base type in extends is listed more than once: ", p_type_source->m_name_full}
+					p_log->add(p_log_pos.message(just::implode<t_char>(
+						{"deduce error: Base type in extends is listed more than once: "sv, p_type_source->m_name_full}
 					) ) );
 					return 1;
 				}
@@ -740,16 +741,16 @@ export namespace ksi {
 					if( ! prop_add(v_it.key(), v_it.m_value->m_value, p_type_source) ) {
 						typename t_props::t_find_result v_res = m_props.find(v_it.key() );
 						type_pointer v_type = v_res.m_value->m_type_source;
-						p_log->add(p_log_pos.message(just::implode<t_text_value::type>({
-							"deduce error: Property \"", v_it.key(), "\" defined in type \"", p_type_source->m_name_full,
-							"\" is already inherited from type: ",
+						p_log->add(p_log_pos.message(just::implode<t_char>({
+							"deduce error: Property \""sv, v_it.key(), "\" defined in type \""sv, p_type_source->m_name_full,
+							"\" is already inherited from type: "sv,
 							v_type->m_name_full
 						}) ) );
-						p_log->add(v_type->m_log_pos.message(just::implode<t_text_value::type>(
-							{"info: See definition of type: ", v_type->m_name_full}
+						p_log->add(v_type->m_log_pos.message(just::implode<t_char>(
+							{"info: See definition of type: "sv, v_type->m_name_full}
 						) ) );
-						p_log->add(v_type_source->m_log_pos.message(just::implode<t_text_value::type>(
-							{"info: See definition of type: ", v_type_source->m_name_full}
+						p_log->add(v_type_source->m_log_pos.message(just::implode<t_char>(
+							{"info: See definition of type: "sv, v_type_source->m_name_full}
 						) ) );
 						++v_ret;
 					}

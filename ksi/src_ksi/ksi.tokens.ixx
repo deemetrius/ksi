@@ -9,6 +9,7 @@ export import ksi.ast;
 export namespace ksi {
 
 	using namespace just::text_literals;
+	using namespace std::literals::string_view_literals;
 
 	namespace tokens {
 
@@ -41,8 +42,8 @@ export namespace ksi {
 
 			void perform(prepare_data::pointer p_data) override {
 				if( ! p_data->category_add(m_args) ) {
-					t_text_value v_message = just::implode<t_text_value::type>(
-						{"deduce error: Duplicate category name: ", m_args.m_name}
+					t_text_value v_message = just::implode<t_char>(
+						{"deduce error: Duplicate category name: "sv, m_args.m_name}
 					);
 					p_data->error(m_args.m_log_pos.message(v_message) );
 				}
@@ -66,16 +67,16 @@ export namespace ksi {
 				if( v_cat_base ) {
 					var::category::pointer v_cat_target = p_data->m_ext_module_current->category_last();
 					if( v_cat_base == v_cat_target ) {
-						t_text_value v_message = just::implode<t_text_value::type>(
-							{"deduce error: Category could not include itself: ", v_cat_target->m_name_full}
+						t_text_value v_message = just::implode<t_char>(
+							{"deduce error: Category could not include itself: "sv, v_cat_target->m_name_full}
 						);
 						p_data->error({m_path, v_message, m_extend.m_pos});
 						return;
 					}
 					if( ! v_cat_target->m_includes.add(v_cat_base) ) {
-						t_text_value v_message = just::implode<t_text_value::type>({
-							"deduce error: Category ", v_cat_base->m_name_full,
-							" was already included to: ", v_cat_target->m_name_full
+						t_text_value v_message = just::implode<t_char>({
+							"deduce error: Category "sv, v_cat_base->m_name_full,
+							" was already included to: "sv, v_cat_target->m_name_full
 						});
 						p_data->error({m_path, v_message, m_extend.m_pos});
 					}
@@ -200,8 +201,8 @@ export namespace ksi {
 
 			void perform(prepare_data::pointer p_data) override {
 				if( ! p_data->struct_add() ) {
-					t_text_value v_message = just::implode<t_text_value::type>(
-						{"deduce error: Duplicate type name: ", p_data->m_type_args.m_name}
+					t_text_value v_message = just::implode<t_char>(
+						{"deduce error: Duplicate type name: "sv, p_data->m_type_args.m_name}
 					);
 					p_data->error(p_data->m_type_args.m_log_pos.message(v_message) );
 				}
@@ -270,12 +271,12 @@ export namespace ksi {
 				if( ! v_type_struct->prop_add(m_name, m_value) ) {
 					typename var::type_struct::t_props::t_find_result v_res = v_type_struct->m_props.find(m_name);
 					var::type_pointer v_type = v_res.m_value->m_type_source;
-					p_data->error(m_log_pos.message(just::implode<t_text_value::type>({
-						"deduce error: Property \"", m_name, "\" is already defined in type: ", v_type->m_name_full
+					p_data->error(m_log_pos.message(just::implode<t_char>({
+						"deduce error: Property \""sv, m_name, "\" is already defined in type: "sv, v_type->m_name_full
 					}) ) );
 					if( v_type != v_type_struct ) {
-						p_data->m_log->add(v_type->m_log_pos.message(just::implode<t_text_value::type>(
-							{"info: See definition of type: ", v_type->m_name_full}
+						p_data->m_log->add(v_type->m_log_pos.message(just::implode<t_char>(
+							{"info: See definition of type: "sv, v_type->m_name_full}
 						) ) );
 					}
 				}
@@ -396,6 +397,33 @@ export namespace ksi {
 			void perform(prepare_data::pointer p_data) override {
 				function_body_user::pointer v_body = p_data->m_ext_module_current->function_body_user_last();
 				v_body->arg_add(m_name);
+			}
+		};
+
+		struct late_token_function_add_param :
+			public token_base
+		{
+			t_text_value name() const override { return "late_token_function_add_param"_jt; }
+
+			// data
+			log_pos			m_log_pos;
+			t_text_value	m_name;
+			var::any_var	m_value;
+
+			late_token_function_add_param(const log_pos & p_log_pos,
+				const t_text_value & p_name, const var::any_var & p_value
+			) :
+				m_log_pos{p_log_pos}, m_name{p_name}, m_value{p_value}
+			{}
+
+			void perform(prepare_data::pointer p_data) override {
+				function_body_user::pointer v_body = p_data->m_ext_module_current->function_body_user_last();
+				if( ! v_body->arg_add(m_name) ) {
+					t_text_value v_message = just::implode<t_char>(
+						{"deduce error: Duplicate function param name: "sv, m_name}
+					);
+					p_data->error(m_log_pos.message(v_message) );
+				}
 			}
 		};
 

@@ -13,6 +13,7 @@ export import ksi.var;
 export namespace ksi {
 	
 	using namespace just::text_literals;
+	using namespace std::literals::string_view_literals;
 
 	struct space;
 	struct function_body;
@@ -104,8 +105,10 @@ export namespace ksi {
 
 	struct function_body {
 		using pointer = function_body *;
-		using t_args = just::hive<t_text_value, std::monostate, just::text_less>;
+		using t_args = just::hive<t_text_value, var::any_var, just::text_less>;
 		using t_args_insert = t_args::t_find_result;
+		using t_vars = just::hive<t_text_value, std::monostate, just::text_less>;
+		using t_vars_insert = t_vars::t_find_result;
 
 		// data
 		module_pointer	m_module;
@@ -117,8 +120,8 @@ export namespace ksi {
 			m_vars.maybe_emplace("ret"_jt);
 		}
 
-		bool arg_add(const t_text_value & p_name) {
-			t_args_insert v_res = m_args.maybe_emplace(p_name);
+		bool arg_add(const t_text_value & p_name, const var::any_var & p_value = var::any_var{}) {
+			t_args_insert v_res = m_args.maybe_emplace(p_name, p_value);
 			return v_res.m_added;
 		}
 	};
@@ -165,7 +168,7 @@ export namespace ksi {
 				t_text_value v_fn_name = m_name_full;
 				if( p_is_global ) { v_fn_name = m_name; }
 				t_text_value p_message = just::implode<t_char>(
-					{"notice: Function ", v_fn_name, " was already overloaded for category: ", p_key->m_name_full}
+					{"notice: Function "sv, v_fn_name, " was already overloaded for category: "sv, p_key->m_name_full}
 				);
 				p_log->add(p_body->m_log_pos.message(p_message) );
 			}
@@ -180,7 +183,7 @@ export namespace ksi {
 				t_text_value v_fn_name = m_name_full;
 				if( p_is_global ) { v_fn_name = m_name; }
 				t_text_value p_message = just::implode<t_char>(
-					{"notice: Function ", v_fn_name, " was already overloaded for type: ", p_key->m_name_full}
+					{"notice: Function "sv, v_fn_name, " was already overloaded for type: "sv, p_key->m_name_full}
 				);
 				p_log->add(p_body->m_log_pos.message(p_message) );
 			}
@@ -196,7 +199,7 @@ export namespace ksi {
 				t_text_value v_fn_name = m_name_full;
 				if( p_is_global ) { v_fn_name = m_name; }
 				t_text_value p_message = just::implode<t_char>(
-					{"notice: Function ", v_fn_name, " was already overloaded in common way."}
+					{"notice: Function "sv, v_fn_name, " was already overloaded in common way."sv}
 				);
 				p_log->add(p_body->m_log_pos.message(p_message) );
 			} else {

@@ -8,7 +8,7 @@ struct t_literal_null {
 		public is_keyword<"null">
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-			if( p_state.m_nest != nest::declarative ) { p_tokens.put_literal(var::any_var{}); }
+			if( p_state.m_nest != nest::declarative ) { p_tokens.put_literal(var::any_var{}, p_data); }
 		}
 	};
 };
@@ -22,7 +22,7 @@ struct t_literal_all {
 		public is_keyword<"all">
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-			if( p_state.m_nest != nest::declarative ) { p_tokens.put_literal(var::variant_all{}); }
+			if( p_state.m_nest != nest::declarative ) { p_tokens.put_literal(var::variant_all{}, p_data); }
 		}
 	};
 };
@@ -36,7 +36,7 @@ struct t_literal_false {
 		public is_keyword<"false">
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-			p_tokens.put_literal(false);
+			p_tokens.put_literal(false, p_data);
 		}
 	};
 };
@@ -50,7 +50,7 @@ struct t_literal_true {
 		public is_keyword<"true">
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-			p_tokens.put_literal(true);
+			p_tokens.put_literal(true, p_data);
 		}
 	};
 };
@@ -150,7 +150,7 @@ struct t_literal_int {
 
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 			//just::g_console << m_value << just::g_new_line;
-			p_tokens.put_literal(m_value);
+			p_tokens.put_literal(m_value, p_data);
 		}
 	};
 };
@@ -236,7 +236,7 @@ struct t_literal_float {
 
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 			//just::g_console << m_value << just::g_new_line;
-			p_tokens.put_literal(m_value);
+			p_tokens.put_literal(m_value, p_data);
 		}
 	};
 };

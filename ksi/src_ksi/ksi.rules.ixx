@@ -76,7 +76,8 @@ export namespace ksi {
 			flag_allow_plain	= 1 << 0,
 			flag_was_refers		= 1 << 1,
 			flag_was_extends	= 1 << 2,
-			flag_was_colon		= 1 << 3,
+			flag_was_fn_params	= 1 << 3,
+			flag_was_colon		= 1 << 4,
 		};
 
 		//
@@ -218,7 +219,15 @@ export namespace ksi {
 			{};
 
 			struct rule_function_open :
-				public rule_alt<true, t_space, t_function_open> {};
+				public rule_alt<true, t_space, t_function_params_open, t_function_open> {};
+
+			struct rule_function_params_inside :
+				public rule_alt<true, t_space,
+					t_function_params_close,
+					t_function_param_name,
+					t_function_param_separator
+				>
+			{};
 
 			struct rule_function_inside :
 				public rule_alt<true, t_space, t_function_close> {};

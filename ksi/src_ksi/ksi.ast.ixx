@@ -56,7 +56,9 @@ export namespace ksi {
 			using pointer = nest_tokens *;
 			using t_tokens = just::list<token_base, just::closers::compound_call_deleter<false>::template t_closer>;
 
-			static void put_literal_prop_default(pointer p_nest, const var::any_var & p_value);
+			static void put_literal_prop_default(
+				pointer p_nest, const var::any_var & p_value, prepare_data_pointer p_data
+			);
 
 			using t_put_literal = decltype(&put_literal_prop_default);
 
@@ -88,8 +90,8 @@ export namespace ksi {
 				}
 			}
 
-			void put_literal(const var::any_var & p_value) {
-				m_fn_put_literal(this, p_value);
+			void put_literal(const var::any_var & p_value, prepare_data_pointer p_data) {
+				m_fn_put_literal(this, p_value, p_data);
 			}
 		};
 

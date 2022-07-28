@@ -411,9 +411,9 @@ export namespace ksi {
 			var::any_var	m_value;
 
 			late_token_function_add_param(const log_pos & p_log_pos,
-				const t_text_value & p_name, const var::any_var & p_value
+				const t_text_value & p_name//, const var::any_var & p_value = var::any_var{}
 			) :
-				m_log_pos{p_log_pos}, m_name{p_name}, m_value{p_value}
+				m_log_pos{p_log_pos}, m_name{p_name}//, m_value{p_value}
 			{}
 
 			void perform(prepare_data::pointer p_data) override {

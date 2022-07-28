@@ -98,8 +98,8 @@ struct t_kw_extends {
 		public is_keyword<"extends">
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-			p_state.flag_set(flag_was_extends);
 			p_state.m_fn_parse = &rule_extends_open::parse;
+			p_state.flag_set(flag_was_extends);
 		}
 	};
 };

@@ -187,7 +187,11 @@ namespace ksi {
 
 	namespace tokens {
 
-		void nest_tokens::put_literal_prop_default(nest_tokens::pointer p_nest, const var::any_var & p_value) {
+		void nest_tokens::put_literal_prop_default(
+			nest_tokens::pointer p_nest,
+			const var::any_var & p_value,
+			prepare_data_pointer p_data
+		) {
 			token_struct_prop_name::pointer v_prop_token = static_cast<token_struct_prop_name::pointer>(
 				p_nest->m_types.m_zero.m_prev
 			);

@@ -17,7 +17,7 @@ export namespace just {
 
 		static constexpr t_size s_size = C_size;
 
-		static constexpr bool s_need_destroy = std::is_trivially_destructible_v<type>;
+		static constexpr bool s_need_destroy = ! std::is_trivially_destructible_v<type>;
 
 		struct bucket :
 			public node_forward<bucket>
@@ -41,8 +41,8 @@ export namespace just {
 
 		static void bucket_add(pointer p_pool) {
 			typename bucket::pointer v_bucket = new bucket;
-			m_zero.forward_attach(v_bucket);
-			m_next = v_bucket->begin();
+			p_pool->m_zero.forward_attach(v_bucket);
+			p_pool->m_next = v_bucket->begin();
 		}
 
 		static void bucket_destroy(bucket::pointer p_bucket) { delete p_bucket; }
@@ -67,31 +67,38 @@ export namespace just {
 
 		void advance() {
 			++m_next;
-			if( m_next == m_zero.m_next->end() ) { m_adder(this); }
+			if( m_next == bucket_last()->end() ) { m_adder(this); }
 		}
 
-		bucket::pointer bucket_last() { return m_zero->m_next->node_target(); }
+		bucket::pointer bucket_last() { return m_zero.m_next->forward_target(); }
 
 		void clear() {
 			typename bucket::pointer v_bucket_last = bucket_last();
 			typename bucket::t_node::t_forward_range v_range = v_bucket_last->forward_range();
 			if constexpr( s_need_destroy ) {
-				for( typename bucket::t_item_pointer v_item : v_bucket_last->reverse_for(m_next) ) {
-					static_cast<type_pointer>(v_item)->~type();
+				for( typename bucket::t_item & v_item : v_bucket_last->reverse_for(m_next) ) {
+					reinterpret_cast<type_pointer>(&v_item)->~type();
 				}
-				for( typename bucket::forward_pointer v_bucket : v_range ) {
-					for( typename bucket::t_item_pointer v_item : v_bucket->reverse_for() ) {
-						static_cast<type_pointer>(v_item)->~type();
+				for( typename bucket::pointer v_bucket : v_range ) {
+					for( typename bucket::t_item & v_item : v_bucket->reverse_for() ) {
+						reinterpret_cast<type_pointer>(&v_item)->~type();
 					}
 					m_destroyer(v_bucket);
 				}
 			} else {
-				for( typename bucket::forward_pointer v_bucket : v_range ) {
+				for( typename bucket::pointer v_bucket : v_range ) {
 					m_destroyer(v_bucket);
 				}
 			}
 			v_bucket_last->forward_reset();
 			m_next = v_bucket_last->begin();
+		}
+
+		template <typename ... T_args>
+		type_pointer emplace(T_args && ... p_args) {
+			type_pointer ret = new(m_next) type{std::forward<T_args>(p_args) ...};
+			advance();
+			return ret;
 		}
 	};
 

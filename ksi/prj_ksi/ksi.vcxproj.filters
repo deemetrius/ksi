@@ -80,7 +80,7 @@
     <ClCompile Include="..\src_just\just.aux.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\src_ksi\ksi.ast.ixx">
+    <ClCompile Include="..\src_ksi\ksi.prepare_data.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="..\src_ksi\ksi.tokens.ixx">
@@ -98,7 +98,7 @@
     <ClCompile Include="..\src_ksi\ksi.rules.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\src_ksi\ksi.ast.cpp">
+    <ClCompile Include="..\src_ksi\ksi.prepare_data.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="..\src_just\just.map.ixx">
@@ -111,6 +111,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="..\src_just\just.list_forward.ixx">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src_ksi\ksi.ast.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

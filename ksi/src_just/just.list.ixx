@@ -105,6 +105,7 @@ export namespace just {
 		t_node	m_zero;
 		
 		list() = default;
+		~list() requires(!s_need_close) = default;
 		~list() requires(s_need_close) {
 			clear();
 		}
@@ -127,6 +128,9 @@ export namespace just {
 		iterator begin() { return m_zero.m_next; }
 		iterator end() { return &m_zero; }
 		t_range_reverse range_reverse() { return {m_zero.m_prev, &m_zero}; }
+
+		t_node_pointer first() { return m_zero.m_next; }
+		t_node_pointer last() { return m_zero.m_prev; }
 
 		void append(t_node_pointer p_node) {
 			m_zero.m_prev->node_connect_with(p_node);

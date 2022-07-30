@@ -1,4 +1,4 @@
-module ksi.ast;
+module ksi.prepare_data;
 
 #include "../src/pre.h"
 

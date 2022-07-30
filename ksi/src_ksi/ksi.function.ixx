@@ -88,9 +88,17 @@ export namespace ksi {
 		bool empty() const { return m_fn == &do_nothing; }
 	};
 
+	namespace instructions {
+
+		const instr_type
+			g_nothing{"do_nothing"_jt, &instr_type::do_nothing}
+		;
+
+	} // ns
+
 	struct instr {
 		// data
-		instr_type::const_pointer	m_type;
+		instr_type::const_pointer	m_type = &instructions::g_nothing;
 		instr_data					m_data;
 	};
 

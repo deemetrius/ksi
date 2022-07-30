@@ -2,7 +2,7 @@
 
 import <new>;
 import just.output;
-import ksi.ast;
+import ksi.prepare_data;
 import ksi.var.ops;
 
 int main(int p_args_count, char * p_args[], char * p_env[]) {

@@ -40,9 +40,10 @@
     <ClCompile Include="..\src_just\just.pool.ixx" />
     <ClCompile Include="..\src_just\just.ref.ixx" />
     <ClCompile Include="..\src_just\just.text.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.config.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.ast.cpp" />
     <ClCompile Include="..\src_ksi\ksi.ast.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.config.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.prepare_data.cpp" />
+    <ClCompile Include="..\src_ksi\ksi.prepare_data.ixx" />
     <ClCompile Include="..\src_ksi\ksi.function.ixx" />
     <ClCompile Include="..\src_ksi\ksi.instructions.ixx" />
     <ClCompile Include="..\src_ksi\ksi.log.ixx" />

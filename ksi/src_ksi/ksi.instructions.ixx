@@ -10,10 +10,12 @@ export namespace ksi {
 
 	using namespace just::text_literals;
 
-	struct instructions {
-		static constexpr instr_type
-			s_do_nothing{"do_nothing"_jt, &instr_type::do_nothing}
-		;
-	};
+	namespace instructions {
+
+		/*const instr_type
+			g_nothing{"do_nothing"_jt, &instr_type::do_nothing}
+		;*/
+
+	} // ns
 
 } // ns

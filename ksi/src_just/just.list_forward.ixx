@@ -70,7 +70,7 @@ export namespace just {
 		}
 
 		void forward_reset() {
-			this->next_ = nullptr;
+			this->m_next = nullptr;
 		}
 
 		template <typename T_fn>

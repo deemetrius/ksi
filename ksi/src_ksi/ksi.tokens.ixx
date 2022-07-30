@@ -4,7 +4,7 @@ module;
 
 export module ksi.tokens;
 
-export import ksi.ast;
+export import ksi.prepare_data;
 
 export namespace ksi {
 

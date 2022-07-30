@@ -742,7 +742,8 @@ export namespace ksi {
 						typename t_props::t_find_result v_res = m_props.find(v_it.key() );
 						type_pointer v_type = v_res.m_value->m_type_source;
 						p_log->add(p_log_pos.message(just::implode<t_char>({
-							"deduce error: Property \""sv, v_it.key(), "\" defined in type \""sv, p_type_source->m_name_full,
+							"deduce error: Property \""sv, v_it.key(),
+							"\" defined in type \""sv, p_type_source->m_name_full,
 							"\" is already inherited from type: "sv,
 							v_type->m_name_full
 						}) ) );

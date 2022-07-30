@@ -17,6 +17,8 @@ export namespace ksi {
 			prec_root
 		};
 
+		enum class kind { none };
+
 		struct body {
 
 			struct node_tree;
@@ -27,6 +29,7 @@ export namespace ksi {
 			static void do_root(body_pointer p_body, node_tree_pointer p_parent, node_tree_pointer p_node);
 			static void do_leaf(body_pointer p_body, node_tree_pointer p_parent, node_tree_pointer p_node);
 			static void do_normal_left_right(body_pointer p_body, node_tree_pointer p_parent, node_tree_pointer p_node);
+			static void do_normal_right_left(body_pointer p_body, node_tree_pointer p_parent, node_tree_pointer p_node);
 
 			using fn_perform = decltype(&do_root);
 
@@ -37,6 +40,7 @@ export namespace ksi {
 				fn_perform	m_perform;
 				precedence	m_before;
 				precedence	m_after;
+				kind		m_kind = kind::none;
 			};
 
 			static constexpr node_type s_type_root{&do_root, prec_root, prec_root};
@@ -77,6 +81,35 @@ export namespace ksi {
 				node_tree_pointer last() { return m_nodes.last()->node_target(); }
 			};
 
+			static void node_add_inner(tree::pointer p_tree, node_tree_pointer p_target, node_tree_pointer p_node) {
+				p_tree->m_nodes.append(p_node);
+				p_node->m_left = p_target->m_right;
+				p_target->m_right = p_node;
+			}
+
+			// left-to-right
+			static void node_add_assoc_left(tree::pointer p_tree, node_tree_pointer p_node) {
+				node_tree_pointer v_target = p_tree->root();
+				while( v_target->m_right->m_type->m_before > p_node->m_type->m_after ) {
+					v_target = v_target->m_right;
+				}
+				node_add_inner(p_tree, v_target, p_node);
+			}
+
+			// right-to-left
+			static void node_add_assoc_right(tree::pointer p_tree, node_tree_pointer p_node) {
+				node_tree_pointer v_target = p_tree->root();
+				while( v_target->m_right->m_type->m_before >= p_node->m_type->m_after ) {
+					v_target = v_target->m_right;
+				}
+				node_add_inner(p_tree, v_target, p_node);
+			}
+
+			// leaf
+			static void node_add_leaf(tree::pointer p_tree, node_tree_pointer p_node) {
+				p_tree->last()->m_right = p_node;
+			}
+
 			struct scope :
 				public just::node_list<scope>
 			{
@@ -100,9 +133,28 @@ export namespace ksi {
 			just::pool<tree, 16>		m_pool_tree;
 			just::pool<scope, 16>		m_pool_scope;
 			t_scopes					m_scopes;
+			std::vector<t_size>			m_group_pos;
 
 			body(function_body_user::pointer p_fn) : m_fn{p_fn} {
 				m_scopes.append( m_pool_scope.emplace(this) );
+				group_push();
+			}
+
+			void group_push() {
+				m_group_pos.push_back( m_fn->m_groups.size() );
+				m_fn->m_groups.emplace_back();
+			}
+
+			void group_pop() {
+				m_group_pos.pop_back();
+			}
+
+			instr_group::pointer group_current() {
+				return &m_fn->m_groups[m_group_pos.back()];
+			}
+
+			void instr_add(const instr & p_instr) {
+				if( ! p_instr.empty() ) { group_current()->m_instructions.push_back(p_instr); }
 			}
 
 		}; // struct body
@@ -113,7 +165,7 @@ export namespace ksi {
 		}
 
 		void body::do_leaf(body_pointer p_body, node_tree_pointer p_parent, node_tree_pointer p_node) {
-			// here add instr
+			p_body->instr_add(p_node->m_instr);
 		}
 
 		void body::do_normal_left_right(body_pointer p_body, node_tree_pointer p_parent, node_tree_pointer p_node) {
@@ -121,7 +173,15 @@ export namespace ksi {
 			v_node->m_type->m_perform(p_body, p_node, v_node);
 			v_node = p_node->m_right;
 			v_node->m_type->m_perform(p_body, p_node, v_node);
-			// here add instr
+			p_body->instr_add(p_node->m_instr);
+		}
+
+		void body::do_normal_right_left(body_pointer p_body, node_tree_pointer p_parent, node_tree_pointer p_node) {
+			node_tree_pointer v_node = p_node->m_right;
+			v_node->m_type->m_perform(p_body, p_node, v_node);
+			v_node = p_node->m_left;
+			v_node->m_type->m_perform(p_body, p_node, v_node);
+			p_body->instr_add(p_node->m_instr);
 		}
 
 	} // ns

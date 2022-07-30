@@ -100,9 +100,12 @@ export namespace ksi {
 		// data
 		instr_type::const_pointer	m_type = &instructions::g_nothing;
 		instr_data					m_data;
+
+		bool empty() const { return m_type->empty(); }
 	};
 
 	struct instr_group {
+		using pointer = instr_group *;
 		using t_instructions = std::vector<instr>;
 
 		// data

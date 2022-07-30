@@ -107,5 +107,11 @@
     <ClCompile Include="..\src_ksi\ksi.var.ops.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\src_just\just.pool.ixx">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src_just\just.list_forward.ixx">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

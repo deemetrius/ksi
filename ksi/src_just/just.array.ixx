@@ -11,18 +11,6 @@ export import just.ref;
 
 export namespace just {
 
-	template <t_size C_size, t_size C_align>
-	struct alignas(C_align) aligned_data {
-		using type = t_byte_under;
-		enum : t_size { s_size = C_size, s_align = C_align };
-		
-		// data
-		type	m_data[s_size];
-	};
-	
-	template <typename T>
-	using aligned_as = aligned_data<sizeof(T), alignof(T)>;
-	
 	namespace detail {
 		
 		template <typename T>

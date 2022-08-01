@@ -11,6 +11,7 @@ export import <vector>;
 export import <set>;
 export import <map>;
 export import <variant>;
+export import <memory>;
 export import just.common;
 export import just.list;
 export import just.text;

@@ -202,6 +202,9 @@ struct t_function_close {
 		public is_char<')'>
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+			p_data->m_late.m_functions.append(
+				new tokens::late_token_function_body_close()
+			);
 			p_state.m_fn_parse = &rule_decl::parse;
 			p_state.flag_unset(flag_was_fn_params);
 		}

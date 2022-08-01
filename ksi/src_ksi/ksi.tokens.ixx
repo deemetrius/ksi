@@ -295,6 +295,10 @@ export namespace ksi {
 			log_pos						m_log_pos;
 			function::pointer			m_local = nullptr;
 			function::pointer			m_global = nullptr;
+
+			void make_body(prepare_data::pointer p_data, function_body_user::pointer p_body) {
+				p_data->m_body = std::make_unique<ast::body>(p_body);
+			}
 		};
 
 		struct late_token_function_body_add_over_common :
@@ -308,6 +312,8 @@ export namespace ksi {
 				p_data->m_ext_module_current = m_ext_module;
 				function_body_user::pointer v_body = m_ext_module->function_body_user_add(m_log_pos);
 				p_data->m_over_common.append(new overloader<std::monostate>{m_local, m_global, std::monostate{}, v_body});
+				//
+				make_body(p_data, v_body);
 			}
 		};
 
@@ -332,6 +338,8 @@ export namespace ksi {
 						m_local, m_global, v_key, v_body
 					});
 				}
+				//
+				make_body(p_data, v_body);
 			}
 		};
 
@@ -356,6 +364,21 @@ export namespace ksi {
 						m_local, m_global, v_key, v_body
 					});
 				}
+				//
+				make_body(p_data, v_body);
+			}
+		};
+
+		struct late_token_function_body_close :
+			public token_base
+		{
+			t_text_value name() const override { return "late_token_function_body_close"_jt; }
+
+			late_token_function_body_close() = default;
+
+			void perform(prepare_data::pointer p_data) override {
+				p_data->m_body->apply();
+				p_data->m_body.reset();
 			}
 		};
 

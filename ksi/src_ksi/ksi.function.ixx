@@ -41,6 +41,14 @@ export namespace ksi {
 
 		var::any_var * last() { return m_items.end() -1; }
 
+		void var_add(const var::any_var & p_var) {
+			just::array_append(m_items, p_var);
+		}
+
+		void var_remove(t_index p_amount) {
+			just::array_remove_from_end(m_items, p_amount);
+		}
+
 		void var_set(var::var_pointer p_var) {
 			m_var = p_var;
 		}
@@ -77,28 +85,24 @@ export namespace ksi {
 			log_base::pointer p_log, instr_data::const_reference p_data
 		) {}
 
+		static const instr_type s_nothing;
+
 		using t_fn = decltype(&do_nothing);
 		using t_text = const t_text_value::t_impl_base *;
 		using const_pointer = const instr_type *;
 
 		// data
 		t_text	m_name;
-		t_fn	m_fn;
+		t_fn	m_fn = &do_nothing;
 
 		bool empty() const { return m_fn == &do_nothing; }
 	};
 
-	namespace instructions {
-
-		const instr_type
-			g_nothing{"do_nothing"_jt, &instr_type::do_nothing}
-		;
-
-	} // ns
+	const instr_type instr_type::s_nothing{"do_nothing"_jt, &instr_type::do_nothing};
 
 	struct instr {
 		// data
-		instr_type::const_pointer	m_type = &instructions::g_nothing;
+		instr_type::const_pointer	m_type = &instr_type::s_nothing;
 		instr_data					m_data;
 
 		bool empty() const { return m_type->empty(); }
@@ -151,6 +155,19 @@ export namespace ksi {
 		function_body_user(module_pointer p_module, const log_pos & p_log_pos) :
 			function_body{p_module, p_log_pos}
 		{}
+
+		void write(output_pointer p_out) {
+			t_size v_group_pos = 0;
+			for( instr_group & v_group : m_groups ) {
+				(*p_out) << "group: " << v_group_pos << just::g_new_line;
+				for( instr & v_instr : v_group.m_instructions ) {
+					(*p_out) << v_instr.m_type->m_name->m_text << ":\t" << v_instr.m_data.m_arg << '\t'
+						<< v_instr.m_data.m_param << '\t' << v_instr.m_data.m_group << '\n'
+					;
+				}
+				++v_group_pos;
+			}
+		}
 	};
 
 	struct function :

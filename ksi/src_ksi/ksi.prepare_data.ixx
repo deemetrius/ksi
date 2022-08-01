@@ -62,6 +62,9 @@ export namespace ksi {
 			static void put_literal_fn_param_default(
 				pointer p_nest, const var::any_var & p_value, prepare_data_pointer p_data
 			);
+			static void put_literal_imperative(
+				pointer p_nest, const var::any_var & p_value, prepare_data_pointer p_data
+			);
 
 			using t_put_literal = decltype(&put_literal_struct_prop_default);
 

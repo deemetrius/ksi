@@ -209,6 +209,16 @@ namespace ksi {
 			v_token->m_value = p_value;
 		}
 
+		void nest_tokens::put_literal_imperative(
+			nest_tokens::pointer p_nest,
+			const var::any_var & p_value,
+			prepare_data_pointer p_data
+		) {
+			p_data->m_late.m_functions.append(
+				new tokens::imp_token_put_literal(p_value)
+			);
+		}
+
 	} // ns
 
 } // ns

@@ -42,6 +42,8 @@ export namespace ksi {
 	
 	using module_pointer = is_module *;
 
+	using output_pointer = just::output_base *;
+
 	namespace var {
 
 		enum t_id_config : t_integer {
@@ -55,8 +57,6 @@ export namespace ksi {
 			n_id_cat_standard			= 0,
 			n_id_cat_custom				= 1000
 		};
-
-		using output_pointer = just::output_base *;
 
 		struct compound_base;
 		struct compound_text;

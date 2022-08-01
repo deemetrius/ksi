@@ -189,6 +189,8 @@ struct t_function_open {
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 			p_state.m_fn_parse = &rule_function_inside::parse;
+			p_tokens.m_fn_put_literal = &tokens::nest_tokens::put_literal_imperative;
+			p_state.m_nest = nest::fn_body;
 		}
 	};
 };
@@ -207,6 +209,7 @@ struct t_function_close {
 			);
 			p_state.m_fn_parse = &rule_decl::parse;
 			p_state.flag_unset(flag_was_fn_params);
+			p_state.m_nest = nest::declarative;
 		}
 	};
 };

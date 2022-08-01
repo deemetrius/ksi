@@ -11,11 +11,6 @@ namespace ksi {
 
 	namespace var {
 
-		/*void with_name::name(const t_text_value & p_name) {
-			m_name = p_name;
-			m_name_full = just::implode<t_char>({p_name, m_module->name()});
-		}*/
-
 		void type_simple::init_categories() {
 			m_categories.add(&g_config->m_cat_simple);
 		}

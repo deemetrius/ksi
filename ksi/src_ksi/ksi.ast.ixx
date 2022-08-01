@@ -30,7 +30,7 @@ export namespace ksi {
 			using body_pointer = body *;
 
 			using fn_perform = void (*) (body_pointer p_body, node_tree_pointer p_parent, node_tree_pointer p_node);
-			using fn_add = void (*) (tree_pointer p_tree, node_tree_pointer p_node);
+			using fn_add = void (*) (body_pointer p_body, node_tree_pointer p_node);
 
 			struct node_type {
 				using const_pointer = const node_type *;
@@ -42,6 +42,11 @@ export namespace ksi {
 				precedence	m_after;
 				kind		m_kind = kind::none;
 			};
+
+			static const node_type
+				s_type_root,
+				s_type_leaf
+			;
 
 			struct node_tree :
 				public just::node_list<node_tree>
@@ -60,6 +65,8 @@ export namespace ksi {
 				) :
 					m_type{p_type}, m_instr{p_instr_type, p_instr_data}, m_scope{p_scope}
 				{}
+
+				bool empty() { return m_right == nullptr; }
 			};
 
 			struct tree :
@@ -73,12 +80,17 @@ export namespace ksi {
 				t_list	m_nodes;
 
 				tree(body_pointer p_body) {
-					node_tree_pointer v_node = p_body->m_pool_node.emplace(&s_type_root, &instructions::g_nothing);
+					node_tree_pointer v_node = p_body->m_pool_node.emplace(&s_type_root, &instr_type::s_nothing);
 					m_nodes.append(v_node);
 				}
 
 				node_tree_pointer root() { return m_nodes.first()->node_target(); }
 				node_tree_pointer last() { return m_nodes.last()->node_target(); }
+
+				void apply(body_pointer p_body) {
+					node_tree_pointer v_node = root();
+					v_node->m_type->m_perform(p_body, v_node, v_node);
+				}
 			};
 
 			//
@@ -110,49 +122,9 @@ export namespace ksi {
 
 			//
 
-			static void node_add_inner(tree_pointer p_tree, node_tree_pointer p_target, node_tree_pointer p_node) {
-				p_tree->m_nodes.append(p_node);
-				p_node->m_left = p_target->m_right;
-				p_target->m_right = p_node;
-			}
-
-			// left-to-right
-			static void node_add_assoc_left(tree_pointer p_tree, node_tree_pointer p_node) {
-				node_tree_pointer v_target = p_tree->root();
-				while( v_target->m_right->m_type->m_before > p_node->m_type->m_after ) {
-					v_target = v_target->m_right;
-				}
-				node_add_inner(p_tree, v_target, p_node);
-			}
-
-			// right-to-left
-			static void node_add_assoc_right(tree_pointer p_tree, node_tree_pointer p_node) {
-				node_tree_pointer v_target = p_tree->root();
-				while( v_target->m_right->m_type->m_before >= p_node->m_type->m_after ) {
-					v_target = v_target->m_right;
-				}
-				node_add_inner(p_tree, v_target, p_node);
-			}
-
-			// root
-			static void node_add_root(tree_pointer p_tree, node_tree_pointer p_node) {
-				p_tree->m_nodes.append(p_node);
-			}
-
-			// leaf
-			static void node_add_leaf(tree_pointer p_tree, node_tree_pointer p_node) {
-				p_tree->last()->m_right = p_node;
-			}
-
-			//
-
-			static constexpr node_type s_type_root{&do_root, &node_add_root, prec_root, prec_root};
-			static constexpr node_type s_type_leaf{&do_leaf, &node_add_leaf, prec_leaf, prec_leaf};
-
 			struct scope :
 				public just::node_list<scope>
 			{
-				//using pointer = scope *;
 				using t_list = just::list<tree, just::closers::simple_none>;
 
 				// data
@@ -160,12 +132,71 @@ export namespace ksi {
 				t_list	m_trees;
 
 				scope(body_pointer p_body) {
+					tree_add(p_body);
+				}
+
+				tree_pointer tree_add(body_pointer p_body) {
 					tree_pointer v_tree = p_body->m_pool_tree.emplace(p_body);
 					m_trees.append(v_tree);
+					return v_tree;
 				}
 
 				tree_pointer tree_last() { return m_trees.last()->node_target(); }
+
+				void apply(body_pointer p_body) {
+					tree_pointer v_tree_last = tree_last();
+					for( tree_pointer v_it : m_trees ) {
+						v_it->apply(p_body);
+						if( v_it == v_tree_last ) { p_body->instr_add(m_instr_last); }
+						else { p_body->instr_add(m_instr_step); }
+					}
+				}
 			};
+
+			//
+
+			static void node_add_inner(tree_pointer p_tree, node_tree_pointer p_target, node_tree_pointer p_node) {
+				p_tree->m_nodes.append(p_node);
+				p_node->m_left = p_target->m_right;
+				p_target->m_right = p_node;
+			}
+
+			// left-to-right
+			static void node_add_assoc_left(body_pointer p_body, node_tree_pointer p_node) {
+				tree_pointer v_tree = p_body->tree_last();
+				node_tree_pointer v_target = v_tree->root();
+				while( v_target->m_right->m_type->m_before > p_node->m_type->m_after ) {
+					v_target = v_target->m_right;
+				}
+				node_add_inner(v_tree, v_target, p_node);
+			}
+
+			// right-to-left
+			static void node_add_assoc_right(body_pointer p_body, node_tree_pointer p_node) {
+				tree_pointer v_tree = p_body->tree_last();
+				node_tree_pointer v_target = v_tree->root();
+				while( v_target->m_right->m_type->m_before >= p_node->m_type->m_after ) {
+					v_target = v_target->m_right;
+				}
+				node_add_inner(v_tree, v_target, p_node);
+			}
+
+			// root
+			static void node_add_root(body_pointer p_body, node_tree_pointer p_node) {
+				p_body->tree_last()->m_nodes.append(p_node);
+			}
+
+			// leaf
+			static void node_add_leaf(body_pointer p_body, node_tree_pointer p_node) {
+				node_tree_pointer v_node_target = p_body->tree_last()->last();
+				if( ! v_node_target->empty() ) {
+					tree_pointer v_tree = p_body->scope_last()->tree_add(p_body);
+					v_node_target = v_tree->last();
+				}
+				v_node_target->m_right = p_node;
+			}
+
+			//
 
 			using t_scopes = just::list<scope, just::closers::simple_none>;
 
@@ -178,10 +209,14 @@ export namespace ksi {
 			std::vector<t_size>				m_group_pos;
 
 			body(function_body_user::pointer p_fn) : m_fn{p_fn} {
-				m_scopes.append( m_pool_scope.emplace(this) );
+				scope_pointer v_scope = m_pool_scope.emplace(this);
+				m_scopes.append(v_scope);
+				v_scope->m_instr_step.m_type = &instructions::s_pop;
+				v_scope->m_instr_last.m_type = &instructions::s_pop;
 				group_push();
 			}
 
+			scope_pointer scope_first() { return m_scopes.first()->node_target(); }
 			scope_pointer scope_last() { return m_scopes.last()->node_target(); }
 			tree_pointer tree_last() { return scope_last()->tree_last(); }
 
@@ -189,7 +224,7 @@ export namespace ksi {
 				const instr_data & p_instr_data = instr_data{}, scope_pointer p_scope = nullptr
 			) {
 				node_tree_pointer v_node = m_pool_node.emplace(p_node_type, p_instr_type, p_instr_data, p_scope);
-				v_node->m_type->m_add(tree_last(), v_node);
+				v_node->m_type->m_add(this, v_node);
 				return v_node;
 			} 
 
@@ -215,10 +250,13 @@ export namespace ksi {
 			//
 
 			void apply() {
-				// todo
+				scope_first()->apply(this);
 			}
 
 		}; // struct body
+
+		const body::node_type body::s_type_root{&body::do_root, &body::node_add_root, prec_root, prec_root};
+		const body::node_type body::s_type_leaf{&body::do_leaf, &body::node_add_leaf, prec_leaf, prec_leaf};
 
 	} // ns
 

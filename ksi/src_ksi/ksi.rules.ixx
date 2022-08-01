@@ -51,7 +51,8 @@ export namespace ksi {
 
 		enum class nest {
 			declarative,
-			imperative
+			imperative,
+			fn_body
 		};
 
 		enum class kind {
@@ -232,7 +233,11 @@ export namespace ksi {
 			{};
 
 			struct rule_function_inside :
-				public rule_alt<true, t_space, t_function_close> {};
+				public rule_alt<true, t_space,
+					t_function_close,
+					rule_literal
+				>
+			{};
 
 		}; // struct all
 

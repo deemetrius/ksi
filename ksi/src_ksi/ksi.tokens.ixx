@@ -5,6 +5,7 @@ module;
 export module ksi.tokens;
 
 export import ksi.prepare_data;
+import ksi.instructions;
 
 export namespace ksi {
 
@@ -378,6 +379,7 @@ export namespace ksi {
 
 			void perform(prepare_data::pointer p_data) override {
 				p_data->m_body->apply();
+				p_data->m_body->m_fn->write(&just::g_console); // debug
 				p_data->m_body.reset();
 			}
 		};
@@ -449,6 +451,32 @@ export namespace ksi {
 					);
 					p_data->error(m_log_pos.message(v_message) );
 				}
+			}
+		};
+
+		struct imp_token_put_literal :
+			public token_base
+		{
+			t_text_value name() const override { return "imp_token_put_literal"_jt; }
+
+			// data
+			var::any_var	m_value;
+
+			imp_token_put_literal(const var::any_var & p_value) : m_value{p_value} {}
+
+			void perform(prepare_data::pointer p_data) override {
+				instr_type::const_pointer v_instr_type = &instructions::s_put_null;
+				instr_data v_instr_data;
+				if( m_value.m_type == &var::g_config->m_all ) { // $all#
+					v_instr_type = &instructions::s_put_all;
+				} else if( m_value.m_type == &var::g_config->m_bool ) { // $bool#
+					v_instr_type = &instructions::s_put_bool;
+					v_instr_data.m_arg = static_cast<t_integer>(m_value.m_value.m_bool);
+				} else if( m_value.m_type == &var::g_config->m_int ) { // $int#
+					v_instr_type = &instructions::s_put_int;
+					v_instr_data.m_arg = m_value.m_value.m_int;
+				}
+				p_data->m_body->node_add(&ast::body::s_type_leaf, v_instr_type, v_instr_data);
 			}
 		};
 

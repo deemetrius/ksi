@@ -77,8 +77,9 @@ export namespace ksi {
 		enum can : flags_raw {
 			can_keep			= 1 << 0,
 			can_close			= 1 << 1,
-			can_dot_param		= 1 << 2,
+			/*can_dot_param		= 1 << 2,
 			can_dot_var			= 1 << 3,
+			can_var_name		= 1 << 4,*/
 		};
 
 		enum flags : flags_raw {
@@ -185,79 +186,95 @@ export namespace ksi {
 
 			// rules
 
-			struct rule_module_name :
-				public rule_alt<true, t_space, t_module_name> {};
+			struct rule_module_name : public rule_alt<true, t_space,
+				t_module_name
+			> {};
 
-			struct rule_decl :
-				public rule_alt<true, t_space, t_eof,
-					t_category_def_name,
-					t_type_def_name,
-					t_function_def_name
-				>
-			{};
+			struct rule_decl : public rule_alt<true, t_space,
+				t_eof,
+				t_category_def_name,
+				t_type_def_name,
+				t_function_def_name
+			> {};
 
-			struct rule_category_open :
-				public rule_alt<true, t_space, t_category_open> {};
+			struct rule_category_open : public rule_alt<true, t_space,
+				t_category_open
+			> {};
 
-			struct rule_category_inside :
-				public rule_alt<true, t_space, t_category_close, t_category_includes_name> {};
+			struct rule_category_inside : public rule_alt<true, t_space,
+				t_category_close,
+				t_category_includes_name
+			> {};
 
-			struct rule_type_kind :
-				public rule_alt<true, t_space, t_kw_refers, t_kw_extends, t_kw_struct> {};
+			struct rule_type_kind : public rule_alt<true, t_space,
+				t_kw_refers,
+				t_kw_extends,
+				t_kw_struct
+			> {};
 
-			struct rule_refers_open :
-				public rule_alt<true, t_space, t_refers_open> {};
+			struct rule_refers_open : public rule_alt<true, t_space,
+				t_refers_open
+			> {};
 
-			struct rule_refers_inside :
-				public rule_alt<true, t_space, t_refers_close, t_refers_category_name> {};
+			struct rule_refers_inside : public rule_alt<true, t_space,
+				t_refers_close,
+				t_refers_category_name
+			> {};
 
-			struct rule_extends_open :
-				public rule_alt<true, t_space, t_extends_open> {};
+			struct rule_extends_open : public rule_alt<true, t_space,
+				t_extends_open
+			> {};
 
-			struct rule_extends_inside :
-				public rule_alt<true, t_space, t_extends_close, t_extends_type_name> {};
+			struct rule_extends_inside : public rule_alt<true, t_space,
+				t_extends_close,
+				t_extends_type_name
+			> {};
 
-			struct rule_struct_open :
-				public rule_alt<true, t_space, t_struct_open> {};
+			struct rule_struct_open : public rule_alt<true, t_space,
+				t_struct_open
+			> {};
 
-			struct rule_struct_inside :
-				public rule_alt<true, t_space,
-					t_struct_close,
-					t_struct_prop_name,
-					t_struct_prop_assign,
-					rule_literal,
-					t_separator
-				>
-			{};
+			struct rule_struct_inside : public rule_alt<true, t_space,
+				t_struct_close,
+				t_struct_prop_name,
+				t_struct_prop_assign,
+				rule_literal,
+				t_separator
+			> {};
 
-			struct rule_function_arg :
-				public rule_alt<true, t_space,
-					t_function_overload_by_category,
-					t_function_overload_by_type,
-					t_function_arg
-				>
-			{};
+			struct rule_function_arg : public rule_alt<true, t_space,
+				t_function_overload_by_category,
+				t_function_overload_by_type,
+				t_function_arg
+			> {};
 
-			struct rule_function_open :
-				public rule_alt<true, t_space, t_function_params_open, t_function_open> {};
+			struct rule_function_open : public rule_alt<true, t_space,
+				t_function_params_open,
+				t_function_open
+			> {};
 
-			struct rule_function_params_inside :
-				public rule_alt<true, t_space,
-					t_function_params_close,
-					t_function_param_name,
-					t_function_param_assign,
-					rule_literal,
-					t_separator
-				>
-			{};
+			struct rule_function_params_inside : public rule_alt<true, t_space,
+				t_function_params_close,
+				t_function_param_name,
+				t_function_param_assign,
+				rule_literal,
+				t_separator
+			> {};
 
-			struct rule_function_inside :
-				public rule_alt<true, t_space,
-					t_function_close,
-					rule_literal,
-					t_separator
-				>
-			{};
+			struct rule_function_inside : public rule_alt<true, t_space,
+				t_function_close,
+				rule_literal,
+				t_separator,
+				t_imp_var_object
+			> {};
+
+			struct rule_imp_var_dot : public rule_alt<true, t_space,
+				t_imp_var_object_dot
+			> {};
+
+			struct rule_imp_var_name : public rule_alt<true, t_space,
+				t_imp_var_name
+			> {};
 
 		}; // struct all
 

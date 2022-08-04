@@ -1,6 +1,7 @@
 
 struct t_type_def_name {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_type_def_name"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -32,6 +33,7 @@ struct t_type_def_name {
 
 struct t_kw_refers {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_kw_refers"_jt; }
 	static bool check(state & p_state) { return ! p_state.flag_check_any(flag_was_refers | flag_was_extends); }
 
@@ -47,6 +49,7 @@ struct t_kw_refers {
 
 struct t_refers_open {
 	static constexpr kind s_kind{ kind::start };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_refers_open"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -61,6 +64,7 @@ struct t_refers_open {
 
 struct t_refers_close {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_refers_close"_jt; }
 	static bool check(state & p_state) { return p_state.m_kind != kind::start; }
 
@@ -75,6 +79,7 @@ struct t_refers_close {
 
 struct t_refers_category_name {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_refers_category_name"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -91,6 +96,7 @@ struct t_refers_category_name {
 
 struct t_kw_extends {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_kw_extends"_jt; }
 	static bool check(state & p_state) { return ! p_state.flag_check(flag_was_extends); }
 
@@ -106,6 +112,7 @@ struct t_kw_extends {
 
 struct t_extends_open {
 	static constexpr kind s_kind{ kind::start };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_extends_open"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -120,6 +127,7 @@ struct t_extends_open {
 
 struct t_extends_close {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_extends_close"_jt; }
 	static bool check(state & p_state) { return p_state.m_kind != kind::start; }
 
@@ -134,6 +142,7 @@ struct t_extends_close {
 
 struct t_extends_type_name {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_extends_type_name"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -150,6 +159,7 @@ struct t_extends_type_name {
 
 struct t_kw_struct {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_kw_struct"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -165,6 +175,7 @@ struct t_kw_struct {
 
 struct t_struct_open {
 	static constexpr kind s_kind{ kind::start };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_struct_open"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -180,6 +191,7 @@ struct t_struct_open {
 
 struct t_struct_close {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_struct_close"_jt; }
 	static bool check(state & p_state) { return p_state.m_kind != kind::n_operator; }
 
@@ -196,6 +208,7 @@ struct t_struct_close {
 
 struct t_struct_prop_name {
 	static constexpr kind s_kind{ kind::variable };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_struct_prop_name"_jt; }
 	static bool check(state & p_state) {
 		if( p_state.m_kind == kind::n_literal && (p_state.m_was_space == false) ) { return false; }
@@ -220,6 +233,7 @@ struct t_struct_prop_name {
 
 struct t_struct_prop_separator {
 	static constexpr kind s_kind{ kind::separator };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_struct_prop_separator"_jt; }
 	static bool check(state & p_state) {
 		return ! just::is_one_of(p_state.m_kind, kind::start, kind::n_operator, kind::separator);
@@ -234,6 +248,7 @@ struct t_struct_prop_separator {
 
 struct t_struct_prop_assign {
 	static constexpr kind s_kind{ kind::n_operator };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_struct_prop_assign"_jt; }
 	static bool check(state & p_state) {
 		return p_state.m_kind == kind::variable;

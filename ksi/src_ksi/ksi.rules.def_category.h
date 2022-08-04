@@ -1,6 +1,7 @@
 
 struct t_category_def_name {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_category_def_name"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -30,6 +31,7 @@ struct t_category_def_name {
 
 struct t_category_open {
 	static constexpr kind s_kind{ kind::start };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_category_open"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -44,6 +46,7 @@ struct t_category_open {
 
 struct t_category_close {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_category_close"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -58,6 +61,7 @@ struct t_category_close {
 
 struct t_category_includes_name {
 	static constexpr kind s_kind{ kind::special };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_category_includes_name"_jt; }
 	static bool check(state & p_state) { return true; }
 

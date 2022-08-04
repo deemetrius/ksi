@@ -11,7 +11,9 @@ $range_step
 extends ( $range )
 struct ( step = 1 )
 
-&contains _range range { number, from_strict = true, to_strict = false } ( true 1 2 null )
+&contains _range range { number, from_strict = true, to_strict = false } (
+	true 1 2 null
+)
 
 /*
 v.type = $range

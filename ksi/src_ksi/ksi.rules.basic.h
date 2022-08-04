@@ -1,6 +1,7 @@
 
 struct t_eof {
 	static constexpr kind s_kind{ kind::end };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_eof"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -17,6 +18,7 @@ struct t_eof {
 
 struct t_space {
 	static constexpr kind s_kind{ kind::space };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_space"_jt; }
 	static bool check(state & p_state) { return !p_state.m_was_space; }
 
@@ -191,6 +193,9 @@ struct rule_alt {
 				p_state.m_was_space = std::is_same_v<t_first, t_space>;
 				if constexpr( ! just::is_one_of(t_first::s_kind, kind::space, kind::keep) ) {
 					p_state.m_kind = t_first::s_kind;
+				}
+				if constexpr( t_first::s_can != can_keep ) {
+					p_state.m_can = t_first::s_can;
 				}
 				return true;
 			}

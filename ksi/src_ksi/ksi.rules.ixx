@@ -73,6 +73,12 @@ export namespace ksi {
 
 		using flags_raw = just::t_uint_max;
 
+		enum can : flags_raw {
+			can_keep			= 1 << 0,
+			can_dot_param		= 1 << 1,
+			can_dot_var			= 1 << 2,
+		};
+
 		enum flags : flags_raw {
 			flag_allow_plain	= 1 << 0,
 			flag_was_refers		= 1 << 1,
@@ -86,13 +92,16 @@ export namespace ksi {
 		struct state :
 			public state_base
 		{
+			using t_nest = std::vector<nest>;
+
 			// data
 			fs::path		m_path;
 			t_raw_const		m_text_pos;
 			fn_parse		m_fn_parse;
-			nest			m_nest;
+			t_nest			m_nest;
 			kind			m_kind = kind::start;
 			flags_raw		m_flags = 0;
+			flags_raw		m_can = 0;
 			t_int_ptr		m_loop_depth = 0;
 			bool			m_was_space = false;
 			bool			m_nice = false;
@@ -106,10 +115,14 @@ export namespace ksi {
 				m_path{p_path},
 				m_text_pos{p_text_pos},
 				m_fn_parse{p_fn_parse},
-				m_nest{p_nest}
+				m_nest{1, p_nest}
 			{}
 
 			position pos() const { return m_line.pos(m_text_pos); }
+
+			nest nest_last() { return m_nest.back(); }
+			void nest_add(nest p_nest) { m_nest.push_back(p_nest); }
+			void nest_del() { m_nest.pop_back(); }
 
 			bool flag_check(flags_raw p_flag) { return (m_flags & p_flag) == p_flag; }
 			bool flag_check_any(flags_raw p_flag) { return m_flags & p_flag; }
@@ -133,6 +146,7 @@ export namespace ksi {
 
 			struct t_module_name {
 				static constexpr kind s_kind{ kind::special };
+				static constexpr flags_raw s_can{ 0 };
 				static t_text_value name() { return "t_module_name"_jt; }
 				static bool check(state & p_state) { return true; }
 

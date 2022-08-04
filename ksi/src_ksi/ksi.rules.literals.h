@@ -1,6 +1,7 @@
 
 struct t_literal_null {
 	static constexpr kind s_kind{ kind::n_literal };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_literal_null"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -8,13 +9,14 @@ struct t_literal_null {
 		public is_keyword<"null">
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-			if( p_state.m_nest != nest::declarative ) { p_tokens.put_literal(var::any_var{}, p_data); }
+			if( p_state.nest_last() != nest::declarative ) { p_tokens.put_literal(var::any_var{}, p_data); }
 		}
 	};
 };
 
 struct t_literal_all {
 	static constexpr kind s_kind{ kind::n_literal };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_literal_all"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -22,13 +24,14 @@ struct t_literal_all {
 		public is_keyword<"all">
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-			if( p_state.m_nest != nest::declarative ) { p_tokens.put_literal(var::variant_all{}, p_data); }
+			p_tokens.put_literal(var::variant_all{}, p_data);
 		}
 	};
 };
 
 struct t_literal_false {
 	static constexpr kind s_kind{ kind::n_literal };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_literal_false"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -43,6 +46,7 @@ struct t_literal_false {
 
 struct t_literal_true {
 	static constexpr kind s_kind{ kind::n_literal };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_literal_true"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -57,6 +61,7 @@ struct t_literal_true {
 
 struct t_literal_int {
 	static constexpr kind s_kind{ kind::n_literal };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_literal_int"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -156,6 +161,7 @@ struct t_literal_int {
 
 struct t_literal_float {
 	static constexpr kind s_kind{ kind::n_literal };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_literal_float"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -248,9 +254,10 @@ struct rule_literal :
 	>
 {
 	static constexpr kind s_kind{ kind::keep };
+	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "rule_literal"_jt; }
 
 	static bool check(state & p_state) {
-		return (p_state.m_nest == nest::declarative) ? (p_state.m_kind == kind::n_operator) : true;
+		return (p_state.nest_last() == nest::declarative) ? (p_state.m_kind == kind::n_operator) : true;
 	}
 };

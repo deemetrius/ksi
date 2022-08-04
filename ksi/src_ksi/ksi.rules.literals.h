@@ -254,7 +254,7 @@ struct rule_literal :
 	>
 {
 	static constexpr kind s_kind{ kind::keep };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr flags_raw s_can{ can_close };
 	static t_text_value name() { return "rule_literal"_jt; }
 
 	static bool check(state & p_state) {

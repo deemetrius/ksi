@@ -33,6 +33,7 @@ export namespace ksi {
 			void next_line(t_raw_const p_line_start) {
 				++m_line;
 				m_line_start = p_line_start;
+				m_tab_extra = 0;
 			}
 
 			position pos(t_raw_const p_text) const { return {m_line, p_text - m_line_start + m_tab_extra +1}; }
@@ -75,8 +76,9 @@ export namespace ksi {
 
 		enum can : flags_raw {
 			can_keep			= 1 << 0,
-			can_dot_param		= 1 << 1,
-			can_dot_var			= 1 << 2,
+			can_close			= 1 << 1,
+			can_dot_param		= 1 << 2,
+			can_dot_var			= 1 << 3,
 		};
 
 		enum flags : flags_raw {
@@ -123,6 +125,9 @@ export namespace ksi {
 			nest nest_last() { return m_nest.back(); }
 			void nest_add(nest p_nest) { m_nest.push_back(p_nest); }
 			void nest_del() { m_nest.pop_back(); }
+
+			bool can_check(flags_raw p_flag) { return (m_can & p_flag) == p_flag; }
+			bool can_check_any(flags_raw p_flag) { return m_can & p_flag; }
 
 			bool flag_check(flags_raw p_flag) { return (m_flags & p_flag) == p_flag; }
 			bool flag_check_any(flags_raw p_flag) { return m_flags & p_flag; }
@@ -221,7 +226,7 @@ export namespace ksi {
 					t_struct_prop_name,
 					t_struct_prop_assign,
 					rule_literal,
-					t_struct_prop_separator
+					t_separator
 				>
 			{};
 
@@ -242,14 +247,15 @@ export namespace ksi {
 					t_function_param_name,
 					t_function_param_assign,
 					rule_literal,
-					t_function_param_separator
+					t_separator
 				>
 			{};
 
 			struct rule_function_inside :
 				public rule_alt<true, t_space,
 					t_function_close,
-					rule_literal
+					rule_literal,
+					t_separator
 				>
 			{};
 

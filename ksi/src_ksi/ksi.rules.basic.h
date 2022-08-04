@@ -18,7 +18,7 @@ struct t_eof {
 
 struct t_space {
 	static constexpr kind s_kind{ kind::space };
-	static constexpr flags_raw s_can{ 0 };
+	//static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_space"_jt; }
 	static bool check(state & p_state) { return !p_state.m_was_space; }
 
@@ -116,6 +116,32 @@ struct t_space {
 	};
 };
 
+template <t_char ... C_char>
+struct is_char {
+	bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+		if( just::is_one_of(*p_state.m_text_pos, C_char ...) ) {
+			++p_state.m_text_pos;
+			return true;
+		}
+		return false;
+	}
+};
+
+struct t_separator {
+	static constexpr kind s_kind{ kind::separator };
+	static constexpr flags_raw s_can{ can_close };
+	static t_text_value name() { return "t_separator"_jt; }
+	static bool check(state & p_state) {
+		return ! just::is_one_of(p_state.m_kind, kind::start, kind::n_operator, kind::separator);
+	}
+
+	struct t_data :
+		public is_char<',', ';'>
+	{
+		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {}
+	};
+};
+
 //
 
 template <typename, typename = void>
@@ -194,8 +220,10 @@ struct rule_alt {
 				if constexpr( ! just::is_one_of(t_first::s_kind, kind::space, kind::keep) ) {
 					p_state.m_kind = t_first::s_kind;
 				}
-				if constexpr( t_first::s_can != can_keep ) {
-					p_state.m_can = t_first::s_can;
+				if constexpr( t_first::s_kind != kind::space ) {
+					if constexpr( t_first::s_can != can_keep ) {
+						p_state.m_can = t_first::s_can;
+					}
 				}
 				return true;
 			}
@@ -217,17 +245,6 @@ struct rule_alt {
 };
 
 //
-
-template <t_char ... C_char>
-struct is_char {
-	bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
-		if( just::is_one_of(*p_state.m_text_pos, C_char ...) ) {
-			++p_state.m_text_pos;
-			return true;
-		}
-		return false;
-	}
-};
 
 template <just::fixed_string C_text>
 struct is_keyword {

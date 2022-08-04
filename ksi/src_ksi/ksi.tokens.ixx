@@ -480,6 +480,31 @@ export namespace ksi {
 			}
 		};
 
+		enum class how_put { copy, link, ref };
+
+		struct imp_token_put_var :
+			public token_base
+		{
+			t_text_value name() const override { return "imp_token_put_var"_jt; }
+		
+			// data
+			how_put			m_how_put;
+			t_text_value	m_name;
+
+			imp_token_put_var(how_put p_how_put, const t_text_value & p_name) : m_how_put{p_how_put}, m_name{p_name} {}
+
+			void perform(prepare_data::pointer p_data) override {
+				instr_type::const_pointer v_instr_type = &instructions::s_put_var;
+				switch( m_how_put ) {
+				case how_put::link	: { v_instr_type = &instructions::s_put_var_link; break; }
+				case how_put::ref	: { v_instr_type = &instructions::s_put_var_ref; break; }
+				}
+				instr_data v_instr_data;
+				v_instr_data.m_param = p_data->m_body->m_fn->var_id(m_name);
+				p_data->m_body->node_add(&ast::body::s_type_leaf, v_instr_type, v_instr_data);
+			}
+		};
+
 	} // ns
 
 } // ns

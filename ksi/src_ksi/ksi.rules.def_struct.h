@@ -231,7 +231,7 @@ struct t_struct_prop_name {
 	};
 };
 
-struct t_struct_prop_separator {
+/*struct t_struct_prop_separator {
 	static constexpr kind s_kind{ kind::separator };
 	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_struct_prop_separator"_jt; }
@@ -244,7 +244,7 @@ struct t_struct_prop_separator {
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {}
 	};
-};
+};*/
 
 struct t_struct_prop_assign {
 	static constexpr kind s_kind{ kind::n_operator };

@@ -37,19 +37,29 @@ export namespace ksi {
 
 		// data
 		t_items				m_items;
-		var::var_pointer	m_var;
+		//var::var_pointer	m_var;
 
 		var::any_var * last() { return m_items.end() -1; }
 
 		void var_add(const var::any_var & p_var) {
 			just::array_append(m_items, p_var);
 		}
+		
+		void var_link(var::var_pointer p_var) {
+			just::array_append(m_items);
+			last()->link_to(p_var);
+		}
+
+		void var_ref(var::var_pointer p_var) {
+			just::array_append(m_items);
+			last()->ref_to(p_var);
+		}
 
 		void var_remove(t_index p_amount) {
 			just::array_remove_from_end(m_items, p_amount);
 		}
 
-		void var_set(var::var_pointer p_var) {
+		/*void var_set(var::var_pointer p_var) {
 			m_var = p_var;
 		}
 
@@ -65,7 +75,7 @@ export namespace ksi {
 		void var_put_ref() {
 			just::array_append(m_items);
 			last()->ref_to(m_var);
-		}
+		}*/
 	};
 
 	//
@@ -129,7 +139,7 @@ export namespace ksi {
 		module_pointer	m_module;
 		log_pos			m_log_pos;
 		t_args			m_args;
-		t_args			m_vars;
+		t_vars			m_vars;
 
 		function_body(module_pointer p_module, log_pos p_log_pos) : m_module{p_module}, m_log_pos{p_log_pos} {
 			m_vars.maybe_emplace("ret"_jt);
@@ -138,6 +148,11 @@ export namespace ksi {
 		bool arg_add(const t_text_value & p_name, const var::any_var & p_value = var::any_var{}) {
 			t_args_insert v_res = m_args.maybe_emplace(p_name, p_value);
 			return v_res.m_added;
+		}
+
+		t_index var_id(const t_text_value & p_name) {
+			t_vars_insert v_res = m_vars.maybe_emplace(p_name);
+			return v_res.m_index;
 		}
 	};
 

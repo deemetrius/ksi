@@ -158,7 +158,7 @@ struct t_function_param_name {
 	};
 };
 
-struct t_function_param_separator {
+/*struct t_function_param_separator {
 	static constexpr kind s_kind{ kind::separator };
 	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_function_param_separator"_jt; }
@@ -171,7 +171,7 @@ struct t_function_param_separator {
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {}
 	};
-};
+};*/
 
 struct t_function_param_assign {
 	static constexpr kind s_kind{ kind::n_operator };
@@ -190,7 +190,7 @@ struct t_function_param_assign {
 
 struct t_function_open {
 	static constexpr kind s_kind{ kind::start };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr flags_raw s_can{ can_close };
 	static t_text_value name() { return "t_function_open"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -209,7 +209,7 @@ struct t_function_close {
 	static constexpr kind s_kind{ kind::special };
 	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_function_close"_jt; }
-	static bool check(state & p_state) { return true; }
+	static bool check(state & p_state) { return p_state.can_check_any(can_close); }
 
 	struct t_data :
 		public is_char<')'>

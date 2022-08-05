@@ -97,11 +97,13 @@ export namespace ksi {
 	struct space_base {
 		using t_modules_list = just::list<module_space, just::closers::compound_call_deleter<false>::template t_closer>;
 		using t_modules_map = std::map<t_text_value, module_space::pointer, just::text_less>;
+		using t_literals = just::hive<var::any_var, std::monostate, var::any_less>;
 
 		// data
 		t_modules_list	m_modules_list;
 		t_modules_map	m_modules_map;
 		space_data		m_data;
+		t_literals		m_literals;
 	};
 
 	struct space :

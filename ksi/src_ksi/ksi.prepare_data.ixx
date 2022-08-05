@@ -272,6 +272,7 @@ export namespace ksi {
 			m_ext_module_global = ext_module_open("@global#"_jt);
 			m_ext_module_global->m_is_global = true;
 			m_data = m_space->m_data;
+			m_literals.m_index = m_space->m_literals.m_index;
 		}
 
 		void error(const log_message & p_message) {
@@ -427,6 +428,18 @@ export namespace ksi {
 			return v_ext_module;
 		}
 
+		//
+
+		t_index literal_reg(const var::any_var & p_var) {
+			if( typename t_literals::t_find_result v_res = m_space->m_literals.find(p_var); v_res.m_added ) {
+				return v_res.m_index;
+			}
+			typename t_literals::t_find_result v_res = m_literals.maybe_emplace(p_var);
+			return v_res.m_index;
+		}
+
+		//
+
 		void apply() {
 			if( m_error_count ) { return; }
 			m_space->m_data = m_data;
@@ -455,6 +468,7 @@ export namespace ksi {
 			m_over_common.clear();
 			m_over_category.clear();
 			m_over_type.clear();
+			m_space->m_literals.splice(m_literals);
 		}
 
 		file_status check_path(const fs::path & p_path) {

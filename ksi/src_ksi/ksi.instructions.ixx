@@ -5,6 +5,7 @@ module;
 export module ksi.instructions;
 
 export import ksi.function;
+import ksi.space;
 
 export namespace ksi {
 
@@ -43,6 +44,13 @@ export namespace ksi {
 			p_stack->var_add(p_data.m_arg);
 		}
 
+		// param - literal id
+		static void do_put_literal(space * p_space, call_space * p_call, stack * p_stack,
+			log_base::pointer p_log, instr_data::const_reference p_data
+		) {
+			p_stack->var_add((*p_space->m_literals.m_keys[p_data.m_param]).first);
+		}
+
 		// param - var id
 		static void do_put_var(space * p_space, call_space * p_call, stack * p_stack,
 			log_base::pointer p_log, instr_data::const_reference p_data
@@ -70,6 +78,7 @@ export namespace ksi {
 		s_put_all,
 		s_put_bool,
 		s_put_int,
+		s_put_literal,
 		s_put_var,
 		s_put_var_link,
 		s_put_var_ref;
@@ -82,6 +91,7 @@ export namespace ksi {
 	instructions::s_put_all		{"do_put_all"_jt,		&do_put_all},
 	instructions::s_put_bool	{"do_put_bool"_jt,		&do_put_bool},
 	instructions::s_put_int		{"do_put_int"_jt,		&do_put_int},
+	instructions::s_put_literal	{"do_put_literal"_jt,	&do_put_literal},
 	instructions::s_put_var		{"do_put_var"_jt,		&do_put_var},
 	instructions::s_put_var_link{"do_put_var_link"_jt,	&do_put_var_link},
 	instructions::s_put_var_ref	{"do_put_var_ref"_jt,	&do_put_var_ref};

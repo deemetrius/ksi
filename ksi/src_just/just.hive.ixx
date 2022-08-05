@@ -108,6 +108,7 @@ export namespace just {
 		using t_range = range_for<iterator>;
 
 		// data
+		t_index		m_index = 0;
 		t_map		m_map;
 		t_vector	m_vector;
 		t_keys		m_keys;
@@ -126,11 +127,13 @@ export namespace just {
 
 		template <typename ... T_args>
 		t_find_result maybe_emplace(const t_key & p_key, T_args && ... p_args) {
-			t_index v_index = m_vector.size();
+			//t_index v_index = m_vector.size();
+			t_index v_index = m_index;
 			t_map_insert_result v_res = m_map.insert({p_key, v_index});
 			if( v_res.second ) {
 				array_append(m_vector, std::forward<T_args>(p_args) ...);
 				m_keys.push_back(v_res.first);
+				++m_index;
 			} else {
 				v_index = (*v_res.first).second;
 			}
@@ -144,6 +147,13 @@ export namespace just {
 		}
 
 		t_index count() { return m_vector.size(); }
+
+		void splice(hive & p_other) {
+			for( t_info && v_it : p_other ) {
+				maybe_emplace((*v_it.m_map_iterator).first, *v_it.m_value);
+			}
+			p_other.clear();
+		}
 
 		t_key_range key_range() { return { {m_map.begin(), &m_vector}, {m_map.end(), &m_vector} }; }
 		iterator begin() { return {this, 0}; }

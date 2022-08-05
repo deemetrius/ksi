@@ -467,7 +467,8 @@ export namespace ksi {
 			void perform(prepare_data::pointer p_data) override {
 				instr_type::const_pointer v_instr_type = &instructions::s_put_null;
 				instr_data v_instr_data;
-				if( m_value.m_type == &var::g_config->m_all ) { // $all#
+				if( m_value.m_type == &var::g_config->m_null ) { // $null#
+				} else if( m_value.m_type == &var::g_config->m_all ) { // $all#
 					v_instr_type = &instructions::s_put_all;
 				} else if( m_value.m_type == &var::g_config->m_bool ) { // $bool#
 					v_instr_type = &instructions::s_put_bool;
@@ -475,6 +476,9 @@ export namespace ksi {
 				} else if( m_value.m_type == &var::g_config->m_int ) { // $int#
 					v_instr_type = &instructions::s_put_int;
 					v_instr_data.m_arg = m_value.m_value.m_int;
+				} else {
+					v_instr_type = &instructions::s_put_literal;
+					v_instr_data.m_param = p_data->literal_reg(m_value);
 				}
 				p_data->m_body->node_add(&ast::body::s_type_leaf, v_instr_type, v_instr_data);
 			}

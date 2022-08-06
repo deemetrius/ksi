@@ -31,4 +31,7 @@ v.fn = &contains&
 v.r !v.fn{5}
 v.r !v.fn: v.args
 v.fn(v.r 5)
+
+v.args = {$range{0 all} 5}
+v.fn! v.args
 */

@@ -184,6 +184,9 @@ export namespace ksi {
 			// literals
 			#include "ksi.rules.literals.h"
 
+			// imperative
+			#include "ksi.rules.imperative.h"
+
 			// rules
 
 			struct rule_module_name : public rule_alt<true, t_space,

@@ -23,8 +23,10 @@
     <ClInclude Include="..\src_ksi\ksi.rules.basic.h" />
     <ClInclude Include="..\src_ksi\ksi.rules.def_category.h" />
     <ClInclude Include="..\src_ksi\ksi.rules.def_function.h" />
+    <ClInclude Include="..\src_ksi\ksi.rules.imperative.h" />
     <ClInclude Include="..\src_ksi\ksi.rules.literals.h" />
     <ClInclude Include="..\src_ksi\ksi.rules.def_struct.h" />
+    <ClInclude Include="..\src_ksi\ksi.var.types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src_bin\main.cpp" />
@@ -51,6 +53,7 @@
     <ClCompile Include="..\src_ksi\ksi.space.cpp" />
     <ClCompile Include="..\src_ksi\ksi.space.ixx" />
     <ClCompile Include="..\src_ksi\ksi.tokens.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.var.conv.cpp" />
     <ClCompile Include="..\src_ksi\ksi.var.ops.ixx" />
     <ClCompile Include="..\src_ksi\ksi.variable.cpp" />
     <ClCompile Include="..\src_ksi\ksi.variable.ixx" />

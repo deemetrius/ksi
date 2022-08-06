@@ -145,7 +145,7 @@ struct t_literal_int {
 				t_text_value v_message = (v_is_negative ?
 					"warning: Integer literal is out of bounds so $int#.max# will be used instead."_jt :
 					"warning: Integer literal is out of bounds so $int#.min# will be used instead."_jt
-					);
+				);
 				p_log->add({p_state.m_path, v_message, p_state.pos()});
 			}
 			p_state.m_text_pos = v_pos_end;

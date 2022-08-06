@@ -4,6 +4,7 @@ module ksi.var;
 
 import <cmath>;
 import <cstdlib>;
+import <cinttypes>;
 import ksi.config;
 
 namespace ksi { namespace var {
@@ -50,7 +51,7 @@ namespace ksi { namespace var {
 		// $float#
 		t_integer operator () (t_floating p_value) { return std::isnan(p_value) ? 0 : static_cast<t_integer>(p_value); }
 		// $text#
-		t_integer operator () (compound_text_pointer p_value) { return std::strtoll(p_value->m_text.data(), nullptr, 10); }
+		t_integer operator () (compound_text_pointer p_value) { return std::strtoimax(p_value->m_text.data(), nullptr, 10); }
 		// $array# $map# _struct
 		t_integer operator () (countable::pointer p_value) { return p_value->count(); }
 		// other

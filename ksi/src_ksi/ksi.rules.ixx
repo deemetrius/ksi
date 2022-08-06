@@ -6,6 +6,7 @@ export module ksi.rules;
 
 import <type_traits>;
 import <cctype>;
+import <cinttypes>;
 import <cerrno>;
 import <limits>;
 export import ksi.tokens;

@@ -140,7 +140,7 @@ struct t_literal_int {
 				v_text = just::implode<t_char>({v_text, v_text_ending});
 			}
 			errno = 0;
-			m_value = std::strtoll(v_text.data(), nullptr, v_radix);
+			m_value = std::strtoimax(v_text.data(), nullptr, v_radix);
 			if( errno == ERANGE ) {
 				t_text_value v_message = (v_is_negative ?
 					"warning: Integer literal is out of bounds so $int#.max# will be used instead."_jt :

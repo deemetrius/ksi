@@ -123,7 +123,7 @@ namespace ksi { namespace var {
 			int v_len = snprintf(nullptr, 0, "%lld", p_value);
 			if( v_len < 0 ) {
 				m_bad_conversion = true;
-				return "error: $int# to $text# conversion calc size."_jt;
+				return "?"_jt;
 			}
 			int v_size = v_len +1;
 			typename t_result::pointer v_text;
@@ -131,16 +131,19 @@ namespace ksi { namespace var {
 			v_len = snprintf(v_text, v_size, "%lld", p_value);
 			if( v_len < 0 ) {
 				m_bad_conversion = true;
-				return "error: $int# to $text# conversion."_jt;
+				return "?"_jt;
 			}
 			return ret;
 		}
 		// $float#
 		t_result operator () (t_floating p_value) {
+			if( std::isnan(p_value) ) { return "NaN"_jt; }
+			if( p_value == type_float::t_limits::infinity() ) { return "infinity"_jt; }
+			if( p_value == -type_float::t_limits::infinity() ) { return "-infinity"_jt; }
 			int v_len = snprintf(nullptr, 0, "%f", p_value);
 			if( v_len < 0 ) {
 				m_bad_conversion = true;
-				return ""_jt;
+				return "?"_jt;
 			}
 			int v_size = v_len +1;
 			typename t_result::pointer v_text;
@@ -148,7 +151,7 @@ namespace ksi { namespace var {
 			v_len = snprintf(v_text, v_size, "%f", p_value);
 			if( v_len < 0 ) {
 				m_bad_conversion = true;
-				return ""_jt;
+				return "?"_jt;
 			}
 			return ret;
 		}

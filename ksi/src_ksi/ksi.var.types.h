@@ -241,6 +241,7 @@ struct type_float :
 		set_deep & p_deep
 	) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
+	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
 };
 
 // compound

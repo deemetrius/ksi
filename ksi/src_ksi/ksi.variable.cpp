@@ -150,7 +150,7 @@ namespace ksi {
 			using namespace just::text_literals;
 			g_config->m_log->add({g_config->m_path,
 				"system bad case: var_owner() was called for compound type."_jt
-				});
+			});
 			return p_var->m_owner;
 		}
 
@@ -168,7 +168,7 @@ namespace ksi {
 			using namespace just::text_literals;
 			g_config->m_log->add({g_config->m_path,
 				"system bad case: var_owner_set() was called for compound type."_jt
-				});
+			});
 			p_var->m_owner = p_owner;
 		}
 
@@ -196,7 +196,7 @@ namespace ksi {
 			using namespace just::text_literals;
 			g_config->m_log->add({g_config->m_path,
 				"system bad case: link_make_maybe() was called for compound type."_jt
-				});
+			});
 			return g_config->m_null.link_make_maybe(p_var);
 		}
 
@@ -243,7 +243,7 @@ namespace ksi {
 				if(
 					v_link->m_type->m_is_compound &&
 					v_owner_node->m_owner != v_link->link_owner()
-					) {
+				) {
 					// rebind compound
 					any_var v_tmp;
 					v_link->m_type->var_change(&v_tmp, v_link);
@@ -262,15 +262,19 @@ namespace ksi {
 			compound_pointer v_compound = v_link->m_value.m_compound;
 			if( v_compound->link_is_primary(v_link) ) { // primary link
 				v_link->node_detach();
-				if( v_compound->m_links_strong.node_empty() ) { // no strong links
-																// reset weak links
-					v_compound->m_links_weak.node_apply_to_others(
+				for( link_pointer v_it : v_compound->m_links_strong.node_range() ) { // check next strong links
+					if( v_compound->link_check_circular(v_it) ) { // if circular then change to weak
+						v_it->node_detach();
+						v_compound->m_links_weak.m_prev->node_attach(v_it);
+					} else { break; } // not circular so no need to check others
+				}
+				if( v_compound->m_links_strong.node_empty() ) { // no strong links left
+					v_compound->m_links_weak.node_apply_to_others( // reset weak links
 						[](link_node_pointer p_node){
 							p_node->node_target()->close();
 						}
 					);
-					// delete compound
-					v_compound->m_deleter(v_compound);
+					v_compound->m_deleter(v_compound); // delete compound
 				}
 			} else { // not primary link
 				v_link->node_detach();

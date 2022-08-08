@@ -478,12 +478,24 @@ export namespace ksi {
 			compound_map_pointer	get_map();
 			compound_struct_pointer	get_struct();
 
-			bool link_is_primary(link_pointer v_link) { return m_links_strong.m_next == v_link; }
+			bool link_is_primary(link_pointer p_link) { return m_links_strong.m_next == p_link; }
 
 			link_pointer link_get_primary() {
 				return m_links_strong.node_empty() ? nullptr :
 					m_links_strong.m_next->node_target()
 				;
+			}
+
+			bool link_check_circular(link_pointer p_link) { // returns true if circular
+				compound_pointer v_source;
+				while( v_source = p_link->link_owner() ) {
+					if( v_source == this ) {
+						return true;
+					}
+					p_link = v_source->link_get_primary();
+					if( !p_link ) break;
+				}
+				return false;
 			}
 
 			void link(link_pointer p_link) {

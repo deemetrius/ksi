@@ -212,6 +212,9 @@ export namespace just {
 		bool operator ! () const { return !m_ref->m_count; }
 		pointer data() const { return m_ref->m_handle; }
 		T & operator [] (t_index p_index) const { return m_ref->m_handle[p_index]; }
+
+		type & first() { return *m_ref->m_handle; }
+		type & last() { return m_ref->m_handle[m_ref->m_count -1]; }
 	};
 
 	template <typename T, typename T_capacity>

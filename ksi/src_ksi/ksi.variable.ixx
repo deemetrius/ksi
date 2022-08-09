@@ -7,6 +7,7 @@ export module ksi.var;
 import <cstddef>;
 import <concepts>;
 import <limits>;
+import <algorithm>;
 export import <vector>;
 export import <set>;
 export import <map>;
@@ -199,6 +200,7 @@ export namespace ksi {
 
 		struct variant_null {};
 		struct variant_all {};
+		struct case_array {};
 
 		//
 
@@ -293,14 +295,15 @@ export namespace ksi {
 			void variant_set(t_variant & p_variant) const { m_type->variant_set(any_get_const(), p_variant); }
 		};
 
-		inline just::output_base & operator << (just::output_base & p_out, any_const_pointer p_value) {
-			p_value->write(&p_out);
+		inline just::output_base & operator << (just::output_base & p_out, const any & p_value) {
+			p_value.write(&p_out);
 			return p_out;
 		}
 
 		struct any_var :
 			public any
 		{
+			static constexpr t_index s_step_array = 8;
 			using any::any;
 
 			// data
@@ -311,7 +314,8 @@ export namespace ksi {
 
 			any_var() = default;
 			any_var(const t_text_value & p_text); // $text#
-			any_var(type_struct_pointer p_type); // struct
+			any_var(case_array, t_index p_count, t_index p_capacity, t_index p_extra = s_step_array); // $array#
+			any_var(type_struct_pointer p_type); // _struct
 
 			any_var(const any_var & p_other); // copy
 			any_var(any_var && p_other); // move
@@ -553,13 +557,16 @@ export namespace ksi {
 			public compound_with_lock,
 			public countable
 		{
-			using t_items = just::array_alias<any_var, just::capacity_step<8, 8> >;
+			static constexpr t_index s_step = any_var::s_step_array;
+			using t_items = just::array_alias<any_var, just::capacity_step<8, s_step> >;
 
 			// data
 			t_items		m_items;
 			any_var		m_count;
 
-			compound_array(t_integer p_count) {
+			compound_array(t_index p_count, t_index p_capacity, t_index p_extra = s_step) :
+				m_items{std::max(p_count, p_capacity) + p_extra}
+			{
 				if( p_count ) {
 					just::array_append_n(m_items, p_count);
 					for( any_var & v_it : m_items ) {
@@ -569,6 +576,38 @@ export namespace ksi {
 			}
 
 			t_index count() override { return m_items->m_count; }
+			inline t_index count_impl() { return m_items->m_count; }
+			inline void fix_pos(t_index & p_pos) {
+				if( p_pos < 0 ) { p_pos = std::max<t_index>(0, count_impl() - p_pos); }
+			}
+
+			void append(const any_var & p_var) {
+				just::array_append(m_items);
+				m_items.last().var_owner_set(this);
+				m_items.last() = p_var;
+			}
+
+			void append(any_var && p_var) {
+				just::array_append(m_items);
+				m_items.last().var_owner_set(this);
+				m_items.last() = std::move(p_var);
+			}
+
+			void insert(t_index p_pos, const any_var & p_var) {
+				fix_pos(p_pos);
+				if( p_pos >= count_impl() ) { append(p_var); return; }
+				just::array_insert(m_items, p_pos);
+				m_items.last().var_owner_set(this);
+				m_items.last() = p_var;
+			}
+
+			void insert(t_index p_pos, any_var && p_var) {
+				fix_pos(p_pos);
+				if( p_pos >= count_impl() ) { append( std::move(p_var) ); return; }
+				just::array_insert(m_items, p_pos);
+				m_items.last().var_owner_set(this);
+				m_items.last() = std::move(p_var);
+			}
 		};
 
 		// compound_map

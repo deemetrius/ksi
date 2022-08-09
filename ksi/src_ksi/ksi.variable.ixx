@@ -314,7 +314,10 @@ export namespace ksi {
 
 			any_var() = default;
 			any_var(const t_text_value & p_text); // $text#
-			any_var(case_array, t_index p_count, t_index p_capacity, t_index p_extra = s_step_array); // $array#
+			any_var(case_array, t_index p_count, t_index p_capacity = 0, t_index p_extra = s_step_array); // $array#
+			any_var(case_array, compound_array_pointer & p_compound,
+				t_index p_count, t_index p_capacity = 0, t_index p_extra = s_step_array
+			); // $array#
 			any_var(type_struct_pointer p_type); // _struct
 
 			any_var(const any_var & p_other); // copy
@@ -564,7 +567,7 @@ export namespace ksi {
 			t_items		m_items;
 			any_var		m_count;
 
-			compound_array(t_index p_count, t_index p_capacity, t_index p_extra = s_step) :
+			compound_array(t_index p_count, t_index p_capacity = 0, t_index p_extra = s_step) :
 				m_items{std::max(p_count, p_capacity) + p_extra}
 			{
 				if( p_count ) {
@@ -629,6 +632,7 @@ export namespace ksi {
 			compound_map() = default;
 
 			t_index count() override { return m_items.count(); }
+			inline t_index count_impl() { return m_items.count(); }
 		};
 
 		// compound_struct
@@ -659,6 +663,7 @@ export namespace ksi {
 			}
 
 			t_index count() override { return m_items.size(); }
+			inline t_index count_impl() { return m_items.size(); }
 		};
 
 		inline compound_text_pointer compound_base::get_text() { return static_cast<compound_text_pointer>(this); }

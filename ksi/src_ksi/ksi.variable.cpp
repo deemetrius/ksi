@@ -98,13 +98,21 @@ namespace ksi {
 			v_compound_text->link_text(v_link);
 		}
 
-		// array
+		// $array#
 		any_var::any_var(case_array, t_index p_count, t_index p_capacity, t_index p_extra) : any{} {
 			link_pointer v_link = link_make_maybe();
 			v_link->m_type = &g_config->m_array;
 			compound_array_pointer v_compound;
 			v_link->m_value.m_compound = v_compound = new compound_array(p_count, p_capacity, p_extra);
 			v_compound->link(v_link);
+		}
+		any_var::any_var(case_array, compound_array_pointer & p_compound,
+			t_index p_count, t_index p_capacity, t_index p_extra
+		) : any{} {
+			link_pointer v_link = link_make_maybe();
+			v_link->m_type = &g_config->m_array;
+			v_link->m_value.m_compound = p_compound = new compound_array(p_count, p_capacity, p_extra);
+			p_compound->link(v_link);
 		}
 
 		// struct

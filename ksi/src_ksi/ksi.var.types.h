@@ -300,6 +300,7 @@ struct type_array :
 	auto element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 	var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
+	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
 };
 
 struct type_map :

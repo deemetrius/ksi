@@ -168,6 +168,52 @@ namespace ksi { namespace var {
 		t_result operator () (T) { m_bad_conversion = true; return ""_jt; }
 	};
 
+	// to $array#
+	struct vis_conv_array {
+		using t_result = any_var;
+
+		// data
+		type_pointer		m_type;
+		var_const_pointer	m_from;
+		bool				m_bad_conversion = false;
+
+		// $null#
+		t_result operator () (variant_null) { return any_var{case_array{}, 0}; }
+		// $all#
+		t_result operator () (variant_all) { return any_var{case_array{}, 0}; }
+		// $array#
+		t_result operator () (compound_array_pointer p_value) { return *m_from; }
+		// $map#
+		t_result operator () (compound_map_pointer p_value) {
+			t_index v_count = p_value->count_impl();
+			compound_array_pointer v_compound;
+			any_var ret{case_array{}, v_compound, v_count};
+			for( t_index v_index = 0; typename compound_map::t_items::t_node::pointer v_it : p_value->m_items ) {
+				v_compound->m_items[v_index] = v_it->m_value;
+				++v_index;
+			}
+			return ret;
+		}
+		// _struct
+		t_result operator () (compound_struct_pointer p_value) {
+			t_index v_count = p_value->count_impl();
+			compound_array_pointer v_compound;
+			any_var ret{case_array{}, v_compound, v_count};
+			for( t_index v_index = 0; v_index <= v_count; ++v_index ) {
+				v_compound->m_items[v_index] = p_value->m_items[v_index];
+			}
+			return ret;
+		}
+		// other
+		template <typename T>
+		t_result operator () (T) {
+			compound_array_pointer v_compound;
+			any_var ret{case_array{}, v_compound, 1};
+			v_compound->m_items.first() = *m_from;
+			return ret;
+		}
+	};
+
 	//
 
 	void type_base::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
@@ -218,6 +264,15 @@ namespace ksi { namespace var {
 		v_from->variant_set(v_variant);
 		vis_conv_text v_visitor{v_from->m_type};
 		p_to = std::visit<t_text_value>(v_visitor, v_variant);
+		p_bad_conversion = v_visitor.m_bad_conversion;
+	}
+
+	void type_array::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+		any_const_pointer v_from = p_from.any_get_const();
+		t_variant v_variant;
+		v_from->variant_set(v_variant);
+		vis_conv_array v_visitor{v_from->m_type, &p_from};
+		p_to = std::visit<any_var>(v_visitor, v_variant);
 		p_bad_conversion = v_visitor.m_bad_conversion;
 	}
 

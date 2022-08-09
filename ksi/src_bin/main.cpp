@@ -10,6 +10,7 @@ int main(int p_args_count, char * p_args[], char * p_env[]) {
 	try {
 		if( p_args_count < 2 ) {
 			just::g_console << "ksi.exe <path_to_folder>\n";
+			//std::getchar();
 			return 0;
 		}
 		ksi::var::g_config = ksi::var::config::instance();

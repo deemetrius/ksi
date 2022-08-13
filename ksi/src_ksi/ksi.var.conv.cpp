@@ -214,6 +214,50 @@ namespace ksi { namespace var {
 		}
 	};
 
+	// to $map#
+	struct vis_conv_map {
+		using t_result = any_var;
+
+		// data
+		type_pointer		m_type;
+		var_const_pointer	m_from;
+		bool				m_bad_conversion = false;
+
+		// $null#
+		t_result operator () (variant_null) { return any_var{case_array{}, 0}; }
+		// $all#
+		t_result operator () (variant_all) { return any_var{case_array{}, 0}; }
+		// $array#
+		t_result operator () (compound_array_pointer p_value) {
+			compound_map_pointer v_compound;
+			any_var ret{case_map{}, v_compound};
+			for( any_var & v_it : p_value->m_items ) {
+				v_compound->assign(variant_null{}, v_it);
+			}
+			return ret;
+		}
+		// $map#
+		t_result operator () (compound_map_pointer p_value) { return *m_from; }
+		// _struct
+		t_result operator () (compound_struct_pointer p_value) {
+			t_index v_count = p_value->count_impl();
+			compound_map_pointer v_compound;
+			any_var ret{case_map{}, v_compound};
+			for( t_index v_index = 0; v_index <= v_count; ++v_index ) {
+				v_compound->assign(p_value->m_type->prop_name(v_index), p_value->m_items[v_index]);
+			}
+			return ret;
+		}
+		// other
+		template <typename T>
+		t_result operator () (T) {
+			compound_map_pointer v_compound;
+			any_var ret{case_map{}, v_compound};
+			v_compound->assign(variant_null{}, *m_from);
+			return ret;
+		}
+	};
+
 	//
 
 	void type_base::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
@@ -272,6 +316,15 @@ namespace ksi { namespace var {
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
 		vis_conv_array v_visitor{v_from->m_type, &p_from};
+		p_to = std::visit<any_var>(v_visitor, v_variant);
+		p_bad_conversion = v_visitor.m_bad_conversion;
+	}
+
+	void type_map::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+		any_const_pointer v_from = p_from.any_get_const();
+		t_variant v_variant;
+		v_from->variant_set(v_variant);
+		vis_conv_map v_visitor{v_from->m_type, &p_from};
 		p_to = std::visit<any_var>(v_visitor, v_variant);
 		p_bad_conversion = v_visitor.m_bad_conversion;
 	}

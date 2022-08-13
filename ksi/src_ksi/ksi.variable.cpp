@@ -123,6 +123,12 @@ namespace ksi {
 			v_link->m_value.m_compound = v_compound = new compound_map{};
 			v_compound->link(v_link);
 		}
+		any_var::any_var(case_map, compound_map_pointer & p_compound) : any{} {
+			link_pointer v_link = link_make_maybe();
+			v_link->m_type = &g_config->m_map;
+			v_link->m_value.m_compound = p_compound = new compound_map{};
+			p_compound->link(v_link);
+		}
 
 		// struct
 		any_var::any_var(type_struct_pointer p_type) : any{} {

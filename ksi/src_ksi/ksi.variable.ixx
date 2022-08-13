@@ -320,6 +320,7 @@ export namespace ksi {
 				t_index p_count, t_index p_capacity = 0, t_index p_extra = s_step_array
 			); // $array#
 			any_var(case_map); // $map#
+			any_var(case_map, compound_map_pointer & p_compound); // $map#
 			any_var(type_struct_pointer p_type); // _struct
 
 			any_var(const any_var & p_other); // copy
@@ -411,6 +412,10 @@ export namespace ksi {
 			}
 
 			t_integer props_count() { return m_props.count(); }
+
+			t_text_value prop_name(t_index p_index) {
+				return (*m_props.m_keys[p_index]).first;
+			}
 
 			t_index inherit_from(const log_pos & p_log_pos, type_pointer p_type_source, log_pointer p_log) {
 				if( !p_type_source->m_is_struct ) {

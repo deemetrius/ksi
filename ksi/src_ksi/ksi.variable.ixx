@@ -201,6 +201,7 @@ export namespace ksi {
 		struct variant_null {};
 		struct variant_all {};
 		struct case_array {};
+		struct case_map {};
 
 		//
 
@@ -318,6 +319,7 @@ export namespace ksi {
 			any_var(case_array, compound_array_pointer & p_compound,
 				t_index p_count, t_index p_capacity = 0, t_index p_extra = s_step_array
 			); // $array#
+			any_var(case_map); // $map#
 			any_var(type_struct_pointer p_type); // _struct
 
 			any_var(const any_var & p_other); // copy
@@ -626,6 +628,7 @@ export namespace ksi {
 			using t_items = just::map<any_var, any_var, any_less>;
 
 			// data
+			t_integer	m_index = 0;
 			t_items		m_items;
 			any_var		m_count;
 
@@ -633,6 +636,21 @@ export namespace ksi {
 
 			t_index count() override { return m_items.count(); }
 			inline t_index count_impl() { return m_items.count(); }
+
+			void clear() {
+				m_items.clear();
+				m_index = 0;
+			}
+
+			t_integer index_next() {
+				t_integer ret = m_index;
+				if( m_index < type_int::t_limits::max() ) { ++m_index; }
+				return ret;
+			}
+
+			// returns true if add
+			bool assign(const any_var & p_key, const any_var & p_value);
+			bool assign(const any_var & p_key, any_var && p_value);
 		};
 
 		// compound_struct

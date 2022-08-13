@@ -115,6 +115,15 @@ namespace ksi {
 			p_compound->link(v_link);
 		}
 
+		// $map#
+		any_var::any_var(case_map) : any{} {
+			link_pointer v_link = link_make_maybe();
+			v_link->m_type = &g_config->m_map;
+			compound_map_pointer v_compound;
+			v_link->m_value.m_compound = v_compound = new compound_map{};
+			v_compound->link(v_link);
+		}
+
 		// struct
 		any_var::any_var(type_struct_pointer p_type) : any{} {
 			link_pointer v_link = link_make_maybe();
@@ -146,6 +155,26 @@ namespace ksi {
 				{just::implode<t_char>({p_type_name, ".$static_consts#"sv}), true}
 			}
 		{}
+
+		//
+
+		bool compound_map::assign(const any_var & p_key, const any_var & p_value) {
+			any_var v_key = p_key;
+			if( v_key.type_get() == &g_config->m_null ) { v_key = index_next(); }
+			typename t_items::t_add_result v_res = m_items.maybe_emplace(v_key);
+			if( v_res.second ) { (*v_res.first).second.m_value.var_owner_set(this); }
+			(*v_res.first).second.m_value = p_value;
+			return v_res.second;
+		}
+
+		bool compound_map::assign(const any_var & p_key, any_var && p_value) {
+			any_var v_key = p_key;
+			if( v_key.type_get() == &g_config->m_null ) { v_key = index_next(); }
+			typename t_items::t_add_result v_res = m_items.maybe_emplace(v_key);
+			if( v_res.second ) { (*v_res.first).second.m_value.var_owner_set(this); }
+			(*v_res.first).second.m_value = std::move(p_value);
+			return v_res.second;
+		}
 
 		//
 
@@ -505,9 +534,10 @@ namespace ksi {
 
 		var_pointer type_array::element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) {
 			compound_array_pointer v_array = p_any->m_value.m_compound->get_array();
-			if( t_integer v_count = v_array->count() ) {
+			if( t_integer v_count = v_array->count_impl() ) {
 				if( p_key->m_type == &g_config->m_int ) { // int key
 					t_integer v_key = p_key->m_value.m_int;
+					if( v_key < 0 ) { v_key = v_count - v_key; }
 					if( v_key >= 0 && v_key < v_count ) {
 						p_wrong_key = false;
 						return v_array->m_items.data() + v_key;
@@ -526,7 +556,7 @@ namespace ksi {
 
 		var_pointer type_map::element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) {
 			compound_map_pointer v_map = p_any->m_value.m_compound->get_map();
-			if( v_map->count() ) {
+			if( p_key->m_type != &g_config->m_null || v_map->count() ) {
 				if( typename compound_map::t_items::t_node::pointer v_node = v_map->m_items.find(p_key) ) {
 					p_wrong_key = false;
 					return &v_node->m_value;

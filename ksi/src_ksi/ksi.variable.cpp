@@ -130,13 +130,19 @@ namespace ksi {
 			p_compound->link(v_link);
 		}
 
-		// struct
+		// _struct
 		any_var::any_var(type_struct_pointer p_type) : any{} {
 			link_pointer v_link = link_make_maybe();
 			v_link->m_type = p_type;
 			compound_struct_pointer v_compound;
 			v_link->m_value.m_compound = v_compound = new compound_struct(p_type);
 			v_compound->link(v_link);
+		}
+		any_var::any_var(type_struct_pointer p_type, compound_struct_pointer & p_compound) : any{} {
+			link_pointer v_link = link_make_maybe();
+			v_link->m_type = p_type;
+			v_link->m_value.m_compound = p_compound = new compound_struct(p_type);
+			p_compound->link(v_link);
 		}
 
 		void any_var::link_to(var_pointer p_var) {
@@ -540,10 +546,10 @@ namespace ksi {
 
 		var_pointer type_array::element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) {
 			compound_array_pointer v_array = p_any->m_value.m_compound->get_array();
-			if( t_integer v_count = v_array->count_impl() ) {
+			if( t_index v_count = v_array->count_impl() ) {
 				if( p_key->m_type == &g_config->m_int ) { // int key
-					t_integer v_key = p_key->m_value.m_int;
-					if( v_key < 0 ) { v_key = v_count - v_key; }
+					t_index v_key = static_cast<t_index>(p_key->m_value.m_int);
+					v_array->fix_pos(v_key);
 					if( v_key >= 0 && v_key < v_count ) {
 						p_wrong_key = false;
 						return v_array->m_items.data() + v_key;
@@ -562,7 +568,7 @@ namespace ksi {
 
 		var_pointer type_map::element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) {
 			compound_map_pointer v_map = p_any->m_value.m_compound->get_map();
-			if( p_key->m_type != &g_config->m_null || v_map->count() ) {
+			if( p_key->m_type != &g_config->m_null || v_map->count_impl() ) {
 				if( typename compound_map::t_items::t_node::pointer v_node = v_map->m_items.find(p_key) ) {
 					p_wrong_key = false;
 					return &v_node->m_value;
@@ -576,8 +582,9 @@ namespace ksi {
 			if( m_props.count() ) {
 				compound_struct_pointer v_compound = p_any->m_value.m_compound->get_struct();
 				if( p_key->m_type == &g_config->m_int ) { // int key
-					t_integer v_key = p_key->m_value.m_int;
-					if( v_key >= 0 && v_key < v_compound->count() ) {
+					t_index v_key = static_cast<t_index>(p_key->m_value.m_int);
+					v_compound->fix_pos(v_key);
+					if( v_key >= 0 && v_key < v_compound->count_impl() ) {
 						p_wrong_key = false;
 						return v_compound->m_items.data() + v_key;
 					}

@@ -322,6 +322,7 @@ export namespace ksi {
 			any_var(case_map); // $map#
 			any_var(case_map, compound_map_pointer & p_compound); // $map#
 			any_var(type_struct_pointer p_type); // _struct
+			any_var(type_struct_pointer p_type, compound_struct_pointer & p_compound); // _struct
 
 			any_var(const any_var & p_other); // copy
 			any_var(any_var && p_other); // move
@@ -465,6 +466,7 @@ export namespace ksi {
 			auto element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 			var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 			void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
+			void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
 		};
 
 		// countable
@@ -588,6 +590,9 @@ export namespace ksi {
 			t_index count() override { return m_items->m_count; }
 			inline t_index count_impl() { return m_items->m_count; }
 			inline void fix_pos(t_index & p_pos) {
+				if( p_pos < 0 ) { p_pos = count_impl() - p_pos; }
+			}
+			inline void fix_pos_zero(t_index & p_pos) {
 				if( p_pos < 0 ) { p_pos = std::max<t_index>(0, count_impl() - p_pos); }
 			}
 
@@ -604,7 +609,7 @@ export namespace ksi {
 			}
 
 			void insert(t_index p_pos, const any_var & p_var) {
-				fix_pos(p_pos);
+				fix_pos_zero(p_pos);
 				if( p_pos >= count_impl() ) { append(p_var); return; }
 				just::array_insert(m_items, p_pos);
 				m_items.last().var_owner_set(this);
@@ -612,7 +617,7 @@ export namespace ksi {
 			}
 
 			void insert(t_index p_pos, any_var && p_var) {
-				fix_pos(p_pos);
+				fix_pos_zero(p_pos);
 				if( p_pos >= count_impl() ) { append( std::move(p_var) ); return; }
 				just::array_insert(m_items, p_pos);
 				m_items.last().var_owner_set(this);
@@ -687,6 +692,9 @@ export namespace ksi {
 
 			t_index count() override { return m_items.size(); }
 			inline t_index count_impl() { return m_items.size(); }
+			inline void fix_pos(t_index & p_pos) {
+				if( p_pos < 0 ) { p_pos = count_impl() - p_pos; }
+			}
 		};
 
 		inline compound_text_pointer compound_base::get_text() { return static_cast<compound_text_pointer>(this); }

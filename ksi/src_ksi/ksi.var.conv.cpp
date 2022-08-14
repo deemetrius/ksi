@@ -258,6 +258,71 @@ namespace ksi { namespace var {
 		}
 	};
 
+	// to _struct
+	struct vis_conv_struct {
+		using t_result = any_var;
+
+		// data
+		type_struct_pointer		m_type_target;
+		type_pointer			m_type;
+		var_const_pointer		m_from;
+		bool					m_bad_conversion = false;
+
+		// $array#
+		t_result operator () (compound_array_pointer p_value) {
+			compound_struct_pointer v_compound;
+			any_var ret{m_type_target, v_compound};
+			t_index v_count = std::min(p_value->count_impl(), v_compound->count_impl() );
+			for( t_index v_index = 0; v_index < v_count; ++v_index ) {
+				v_compound->m_items[v_index] = p_value->m_items[v_index];
+			}
+			return ret;
+		}
+		// $map#
+		t_result operator () (compound_map_pointer p_value) {
+			compound_struct_pointer v_compound;
+			any_var ret{m_type_target, v_compound};
+			t_index v_count = v_compound->count_impl();
+			bool v_wrong_key;
+			for( t_index v_index = 0; v_index < v_count; ++v_index ) {
+				var_pointer v_element = m_from->element(m_type_target->prop_name(v_index), v_wrong_key);
+				if( !v_wrong_key ) {
+					v_compound->m_items[v_index] = *v_element;
+					continue;
+				}
+				v_element = m_from->element(static_cast<t_integer>(v_index), v_wrong_key);
+				if( !v_wrong_key ) {
+					v_compound->m_items[v_index] = *v_element;
+				}
+			}
+			return ret;
+		}
+		// _struct
+		t_result operator () (compound_struct_pointer p_value) {
+			compound_struct_pointer v_compound;
+			any_var ret{m_type_target, v_compound};
+			t_index v_count = v_compound->count_impl();
+			bool v_wrong_key;
+			for( t_index v_index = 0; v_index < v_count; ++v_index ) {
+				var_pointer v_element = m_from->element(m_type_target->prop_name(v_index), v_wrong_key);
+				if( !v_wrong_key ) {
+					v_compound->m_items[v_index] = *v_element;
+					continue;
+				}
+				v_element = m_from->element(static_cast<t_integer>(v_index), v_wrong_key);
+				if( !v_wrong_key ) {
+					v_compound->m_items[v_index] = *v_element;
+				}
+			}
+			return ret;
+		}
+		// other
+		template <typename T>
+		t_result operator () (T) {
+			return any_var{m_type_target};
+		}
+	};
+
 	//
 
 	void type_base::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
@@ -325,6 +390,15 @@ namespace ksi { namespace var {
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
 		vis_conv_map v_visitor{v_from->m_type, &p_from};
+		p_to = std::visit<any_var>(v_visitor, v_variant);
+		p_bad_conversion = v_visitor.m_bad_conversion;
+	}
+
+	void type_struct::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+		any_const_pointer v_from = p_from.any_get_const();
+		t_variant v_variant;
+		v_from->variant_set(v_variant);
+		vis_conv_struct v_visitor{this, v_from->m_type, &p_from};
 		p_to = std::visit<any_var>(v_visitor, v_variant);
 		p_bad_conversion = v_visitor.m_bad_conversion;
 	}

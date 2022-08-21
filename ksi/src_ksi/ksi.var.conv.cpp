@@ -340,6 +340,12 @@ namespace ksi { namespace var {
 		p_bad_conversion = false;
 	}
 
+	type_pointer type_type::from(any_var & p_from, bool & p_bad_conversion) {
+		p_bad_conversion = false;
+		any_const_pointer v_from = p_from.any_get_const();
+		return (v_from->m_type == &g_config->m_type) ? v_from->m_value.m_type : v_from->m_type;
+	}
+
 	void type_type::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
 		p_bad_conversion = false;
 		any_const_pointer v_from = p_from.any_get_const();
@@ -350,40 +356,60 @@ namespace ksi { namespace var {
 		p_to = v_from->m_type;
 	}
 
-	void type_bool::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	bool type_bool::from(any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
 		vis_conv_bool v_visitor;
-		p_to = std::visit<bool>(v_visitor, v_variant);
+		bool ret = std::visit<bool>(v_visitor, v_variant);
 		p_bad_conversion = v_visitor.m_bad_conversion;
+		return ret;
 	}
 
-	void type_int::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_bool::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+		p_to = from(p_from, p_bad_conversion);
+	}
+
+	t_integer type_int::from(any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
 		vis_conv_int v_visitor;
-		p_to = std::visit<t_integer>(v_visitor, v_variant);
+		t_integer ret = std::visit<t_integer>(v_visitor, v_variant);
 		p_bad_conversion = v_visitor.m_bad_conversion;
+		return ret;
 	}
 
-	void type_float::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_int::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+		p_to = from(p_from, p_bad_conversion);
+	}
+
+	t_floating type_float::from(any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
 		vis_conv_float v_visitor;
-		p_to = std::visit<t_floating>(v_visitor, v_variant);
+		t_floating ret = std::visit<t_floating>(v_visitor, v_variant);
 		p_bad_conversion = v_visitor.m_bad_conversion;
+		return ret;
 	}
 
-	void type_text::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_float::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+		p_to = from(p_from, p_bad_conversion);
+	}
+
+	t_text_value type_text::from(any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
 		vis_conv_text v_visitor{v_from->m_type};
-		p_to = std::visit<t_text_value>(v_visitor, v_variant);
+		t_text_value ret = std::visit<t_text_value>(v_visitor, v_variant);
 		p_bad_conversion = v_visitor.m_bad_conversion;
+		return ret;
+	}
+
+	void type_text::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+		p_to = from(p_from, p_bad_conversion);
 	}
 
 	void type_array::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {

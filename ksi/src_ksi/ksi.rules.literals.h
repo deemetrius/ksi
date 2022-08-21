@@ -143,8 +143,8 @@ struct t_literal_int {
 			m_value = std::strtoimax(v_text.data(), nullptr, v_radix);
 			if( errno == ERANGE ) {
 				t_text_value v_message = (v_is_negative ?
-					"warning: Integer literal is out of bounds so $int#.max# will be used instead."_jt :
-					"warning: Integer literal is out of bounds so $int#.min# will be used instead."_jt
+					"warning: Integer literal is out of bounds so $int#.min# will be used instead."_jt :
+					"warning: Integer literal is out of bounds so $int#.max# will be used instead."_jt
 				);
 				p_log->add({p_state.m_path, v_message, p_state.pos()});
 			}
@@ -222,11 +222,12 @@ struct t_literal_float {
 			errno = 0;
 			m_value = std::strtod(v_text.data(), nullptr);
 			if( errno == ERANGE ) {
-				m_value = std::numeric_limits<t_floating>::infinity();
+				just::g_console << '(' << m_value << ")\n";
+				m_value = var::type_float::s_infinity;
 				t_text_value v_message = "warning: Floating point literal is out of bounds"
 				" so $float#.infinity# will be used instead."_jt;
 				if( v_is_negative ) {
-					m_value = -m_value;
+					m_value = var::type_float::s_infinity_negative;
 					v_message = "warning: Floating point literal is out of bounds"
 					" so $float#.infinity_negative# will be used instead."_jt;
 				}

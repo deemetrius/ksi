@@ -100,6 +100,45 @@ namespace ksi { namespace var {
 		t_result operator () (T) { m_bad_conversion = true; return 0.0; }
 	};
 
+	// to _simple_number
+	struct vis_conv_number {
+		using t_result = any_var;
+
+		// data
+		bool m_bad_conversion = false;
+
+		// $null#
+		t_result operator () (variant_null) { return type_int::s_zero; }
+		// $all#
+		t_result operator () (variant_all) { return type_float::s_infinity; }
+		// $category#
+		t_result operator () (category::pointer p_value) { return p_value->m_id; }
+		// $type#
+		t_result operator () (type_pointer p_value) { return p_value->m_id; }
+		// $bool#
+		t_result operator () (bool p_value) { return static_cast<t_integer>(p_value); }
+		// $int#
+		t_result operator () (t_integer p_value) { return p_value; }
+		// $float#
+		t_result operator () (t_floating p_value) { return p_value; }
+		// $text#
+		t_result operator () (compound_text_pointer p_value) {
+			t_floating ret_float = std::strtod(p_value->m_text.data(), nullptr);
+			if( std::isnan(ret_float) || std::isinf(ret_float) ) { return ret_float; }
+			//
+			t_text_value::pointer v_end;
+			errno = 0;
+			t_integer ret_int = std::strtoimax(p_value->m_text.data(), &v_end, 10);
+			if( errno == ERANGE || (*v_end == '.' && std::isdigit(v_end[1]) ) || *v_end == 'e' ) { return ret_float; }
+			return ret_int;
+		}
+		// $array# $map# _struct
+		t_result operator () (countable::pointer p_value) { return static_cast<t_integer>(p_value->count() ); }
+		// other
+		template <typename T>
+		t_result operator () (T) { m_bad_conversion = true; return type_int::s_zero; }
+	};
+
 	// to $text#
 	struct vis_conv_text {
 		using t_result = t_text_value;
@@ -396,6 +435,15 @@ namespace ksi { namespace var {
 
 	void type_float::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
 		p_to = from(p_from, p_bad_conversion);
+	}
+
+	void type_simple_number::number(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+		any_const_pointer v_from = p_from.any_get_const();
+		t_variant v_variant;
+		v_from->variant_set(v_variant);
+		vis_conv_number v_visitor;
+		p_to = std::visit<any_var>(v_visitor, v_variant);
+		p_bad_conversion = v_visitor.m_bad_conversion;
 	}
 
 	t_text_value type_text::from(any_var & p_from, bool & p_bad_conversion) {

@@ -199,6 +199,7 @@ struct type_simple_number :
 	using type_simple::type_simple;
 
 	void init_categories() override;
+	void number(any_var & p_to, any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_int :
@@ -207,6 +208,7 @@ struct type_int :
 	using t_limits = std::numeric_limits<t_integer>;
 
 	static constexpr t_integer
+	s_zero = 0,
 	s_min = t_limits::min(),
 	s_max = t_limits::max();
 

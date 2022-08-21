@@ -32,6 +32,7 @@ export namespace ksi {
 			t_integer		m_id_special		= n_id_special;
 			t_integer		m_id_all			= n_id_all;
 			//
+			category		m_cat_error;
 			category		m_cat_simple;
 			category		m_cat_number;
 			category		m_cat_simple_number;
@@ -58,6 +59,7 @@ export namespace ksi {
 			config() :
 				m_mod_ksi		{"@ksi#"_jt},
 				m_mod_hidden	{"@hidden#"_jt},
+				m_cat_error			{&m_mod_ksi, m_id_cat_standard, {"_error#"_jt} },
 				m_cat_simple		{&m_mod_ksi, m_id_cat_standard, {"_simple#"_jt} },
 				m_cat_number		{&m_mod_ksi, m_id_cat_standard, {"_number#"_jt} },
 				m_cat_simple_number	{&m_mod_ksi, m_id_cat_standard, {"_simple_number#"_jt} },

@@ -379,6 +379,17 @@ namespace ksi { namespace var {
 		p_bad_conversion = false;
 	}
 
+	void type_category::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+		any_const_pointer v_from = p_from.any_get_const();
+		if( v_from->m_type == &g_config->m_category ) {
+			p_bad_conversion = false;
+			p_to = p_from;
+			return;
+		}
+		p_bad_conversion = true;
+		p_to = &g_config->m_cat_error;
+	}
+
 	type_pointer type_type::from(any_var & p_from, bool & p_bad_conversion) {
 		p_bad_conversion = false;
 		any_const_pointer v_from = p_from.any_get_const();

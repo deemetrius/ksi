@@ -654,7 +654,7 @@ export namespace ksi {
 
 			t_integer index_next() {
 				t_integer ret = m_index;
-				if( m_index < type_int::t_limits::max() ) { ++m_index; }
+				if( m_index < type_int::s_max ) { ++m_index; }
 				return ret;
 			}
 
@@ -736,19 +736,20 @@ export namespace ksi {
 		void type_int::init_target() {
 			using namespace just::text_literals;
 			static_data_pointer v_static = get_static();
-			v_static->m_struct_consts.prop_add("min#"_jt, t_limits::min() );
-			v_static->m_struct_consts.prop_add("max#"_jt, t_limits::max() );
+			v_static->m_struct_consts.prop_add("min#"_jt, s_min);
+			v_static->m_struct_consts.prop_add("max#"_jt, s_max);
 		}
 
 		void type_float::init_target() {
 			using namespace just::text_literals;
 			static_data_pointer v_static = get_static();
-			v_static->m_struct_consts.prop_add("min#"_jt,				t_limits::min() );
-			v_static->m_struct_consts.prop_add("max#"_jt,				t_limits::max() );
-			v_static->m_struct_consts.prop_add("infinity#"_jt,			t_limits::infinity() );
-			v_static->m_struct_consts.prop_add("infinity_negative#"_jt,	-t_limits::infinity() );
-			v_static->m_struct_consts.prop_add("nan#"_jt,				t_limits::quiet_NaN() );
-			v_static->m_struct_consts.prop_add("epsilon#"_jt,			t_limits::epsilon() );
+			v_static->m_struct_consts.prop_add("lowest#"_jt,			s_lowest);
+			v_static->m_struct_consts.prop_add("min#"_jt,				s_min);
+			v_static->m_struct_consts.prop_add("max#"_jt,				s_max);
+			v_static->m_struct_consts.prop_add("infinity#"_jt,			s_infinity);
+			v_static->m_struct_consts.prop_add("infinity_negative#"_jt,	s_infinity_negative);
+			v_static->m_struct_consts.prop_add("nan#"_jt,				s_nan);
+			v_static->m_struct_consts.prop_add("epsilon#"_jt,			s_epsilon);
 		}
 
 		// element()

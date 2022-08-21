@@ -50,7 +50,7 @@ namespace ksi { namespace var {
 		// $null#
 		t_result operator () (variant_null) { return 0; }
 		// $all#
-		t_result operator () (variant_all) { return type_int::t_limits::max(); }
+		t_result operator () (variant_all) { return type_int::s_max; }
 		// $category#
 		t_result operator () (category::pointer p_value) { return p_value->m_id; }
 		// $type#
@@ -80,7 +80,7 @@ namespace ksi { namespace var {
 		// $null#
 		t_result operator () (variant_null) { return 0.0; }
 		// $all#
-		t_result operator () (variant_all) { return type_float::t_limits::infinity(); }
+		t_result operator () (variant_all) { return type_float::s_infinity; }
 		// $category#
 		t_result operator () (category::pointer p_value) { return static_cast<t_result>(p_value->m_id); }
 		// $type#
@@ -138,9 +138,9 @@ namespace ksi { namespace var {
 		// $float#
 		t_result operator () (t_floating p_value) {
 			if( std::isnan(p_value) ) { return "NaN"_jt; }
-			if( p_value == type_float::t_limits::infinity() ) { return "infinity"_jt; }
-			if( p_value == -type_float::t_limits::infinity() ) { return "-infinity"_jt; }
-			int v_len = snprintf(nullptr, 0, "%f", p_value);
+			if( p_value == type_float::s_infinity ) { return "infinity"_jt; }
+			if( p_value == -type_float::s_infinity ) { return "-infinity"_jt; }
+			int v_len = snprintf(nullptr, 0, "%g", p_value);
 			if( v_len < 0 ) {
 				m_bad_conversion = true;
 				return "?"_jt;
@@ -148,7 +148,7 @@ namespace ksi { namespace var {
 			int v_size = v_len +1;
 			typename t_result::pointer v_text;
 			t_result ret{v_size, v_text};
-			v_len = snprintf(v_text, v_size, "%f", p_value);
+			v_len = snprintf(v_text, v_size, "%g", p_value);
 			if( v_len < 0 ) {
 				m_bad_conversion = true;
 				return "?"_jt;

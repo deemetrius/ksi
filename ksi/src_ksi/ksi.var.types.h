@@ -206,6 +206,10 @@ struct type_int :
 {
 	using t_limits = std::numeric_limits<t_integer>;
 
+	static constexpr t_integer
+	s_min = t_limits::min(),
+	s_max = t_limits::max();
+
 	type_int(module_pointer p_module, t_integer & p_id) : type_simple_number{p_module, p_id} {
 		using namespace just::text_literals;
 		name("$int#"_jt);
@@ -228,9 +232,14 @@ struct type_float :
 {
 	using t_limits = std::numeric_limits<t_floating>;
 
-	static constexpr t_floating s_infinity			= t_limits::infinity();
-	static constexpr t_floating s_infinity_negative	= -t_limits::infinity();
-	static constexpr t_floating s_nan				= t_limits::quiet_NaN();
+	static constexpr t_floating
+	s_lowest			= t_limits::lowest(),
+	s_min				= t_limits::min(),
+	s_max				= t_limits::max(),
+	s_infinity			= t_limits::infinity(),
+	s_infinity_negative	= -t_limits::infinity(),
+	s_nan				= t_limits::quiet_NaN(),
+	s_epsilon			= t_limits::epsilon();
 
 	type_float(module_pointer p_module, t_integer & p_id) : type_simple_number{p_module, p_id} {
 		using namespace just::text_literals;

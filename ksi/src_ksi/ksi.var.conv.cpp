@@ -37,6 +37,7 @@ namespace ksi { namespace var {
 		t_result operator () (countable::pointer p_value) { return p_value->count(); }
 		// other
 		template <typename T>
+		requires ( ! std::is_base_of_v<countable, std::remove_pointer_t<T> > )
 		t_result operator () (T) { m_bad_conversion = true; return false; }
 	};
 
@@ -67,7 +68,11 @@ namespace ksi { namespace var {
 		t_result operator () (countable::pointer p_value) { return p_value->count(); }
 		// other
 		template <typename T>
-		t_result operator () (T) { m_bad_conversion = true; return 0; }
+		requires ( ! std::is_base_of_v<countable, std::remove_pointer_t<T> > )
+		t_result operator () (T) {
+			m_bad_conversion = true;
+			return 0;
+		}
 	};
 
 	// to $float#
@@ -97,6 +102,7 @@ namespace ksi { namespace var {
 		t_result operator () (countable::pointer p_value) { return static_cast<t_result>(p_value->count() ); }
 		// other
 		template <typename T>
+		requires ( ! std::is_base_of_v<countable, std::remove_pointer_t<T> > )
 		t_result operator () (T) { m_bad_conversion = true; return 0.0; }
 	};
 
@@ -136,6 +142,7 @@ namespace ksi { namespace var {
 		t_result operator () (countable::pointer p_value) { return static_cast<t_integer>(p_value->count() ); }
 		// other
 		template <typename T>
+		requires ( ! std::is_base_of_v<countable, std::remove_pointer_t<T> > )
 		t_result operator () (T) { m_bad_conversion = true; return type_int::s_zero; }
 	};
 

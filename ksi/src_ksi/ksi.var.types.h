@@ -172,7 +172,7 @@ struct type_type :
 	var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
-	type_pointer from(any_var & p_from, bool & p_bad_conversion);
+	static type_pointer from(any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_bool :
@@ -191,7 +191,7 @@ struct type_bool :
 	) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
-	bool from(any_var & p_from, bool & p_bad_conversion);
+	static bool from(any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_simple_number :
@@ -200,7 +200,7 @@ struct type_simple_number :
 	using type_simple::type_simple;
 
 	void init_categories() override;
-	void number(any_var & p_to, any_var & p_from, bool & p_bad_conversion);
+	static void number(any_var & p_to, any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_int :
@@ -227,7 +227,7 @@ struct type_int :
 	) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
-	t_integer from(any_var & p_from, bool & p_bad_conversion);
+	static t_integer from(any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_float :
@@ -258,7 +258,7 @@ struct type_float :
 	) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
-	t_floating from(any_var & p_from, bool & p_bad_conversion);
+	static t_floating from(any_var & p_from, bool & p_bad_conversion);
 };
 
 // compound
@@ -298,7 +298,7 @@ struct type_text :
 	var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
 	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
-	t_text_value from(any_var & p_from, bool & p_bad_conversion);
+	static t_text_value from(any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_array :

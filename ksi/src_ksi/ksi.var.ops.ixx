@@ -103,4 +103,43 @@ export namespace ksi { namespace var {
 		return std::visit<compare_result>(v_cmp, v1, v2);
 	}
 
+	//
+
+	struct op_plus {
+		static inline t_floating with_float(t_floating p1, t_floating p2) { return p1 + p2; }
+
+		static inline any_var with_int(t_integer p1, t_integer p2) {
+			bool v_allow = (p2 >= 0) ? (p1 <= type_int::s_max - p2) : (p1 >= type_int::s_min - p2);
+			if( v_allow ) { return p1 + p2; }
+			return with_float( static_cast<t_floating>(p1), static_cast<t_floating>(p2) );
+		}
+	};
+
+	template <typename T_op>
+	struct vis_math {
+		using type = T_op;
+
+		any_var operator () (t_integer p1, t_integer p2) { return type::with_int( p1, p2 ); }
+		any_var operator () (t_floating p1, t_floating p2) { return type::with_float( p1, p2 ); }
+
+		any_var operator () (t_integer p1, t_floating p2) { return type::with_float( static_cast<t_floating>(p1), p2 ); }
+		any_var operator () (t_floating p1, t_integer p2) { return type::with_float( p1, static_cast<t_floating>(p2) ); }
+
+		template <typename T1, typename T2>
+		any_var operator () (T1 p1, T2 p2) { return variant_null{}; }
+	};
+
+	template <typename T_op>
+	any_var math(const any_var & p1, const any_var & p2) {
+		any_var v1, v2;
+		bool v_bad_conversion;
+		type_simple_number::number(v1, p1, v_bad_conversion);
+		type_simple_number::number(v2, p2, v_bad_conversion);
+		t_variant v_variant_1, v_variant_2;
+		v1.variant_set(v_variant_1);
+		v2.variant_set(v_variant_2);
+		vis_math<T_op> v_visitor;
+		return std::visit<any_var>(v_visitor, v_variant_1, v_variant_2);
+	}
+
 } } // ns ns

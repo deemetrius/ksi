@@ -12,7 +12,7 @@ extends ( $range )
 struct ( step = 1 )
 
 &contains _range range { number, from_strict = true, to_strict = false } (
-	v.x, 1.0, 5.5, -1
+	v.x + -1 * null
 )
 
 /*

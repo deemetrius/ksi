@@ -271,4 +271,10 @@ export namespace just {
 		return implode_items<T_char, std::basic_string_view<T_char> >(p_list, p_separator);
 	}
 
+	template <typename T_char>
+	const T_char * starts_with(const T_char * p_target, const std::basic_string_view<T_char> & p_search) {
+		t_size v_size = p_search.size();
+		return text_traits::cmp_n(p_target, p_search.data(), v_size) ? nullptr : (p_target + v_size);
+	}
+
 } // ns

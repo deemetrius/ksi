@@ -214,7 +214,7 @@ export namespace just {
 		T & operator [] (t_index p_index) const { return m_ref->m_handle[p_index]; }
 
 		type & first() { return *m_ref->m_handle; }
-		type & last() { return m_ref->m_handle[m_ref->m_count -1]; }
+		type & last(t_index p_index = 0) { return m_ref->m_handle[m_ref->m_count - p_index -1]; }
 	};
 
 	template <typename T, typename T_capacity>

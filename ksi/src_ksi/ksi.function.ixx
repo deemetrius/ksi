@@ -39,7 +39,7 @@ export namespace ksi {
 		t_items				m_items;
 		//var::var_pointer	m_var;
 
-		var::any_var * last() { return m_items.end() -1; }
+		var::any_var & last(t_index p_index = 0) { return m_items.last(p_index); }
 
 		void var_add(const var::any_var & p_var) {
 			just::array_append(m_items, p_var);
@@ -47,12 +47,12 @@ export namespace ksi {
 		
 		void var_link(var::var_pointer p_var) {
 			just::array_append(m_items);
-			last()->link_to(p_var);
+			last().link_to(p_var);
 		}
 
 		void var_ref(var::var_pointer p_var) {
 			just::array_append(m_items);
-			last()->ref_to(p_var);
+			last().ref_to(p_var);
 		}
 
 		void var_remove(t_index p_amount) {
@@ -80,14 +80,31 @@ export namespace ksi {
 
 	//
 
-	struct instr_data {
-		using const_reference = const instr_data &;
-
+	struct instr_data_pos {
 		// data
 		position	m_pos;
+	};
+
+	struct instr_data_only {
+		// data
 		t_integer	m_arg = 0;
 		t_index		m_param = 0;
 		t_index		m_group = 0;
+
+		instr_data_only & only() { return *this; }
+	};
+
+	struct instr_data :
+		public instr_data_pos,
+		public instr_data_only
+	{
+		using const_reference = const instr_data &;
+
+		static instr_data make(const position & p_pos, const instr_data_only & p_only) {
+			instr_data ret{p_pos};
+			ret.only() = p_only;
+			return ret;
+		}
 	};
 
 	struct instr_type {

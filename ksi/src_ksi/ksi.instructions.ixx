@@ -6,6 +6,7 @@ export module ksi.instructions;
 
 export import ksi.function;
 import ksi.space;
+import ksi.var.ops;
 
 export namespace ksi {
 
@@ -72,6 +73,14 @@ export namespace ksi {
 			p_stack->var_ref(&p_call->m_vars[p_data.m_param]);
 		}
 
+		template <typename T_op>
+		static void do_math(space * p_space, call_space * p_call, stack * p_stack,
+			log_base::pointer p_log, instr_data::const_reference p_data
+		) {
+			p_stack->last(1) = var::math<T_op>(p_stack->last(1), p_stack->last() );
+			p_stack->var_remove(1);
+		}
+
 		static const instr_type
 		s_pop,
 		s_put_null,
@@ -81,7 +90,12 @@ export namespace ksi {
 		s_put_literal,
 		s_put_var,
 		s_put_var_link,
-		s_put_var_ref;
+		s_put_var_ref,
+		s_op_add,
+		s_op_subtract,
+		s_op_multiply,
+		s_op_divide,
+		s_op_modulo;
 
 	}; // struct
 
@@ -94,6 +108,11 @@ export namespace ksi {
 	instructions::s_put_literal	{"do_put_literal"_jt,	&do_put_literal},
 	instructions::s_put_var		{"do_put_var"_jt,		&do_put_var},
 	instructions::s_put_var_link{"do_put_var_link"_jt,	&do_put_var_link},
-	instructions::s_put_var_ref	{"do_put_var_ref"_jt,	&do_put_var_ref};
+	instructions::s_put_var_ref	{"do_put_var_ref"_jt,	&do_put_var_ref},
+	instructions::s_op_add		{"do_op_add"_jt,		&do_math<var::op_add>},
+	instructions::s_op_subtract	{"do_op_subtract"_jt,	&do_math<var::op_subtract>},
+	instructions::s_op_multiply	{"do_op_multiply"_jt,	&do_math<var::op_multiply>},
+	instructions::s_op_divide	{"do_op_divide"_jt,		&do_math<var::op_divide>},
+	instructions::s_op_modulo	{"do_op_modulo"_jt,		&do_math<var::op_modulo>};
 
 } // ns

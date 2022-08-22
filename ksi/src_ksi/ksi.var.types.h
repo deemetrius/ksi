@@ -55,7 +55,7 @@ struct type_base :
 	virtual var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key);
 	//
 	virtual void variant_set(any_const_pointer p_any, t_variant_inner & p_variant) {}
-	virtual void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion);
+	virtual void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion);
 };
 
 using type_pointer = type_base *;
@@ -123,7 +123,7 @@ struct type_null :
 	}
 
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override { p_variant = variant_null{}; }
-	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
+	void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) override;
 };
 
 struct type_all :
@@ -135,7 +135,7 @@ struct type_all :
 	}
 
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override { p_variant = variant_all{}; }
-	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
+	void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) override;
 };
 
 struct type_category :
@@ -152,7 +152,7 @@ struct type_category :
 		set_deep & p_deep
 	) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
-	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
+	void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) override;
 };
 
 struct type_type :
@@ -171,8 +171,8 @@ struct type_type :
 	auto element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 	var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
-	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
-	static type_pointer from(any_var & p_from, bool & p_bad_conversion);
+	void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) override;
+	static type_pointer from(const any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_bool :
@@ -190,8 +190,8 @@ struct type_bool :
 		set_deep & p_deep
 	) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
-	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
-	static bool from(any_var & p_from, bool & p_bad_conversion);
+	void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) override;
+	static bool from(const any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_simple_number :
@@ -200,7 +200,7 @@ struct type_simple_number :
 	using type_simple::type_simple;
 
 	void init_categories() override;
-	static void number(any_var & p_to, any_var & p_from, bool & p_bad_conversion);
+	static void number(any_var & p_to, const any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_int :
@@ -226,8 +226,8 @@ struct type_int :
 		set_deep & p_deep
 	) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
-	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
-	static t_integer from(any_var & p_from, bool & p_bad_conversion);
+	void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) override;
+	static t_integer from(const any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_float :
@@ -257,8 +257,8 @@ struct type_float :
 		set_deep & p_deep
 	) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
-	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
-	static t_floating from(any_var & p_from, bool & p_bad_conversion);
+	void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) override;
+	static t_floating from(const any_var & p_from, bool & p_bad_conversion);
 };
 
 // compound
@@ -297,8 +297,8 @@ struct type_text :
 	) override;
 	var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
-	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
-	static t_text_value from(any_var & p_from, bool & p_bad_conversion);
+	void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) override;
+	static t_text_value from(const any_var & p_from, bool & p_bad_conversion);
 };
 
 struct type_array :
@@ -318,7 +318,7 @@ struct type_array :
 	auto element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 	var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
-	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
+	void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) override;
 };
 
 struct type_map :
@@ -337,5 +337,5 @@ struct type_map :
 	auto element(any_const_pointer p_any, any_const_pointer p_key, bool & p_wrong_key) -> var_pointer override;
 	var_pointer element_const(any_const_pointer p_any, const t_text_value & p_key, bool & p_wrong_key) override;
 	void variant_set(any_const_pointer p_any, t_variant & p_variant) override;
-	void from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) override;
+	void from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) override;
 };

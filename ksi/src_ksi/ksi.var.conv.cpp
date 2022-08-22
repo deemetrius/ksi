@@ -371,22 +371,22 @@ namespace ksi { namespace var {
 
 	//
 
-	void type_base::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_base::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		p_to.close();
 		p_bad_conversion = true;
 	}
 
-	void type_null::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_null::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		p_to.close();
 		p_bad_conversion = false;
 	}
 
-	void type_all::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_all::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		p_to = variant_all{};
 		p_bad_conversion = false;
 	}
 
-	void type_category::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_category::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		if( v_from->m_type == &g_config->m_category ) {
 			p_bad_conversion = false;
@@ -397,13 +397,13 @@ namespace ksi { namespace var {
 		p_to = &g_config->m_cat_error;
 	}
 
-	type_pointer type_type::from(any_var & p_from, bool & p_bad_conversion) {
+	type_pointer type_type::from(const any_var & p_from, bool & p_bad_conversion) {
 		p_bad_conversion = false;
 		any_const_pointer v_from = p_from.any_get_const();
 		return (v_from->m_type == &g_config->m_type) ? v_from->m_value.m_type : v_from->m_type;
 	}
 
-	void type_type::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_type::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		p_bad_conversion = false;
 		any_const_pointer v_from = p_from.any_get_const();
 		if( v_from->m_type == &g_config->m_type ) {
@@ -413,7 +413,7 @@ namespace ksi { namespace var {
 		p_to = v_from->m_type;
 	}
 
-	bool type_bool::from(any_var & p_from, bool & p_bad_conversion) {
+	bool type_bool::from(const any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
@@ -423,11 +423,11 @@ namespace ksi { namespace var {
 		return ret;
 	}
 
-	void type_bool::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_bool::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		p_to = from(p_from, p_bad_conversion);
 	}
 
-	t_integer type_int::from(any_var & p_from, bool & p_bad_conversion) {
+	t_integer type_int::from(const any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
@@ -437,11 +437,11 @@ namespace ksi { namespace var {
 		return ret;
 	}
 
-	void type_int::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_int::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		p_to = from(p_from, p_bad_conversion);
 	}
 
-	t_floating type_float::from(any_var & p_from, bool & p_bad_conversion) {
+	t_floating type_float::from(const any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
@@ -451,11 +451,11 @@ namespace ksi { namespace var {
 		return ret;
 	}
 
-	void type_float::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_float::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		p_to = from(p_from, p_bad_conversion);
 	}
 
-	void type_simple_number::number(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_simple_number::number(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
@@ -464,7 +464,7 @@ namespace ksi { namespace var {
 		p_bad_conversion = v_visitor.m_bad_conversion;
 	}
 
-	t_text_value type_text::from(any_var & p_from, bool & p_bad_conversion) {
+	t_text_value type_text::from(const any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
@@ -474,11 +474,11 @@ namespace ksi { namespace var {
 		return ret;
 	}
 
-	void type_text::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_text::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		p_to = from(p_from, p_bad_conversion);
 	}
 
-	void type_array::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_array::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
@@ -487,7 +487,7 @@ namespace ksi { namespace var {
 		p_bad_conversion = v_visitor.m_bad_conversion;
 	}
 
-	void type_map::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_map::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);
@@ -496,7 +496,7 @@ namespace ksi { namespace var {
 		p_bad_conversion = v_visitor.m_bad_conversion;
 	}
 
-	void type_struct::from(any_var & p_to, any_var & p_from, bool & p_bad_conversion) {
+	void type_struct::from(any_var & p_to, const any_var & p_from, bool & p_bad_conversion) {
 		any_const_pointer v_from = p_from.any_get_const();
 		t_variant v_variant;
 		v_from->variant_set(v_variant);

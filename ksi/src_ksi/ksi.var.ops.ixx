@@ -133,7 +133,7 @@ export namespace ksi { namespace var {
 			if( p1 == 1 ) { return p2; }
 			if( p2 == 1 ) { return p1; }
 			bool v_allow = (p1 > 0) ? (
-				(p2 > 0) ? (p1 <= type_int::s_max / p2) : (p1 <= type_int::s_min / p2)
+				(p2 > 0) ? (p1 <= type_int::s_max / p2) : (p2 != -1 && p1 <= type_int::s_min / p2)
 			) : (
 				(p2 > 0) ? (p1 >= type_int::s_min / p2) : (p1 >= type_int::s_max / p2)
 			);
@@ -156,7 +156,8 @@ export namespace ksi { namespace var {
 		static inline t_floating with_float(t_floating p1, t_floating p2) { return std::remainder(p1, p2); }
 
 		static inline any_var with_int(t_integer p1, t_integer p2) {
-			bool v_allow = (p2 == -1) ? (p1 > type_int::s_min) : (p2 != 0);
+			if( p2 == -1 ) { return type_int::s_zero; }
+			bool v_allow = (p2 != 0);
 			if( v_allow ) {
 				auto v_res = std::div(p1, p2);
 				return v_res.rem;

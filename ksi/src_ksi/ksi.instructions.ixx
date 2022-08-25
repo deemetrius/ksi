@@ -126,9 +126,9 @@ export namespace ksi {
 	instructions::s_op_multiply		{"do_op_multiply"_jt,	&do_math<var::op_multiply>},
 	instructions::s_op_divide		{"do_op_divide"_jt,		&do_math<var::op_divide>},
 	instructions::s_op_modulo		{"do_op_modulo"_jt,		&do_math<var::op_modulo>},
+	instructions::s_op_bits_shift	{"do_op_bits_shift"_jt,	&do_math_bits<var::op_bits_shift>},
 	instructions::s_op_bits_and		{"do_op_bits_and"_jt,	&do_math_bits<var::op_bits_and>},
 	instructions::s_op_bits_xor		{"do_op_bits_xor"_jt,	&do_math_bits<var::op_bits_xor>},
-	instructions::s_op_bits_or		{"do_op_bits_or"_jt,	&do_math_bits<var::op_bits_or>},
-	instructions::s_op_bits_shift	{"do_op_bits_shift"_jt,	&do_math_bits<var::op_bits_shift>};
+	instructions::s_op_bits_or		{"do_op_bits_or"_jt,	&do_math_bits<var::op_bits_or>};
 
 } // ns

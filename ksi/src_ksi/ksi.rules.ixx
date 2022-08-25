@@ -269,7 +269,8 @@ export namespace ksi { namespace rules {
 			rule_literal,
 			t_separator,
 			t_imp_var_object,
-			t_imp_operator_common
+			t_imp_operator_common,
+			t_imp_operator_named
 		> {};
 
 		struct rule_imp_var_dot : public rule_alt<true, t_space,

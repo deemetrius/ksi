@@ -54,6 +54,7 @@ export namespace ksi { namespace ast {
 		s_type_leaf,
 		s_type_multiply,
 		s_type_add,
+		s_type_bits_shift,
 		s_type_bits_and,
 		s_type_bits_xor,
 		s_type_bits_or,
@@ -267,6 +268,7 @@ export namespace ksi { namespace ast {
 
 		struct operator_info {
 			using pointer = operator_info *;
+			using t_map = std::map<t_text_value, operator_info, just::text_less>;
 
 			// data
 			t_text_value					m_text;
@@ -286,6 +288,15 @@ export namespace ksi { namespace ast {
 				};
 				return v_inst;
 			}
+
+			static t_map & ops_named() {
+				t_text_value v_name;
+				static t_map v_inst{
+					{v_name = "mod"_jt,		{v_name, &body::s_type_multiply, &instructions::s_op_modulo}},
+					{v_name = "shift"_jt,	{v_name, &body::s_type_bits_shift, &instructions::s_op_bits_shift}}
+				};
+				return v_inst;
+			}
 		};
 
 		// node_add_op
@@ -299,6 +310,7 @@ export namespace ksi { namespace ast {
 	body::s_type_leaf		{&body::do_leaf, &body::node_add_leaf, prec_leaf, prec_leaf},
 	body::s_type_multiply	{&body::do_normal_left_right, &body::node_add_assoc_left, prec_multiply, prec_multiply},
 	body::s_type_add		{&body::do_normal_left_right, &body::node_add_assoc_left, prec_add, prec_add},
+	body::s_type_bits_shift	{&body::do_normal_left_right, &body::node_add_assoc_left, prec_bits_shift, prec_bits_shift},
 	body::s_type_bits_and	{&body::do_normal_left_right, &body::node_add_assoc_left, prec_bits_and, prec_bits_and},
 	body::s_type_bits_xor	{&body::do_normal_left_right, &body::node_add_assoc_left, prec_bits_xor, prec_bits_xor},
 	body::s_type_bits_or	{&body::do_normal_left_right, &body::node_add_assoc_left, prec_bits_or, prec_bits_or},

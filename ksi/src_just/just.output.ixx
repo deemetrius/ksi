@@ -6,6 +6,8 @@ export module just.output;
 
 import <cstdio>;
 import <cwchar>;
+import <limits>;
+import <cmath>;
 export import just.common;
 
 export namespace just {
@@ -34,6 +36,11 @@ export namespace just {
 		public output_base
 	{
 		using t_handle = std::FILE *;
+		using t_limits_double = std::numeric_limits<double>;
+		using t_limits_double_long = std::numeric_limits<long double>;
+
+		static constexpr int s_digits_double = t_limits_double::digits10;
+		static constexpr int s_digits_double_long = t_limits_double_long::digits10;
 
 		// data
 		t_handle	m_handle = stdout;
@@ -103,7 +110,21 @@ export namespace just {
 		}
 
 		bool write(double p_value) override {
-			if( std::fprintf(m_handle, "%g", p_value) < 0 ) {
+			if( std::isnan(p_value) ) {
+				if( std::fputs("NaN", m_handle) == EOF ) {
+					++m_errors;
+					return true;
+				}
+				return false;
+			}
+			if( std::isinf(p_value) ) {
+				if( std::fputs(((p_value > 0.0) ? "infinity" : "-infinity"), m_handle) == EOF ) {
+					++m_errors;
+					return true;
+				}
+				return false;
+			}
+			if( std::fprintf(m_handle, "%.*g", s_digits_double, p_value) < 0 ) {
 				++m_errors;
 				return true;
 			}
@@ -111,7 +132,21 @@ export namespace just {
 		}
 
 		bool write(long double p_value) override {
-			if( std::fprintf(m_handle, "%Lg", p_value) < 0 ) {
+			if( std::isnan(p_value) ) {
+				if( std::fputs("NaN", m_handle) == EOF ) {
+					++m_errors;
+					return true;
+				}
+				return false;
+			}
+			if( std::isinf(p_value) ) {
+				if( std::fputs(((p_value > 0.0) ? "infinity" : "-infinity"), m_handle) == EOF ) {
+					++m_errors;
+					return true;
+				}
+				return false;
+			}
+			if( std::fprintf(m_handle, "%.*Lg", s_digits_double_long, p_value) < 0 ) {
 				++m_errors;
 				return true;
 			}

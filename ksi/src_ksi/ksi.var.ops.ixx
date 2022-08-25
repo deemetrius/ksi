@@ -207,6 +207,25 @@ export namespace ksi { namespace var {
 		static t_integer with_int(t_integer p1, t_integer p2) { return p1 | p2; }
 	};
 
+	struct op_bits_shift {
+		static t_integer shift(t_integer p1, t_integer p2) {
+			if( p2 < 0 ) {
+				if (p2 < -type_int::s_shift_max) { return 0; }
+				return p1 >> (-p2);
+			}
+			if( p2 > type_int::s_shift_max ) { return 0; }
+			return p1 << p2;
+		}
+
+		static t_integer with_int(t_integer p1, t_integer p2) {
+			if( p1 < 0 ) {
+				const t_integer v_one_negative = -1;
+				return shift(p1 ^ v_one_negative, p2) ^ v_one_negative;
+			}
+			return shift(p1, p2);
+		}
+	};
+
 	template <typename T_op>
 	struct vis_math_bits {
 		using type = T_op;

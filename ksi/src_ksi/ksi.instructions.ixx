@@ -106,27 +106,29 @@ export namespace ksi {
 		s_op_bits_and,
 		s_op_bits_xor,
 		s_op_bits_or,
+		s_op_bits_shift,
 		s_op_modulo;
 
 	}; // struct
 
 	const instr_type
-	instructions::s_pop			{"do_pop"_jt,			&do_pop},
-	instructions::s_put_null	{"do_put_null"_jt,		&do_put_null},
-	instructions::s_put_all		{"do_put_all"_jt,		&do_put_all},
-	instructions::s_put_bool	{"do_put_bool"_jt,		&do_put_bool},
-	instructions::s_put_int		{"do_put_int"_jt,		&do_put_int},
-	instructions::s_put_literal	{"do_put_literal"_jt,	&do_put_literal},
-	instructions::s_put_var		{"do_put_var"_jt,		&do_put_var},
-	instructions::s_put_var_link{"do_put_var_link"_jt,	&do_put_var_link},
-	instructions::s_put_var_ref	{"do_put_var_ref"_jt,	&do_put_var_ref},
-	instructions::s_op_add		{"do_op_add"_jt,		&do_math<var::op_add>},
-	instructions::s_op_subtract	{"do_op_subtract"_jt,	&do_math<var::op_subtract>},
-	instructions::s_op_multiply	{"do_op_multiply"_jt,	&do_math<var::op_multiply>},
-	instructions::s_op_divide	{"do_op_divide"_jt,		&do_math<var::op_divide>},
-	instructions::s_op_modulo	{"do_op_modulo"_jt,		&do_math<var::op_modulo>},
-	instructions::s_op_bits_and	{"do_op_bits_and"_jt,	&do_math_bits<var::op_bits_and>},
-	instructions::s_op_bits_xor	{"do_op_bits_xor"_jt,	&do_math_bits<var::op_bits_xor>},
-	instructions::s_op_bits_or	{"do_op_bits_or"_jt,	&do_math_bits<var::op_bits_or>};
+	instructions::s_pop				{"do_pop"_jt,			&do_pop},
+	instructions::s_put_null		{"do_put_null"_jt,		&do_put_null},
+	instructions::s_put_all			{"do_put_all"_jt,		&do_put_all},
+	instructions::s_put_bool		{"do_put_bool"_jt,		&do_put_bool},
+	instructions::s_put_int			{"do_put_int"_jt,		&do_put_int},
+	instructions::s_put_literal		{"do_put_literal"_jt,	&do_put_literal},
+	instructions::s_put_var			{"do_put_var"_jt,		&do_put_var},
+	instructions::s_put_var_link	{"do_put_var_link"_jt,	&do_put_var_link},
+	instructions::s_put_var_ref		{"do_put_var_ref"_jt,	&do_put_var_ref},
+	instructions::s_op_add			{"do_op_add"_jt,		&do_math<var::op_add>},
+	instructions::s_op_subtract		{"do_op_subtract"_jt,	&do_math<var::op_subtract>},
+	instructions::s_op_multiply		{"do_op_multiply"_jt,	&do_math<var::op_multiply>},
+	instructions::s_op_divide		{"do_op_divide"_jt,		&do_math<var::op_divide>},
+	instructions::s_op_modulo		{"do_op_modulo"_jt,		&do_math<var::op_modulo>},
+	instructions::s_op_bits_and		{"do_op_bits_and"_jt,	&do_math_bits<var::op_bits_and>},
+	instructions::s_op_bits_xor		{"do_op_bits_xor"_jt,	&do_math_bits<var::op_bits_xor>},
+	instructions::s_op_bits_or		{"do_op_bits_or"_jt,	&do_math_bits<var::op_bits_or>},
+	instructions::s_op_bits_shift	{"do_op_bits_shift"_jt,	&do_math_bits<var::op_bits_shift>};
 
 } // ns

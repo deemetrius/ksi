@@ -210,6 +210,8 @@ struct type_int :
 
 	static constexpr t_integer
 	s_zero = 0,
+	s_bits = t_limits::digits,
+	s_shift_max = s_bits -1,
 	s_min = t_limits::min(),
 	s_max = t_limits::max();
 

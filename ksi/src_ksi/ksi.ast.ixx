@@ -17,6 +17,7 @@ export namespace ksi { namespace ast {
 		prec_leaf,
 		prec_multiply,						// * / mod		(numbers)
 		prec_add,							// + -
+		prec_bits_shift,					// shift		(bitwise)
 		prec_bits_and,						// &			(bitwise)
 		prec_bits_xor	= prec_bits_and,	// ^
 		prec_bits_or	= prec_bits_and,	// |

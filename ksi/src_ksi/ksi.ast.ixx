@@ -15,8 +15,11 @@ export namespace ksi { namespace ast {
 
 	enum precedence {
 		prec_leaf,
-		prec_multiply,		// * / mod
-		prec_add,			// + -
+		prec_multiply,						// * / mod		(numbers)
+		prec_add,							// + -
+		prec_bits_and,						// &			(bitwise)
+		prec_bits_xor	= prec_bits_and,	// ^
+		prec_bits_or	= prec_bits_and,	// |
 		prec_root
 	};
 
@@ -50,6 +53,9 @@ export namespace ksi { namespace ast {
 		s_type_leaf,
 		s_type_multiply,
 		s_type_add,
+		s_type_bits_and,
+		s_type_bits_xor,
+		s_type_bits_or,
 		s_type_root;
 
 		struct node_tree :
@@ -272,7 +278,10 @@ export namespace ksi { namespace ast {
 					{"+"_jt, &body::s_type_add,			&instructions::s_op_add},
 					{"-"_jt, &body::s_type_add,			&instructions::s_op_subtract},
 					{"*"_jt, &body::s_type_multiply,	&instructions::s_op_multiply},
-					{"/"_jt, &body::s_type_multiply,	&instructions::s_op_divide}
+					{"/"_jt, &body::s_type_multiply,	&instructions::s_op_divide},
+					{"&"_jt, &body::s_type_bits_and,	&instructions::s_op_bits_and},
+					{"^"_jt, &body::s_type_bits_xor,	&instructions::s_op_bits_xor},
+					{"|"_jt, &body::s_type_bits_or,		&instructions::s_op_bits_or}
 				};
 				return v_inst;
 			}
@@ -289,6 +298,9 @@ export namespace ksi { namespace ast {
 	body::s_type_leaf		{&body::do_leaf, &body::node_add_leaf, prec_leaf, prec_leaf},
 	body::s_type_multiply	{&body::do_normal_left_right, &body::node_add_assoc_left, prec_multiply, prec_multiply},
 	body::s_type_add		{&body::do_normal_left_right, &body::node_add_assoc_left, prec_add, prec_add},
+	body::s_type_bits_and	{&body::do_normal_left_right, &body::node_add_assoc_left, prec_bits_and, prec_bits_and},
+	body::s_type_bits_xor	{&body::do_normal_left_right, &body::node_add_assoc_left, prec_bits_xor, prec_bits_xor},
+	body::s_type_bits_or	{&body::do_normal_left_right, &body::node_add_assoc_left, prec_bits_or, prec_bits_or},
 	body::s_type_root		{&body::do_root, &body::node_add_root, prec_root, prec_root};
 
 } } // ns ns

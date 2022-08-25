@@ -193,4 +193,41 @@ export namespace ksi { namespace var {
 		return std::visit<any_var>(v_visitor, v_variant_1, v_variant_2);
 	}
 
+	//
+
+	struct op_bits_and {
+		static t_integer with_int(t_integer p1, t_integer p2) { return p1 & p2; }
+	};
+
+	struct op_bits_xor {
+		static t_integer with_int(t_integer p1, t_integer p2) { return p1 ^ p2; }
+	};
+
+	struct op_bits_or {
+		static t_integer with_int(t_integer p1, t_integer p2) { return p1 | p2; }
+	};
+
+	template <typename T_op>
+	struct vis_math_bits {
+		using type = T_op;
+
+		any_var operator () (t_integer p1, t_integer p2) { return type::with_int( p1, p2 ); }
+
+		template <typename T1, typename T2>
+		any_var operator () (T1 p1, T2 p2) { return variant_null{}; }
+	};
+
+	template <typename T_op>
+	any_var math_bits(const any_var & p1, const any_var & p2) {
+		any_var v1, v2;
+		bool v_bad_conversion;
+		g_config->m_int.from(v1, p1, v_bad_conversion);
+		g_config->m_int.from(v2, p2, v_bad_conversion);
+		t_variant v_variant_1, v_variant_2;
+		v1.variant_set(v_variant_1);
+		v2.variant_set(v_variant_2);
+		vis_math_bits<T_op> v_visitor;
+		return std::visit<any_var>(v_visitor, v_variant_1, v_variant_2);
+	}
+
 } } // ns ns

@@ -104,21 +104,21 @@ struct t_literal_int {
 				case 'b':
 					v_radix = 2;
 					v_pos_start += 2;
-					if( *v_pos_start == '_' ) { ++v_pos_start; }
+					if( is_separator(*v_pos_start) ) { ++v_pos_start; }
 					v_pos_end = v_pos_start;
 					while( is_digit_binary(*v_pos_end) ) { ++v_pos_end; }
 					break;
 				case 'o':
 					v_radix = 8;
 					v_pos_start += 2;
-					if( *v_pos_start == '_' ) { ++v_pos_start; }
+					if( is_separator(*v_pos_start) ) { ++v_pos_start; }
 					v_pos_end = v_pos_start;
 					while( is_digit_octal(*v_pos_end) ) { ++v_pos_end; }
 					break;
 				case 'h':
 					v_radix = 16;
 					v_pos_start += 2;
-					if( *v_pos_start == '_' ) { ++v_pos_start; }
+					if( is_separator(*v_pos_start) ) { ++v_pos_start; }
 					v_pos_end = v_pos_start;
 					while( std::isxdigit(*v_pos_end) ) { ++v_pos_end; }
 					break;

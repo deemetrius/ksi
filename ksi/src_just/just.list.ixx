@@ -93,6 +93,7 @@ export namespace just {
 	template <typename T_target, template <typename T1> typename T_closer = closers::simple_delete>
 	struct list {
 		using type = T_target;
+		using pointer = type *;
 		using t_node = node_list<T_target>;
 		using t_node_pointer = t_node *;
 		using t_closer = T_closer<T_target *>;
@@ -116,6 +117,8 @@ export namespace just {
 		list & operator = (const list &) = delete;
 		list & operator = (list &&) = delete;
 
+		bool empty() { return m_zero.node_empty(); }
+
 		void clear() {
 			if constexpr( s_need_close ) {
 				m_zero.node_apply_to_others([](t_node_pointer p_node){
@@ -123,6 +126,11 @@ export namespace just {
 				});
 			}
 			m_zero.node_reset();
+		}
+
+		void erase(pointer p_node) {
+			p_node->node_detach();
+			if constexpr( s_need_close ) { t_closer::close(p_node); }
 		}
 
 		iterator begin() { return m_zero.m_next; }

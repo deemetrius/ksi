@@ -20,17 +20,8 @@ export namespace ksi {
 
 	using function_body_pointer = function_body *;
 
-	struct call_space {
-		using pointer = call_space *;
-		using t_args = std::vector<var::any_var>;
-
-		// data
-		function_body_pointer	m_body;
-		t_args					m_args;
-		t_args					m_vars;
-
-		call_space(function_body_pointer p_body);
-	};
+	struct call_space;
+	using call_space_pointer = call_space *;
 
 	struct stack {
 		using t_items = just::array_alias<var::any_var, just::capacity_step<16, 16> >;
@@ -141,6 +132,8 @@ export namespace ksi {
 
 		// data
 		t_instructions	m_instructions;
+
+		bool empty() { return m_instructions.empty(); }
 	};
 
 	//
@@ -171,6 +164,8 @@ export namespace ksi {
 			t_vars_insert v_res = m_vars.maybe_emplace(p_name);
 			return v_res.m_index;
 		}
+
+		virtual call_space_pointer make_call_space() = 0;
 	};
 
 	struct function_body_user :
@@ -188,6 +183,8 @@ export namespace ksi {
 			function_body{p_module, p_log_pos}
 		{}
 
+		bool empty() { return m_groups.empty(); }
+
 		void write(output_pointer p_out) {
 			t_size v_group_pos = 0;
 			for( instr_group & v_group : m_groups ) {
@@ -200,6 +197,8 @@ export namespace ksi {
 				++v_group_pos;
 			}
 		}
+
+		call_space_pointer make_call_space() override;
 	};
 
 	struct function :
@@ -272,10 +271,85 @@ export namespace ksi {
 
 	//
 
-	call_space::call_space(function_body_pointer p_body) :
-		m_body{p_body},
-		m_args{p_body->m_args.count()},
-		m_vars{p_body->m_vars.count()}
-	{}
+	struct call_group :
+		public just::node_list<call_group>,
+		public just::bases::with_deleter<call_group *>
+	{
+		using pointer = call_group *;
+		using iterator = instr_group::t_instructions::iterator;
+
+		// data
+		iterator	m_current;
+		iterator	m_end;
+
+		call_group(instr_group::pointer p_group) :
+			m_current{p_group->m_instructions.begin()},
+			m_end{p_group->m_instructions.end()}
+		{}
+
+		bool advance() {
+			++m_current;
+			return m_current == m_end;
+		}
+	};
+
+	struct call_space :
+		public just::node_list<call_space>,
+		public just::bases::with_deleter<call_space *>
+	{
+		using pointer = call_space *;
+		using t_args = std::vector<var::any_var>;
+
+		// data
+		function_body_pointer	m_body;
+		t_args					m_args;
+		t_args					m_vars;
+
+		call_space(function_body::pointer p_body) :
+			m_body{p_body},
+			m_args{p_body->m_args.count()},
+			m_vars{p_body->m_vars.count()}
+		{}
+
+		virtual ~call_space() = default;
+
+		virtual void run(space * p_space, stack * p_stack, log_base::pointer p_log) {}
+	};
+
+	struct call_space_user :
+		public call_space
+	{
+		using t_groups = just::list<call_group,
+			just::closers::compound_call_deleter<false>::template t_closer
+		>;
+
+		// data
+		t_groups	m_groups;
+
+		call_space_user(function_body_user::pointer p_body) : call_space{p_body} {
+			if( ! body()->empty() ) { group_add(0); }
+		}
+
+		function_body_user::pointer body() { return static_cast<function_body_user::pointer>(m_body); }
+
+		void group_add(t_index p_group_index) {
+			typename instr_group::pointer v_group = &body()->m_groups[p_group_index];
+			if( v_group->empty() ) { return; }
+			m_groups.append(new call_group{v_group});
+		}
+
+		void run(space * p_space, stack * p_stack, log_base::pointer p_log) override {
+			while( ! m_groups.empty() ) {
+				typename call_group::pointer v_group = m_groups.last()->node_target();
+				typename call_group::iterator v_instr = v_group->m_current;
+				if( v_group->advance() ) { m_groups.erase(v_group); }
+				v_instr->m_type->m_fn(p_space, this, p_stack, p_log, v_instr->m_data);
+			}
+		}
+	};
+
+	//
+
+	call_space_pointer function_body_user::make_call_space() { return new call_space_user{this}; }
 
 } // ns

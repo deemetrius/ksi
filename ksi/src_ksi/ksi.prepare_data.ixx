@@ -228,11 +228,29 @@ export namespace ksi {
 		}
 	};
 
+	struct node_file_data {
+		// data
+		fs::path		m_folder_path;
+		fs::path		m_path;
+		file_status		m_status = file_status::unknown;
+	};
+
+	struct node_file :
+		public node_file_data,
+		public just::node_list<node_file>,
+		public just::bases::with_deleter<node_file *>
+	{
+		using pointer = node_file *;
+	};
+
 	struct prepare_data :
 		public space_base
 	{
 		using pointer = prepare_data *;
 		using t_files = std::map<fs::path, file_status>;
+		using t_file_seq = just::list<node_file,
+			just::closers::compound_call_deleter<false>::template t_closer
+		>;
 		using t_space_pointer = space *;
 		using t_ext_modules_map = std::map<t_text_value, module_extension::pointer, just::text_less>;
 		using t_ext_modules_list = just::list<module_extension,
@@ -254,6 +272,7 @@ export namespace ksi {
 		t_space_pointer				m_space;
 		log_base::pointer			m_log;
 		t_files						m_files;
+		t_file_seq					m_run_orders;
 		t_int_ptr					m_error_count = 0;
 		t_ext_modules_list			m_ext_modules_list;
 		t_ext_modules_map			m_ext_modules_map;
@@ -479,27 +498,165 @@ export namespace ksi {
 			return v_it == m_files.end() ? file_status::unknown : (*v_it).second;
 		}
 
+		void run_order_add(const fs::path & p_folder_path, const fs::path & p_path) {
+			if( just::file_type(p_path) == fs::file_type::regular ) {
+				m_run_orders.append(new node_file{p_folder_path, p_path});
+			}
+		}
+
+		file_status load_program(const fs::path & p_path);
 		file_status load_folder(const fs::path & p_path);
-		file_status load_file(const fs::path & p_path);
+
+		template <bool C_is_run_order>
+		file_status load_seq(const fs::path & p_folder_path, const fs::path & p_path);
+		file_status load_file(bool p_is_imperative, const fs::path & p_path);
 
 	private:
+		template <bool C_is_run_order>
 		file_status folder_fail(
 			file_status p_status,
-			const fs::path & p_path,
-			const fs::path p_priority_path,
+			const fs::path & p_folder_path,
+			const fs::path p_path,
 			const just::text & p_message,
 			just::t_index p_line,
 			just::t_index p_char
 		) {
-			error({ p_priority_path, p_message, {p_line, p_char} });
-			m_files.insert_or_assign(p_priority_path, p_status);
+			error({ p_path, p_message, {p_line, p_char} });
 			m_files.insert_or_assign(p_path, p_status);
+			if constexpr( C_is_run_order ) { m_files.insert_or_assign(p_folder_path, p_status); }
 			return p_status;
 		}
 	};
 
 	bool is_wrong_char(char p_char) {
 		return just::is_one_of(p_char, '\t', '"', ':', '/', '\\', '*', '?', '<', '>', '|');
+	}
+
+	template <bool C_is_run_order>
+	file_status prepare_data::load_seq(const fs::path & p_folder_path, const fs::path & p_path) {
+		file_read_result v_file_res = file_read(p_path, m_log, m_error_count);
+		if( ! v_file_res ) {
+			if constexpr( C_is_run_order ) {
+				m_files.insert_or_assign(p_folder_path, file_status::with_error);
+			}
+			m_files.insert_or_assign(p_path, file_status::with_error);
+			return file_status::with_error;
+		}
+		m_files.insert_or_assign(p_path, file_status::in_process);
+		just::text v_ext = ".define"_jt;
+		if constexpr( C_is_run_order ) { v_ext = ".run"_jt; }
+		just::t_plain_text v_text = v_file_res.m_value->m_text;
+		just::t_plain_text v_start_line = v_text;
+		just::t_int_ptr v_line = 1;
+		just::text::t_const_pointer v_cmd_ext = "ext: \""_jt;
+		fs::path v_file_path;
+		do {
+			if( v_text == v_start_line ) {
+				if( just::text_traits::cmp_n(v_text, v_cmd_ext->m_text, v_cmd_ext->m_length) == 0 ) {
+					// ext: ""
+					v_text += v_cmd_ext->m_length;
+					just::t_plain_text v_start_text = v_text;
+					while( *v_text != '"' ) {
+						if( *v_text == '\0' ) {
+							return folder_fail<C_is_run_order>(file_status::with_error, p_folder_path, p_path,
+								"error: Unexpected end of file."_jt, v_line, v_text - v_start_line +1
+							);
+						}
+						if( just::is_one_of(*v_text, '\r', '\n') ) {
+							return folder_fail<C_is_run_order>(file_status::with_error, p_folder_path, p_path,
+								"error: Unexpected end of line."_jt, v_line, v_text - v_start_line +1
+							);
+						}
+						++v_text;
+					}
+					v_ext = just::text_traits::from_range(v_start_text, v_text);
+					++v_text;
+					v_start_line = v_text;
+				} else if( *v_text == ':' ) {
+					// comment
+					++v_text;
+					while( ! just::is_one_of(*v_text, '\r', '\n', '\0') ) {
+						++v_text;
+					}
+					v_start_line = v_text;
+				} else if( *v_text == '"' ) {
+					// quoted path
+					++v_text;
+					just::t_plain_text v_start_text = v_text;
+					while( *v_text != '"' ) {
+						if( *v_text == '\0' ) {
+							return folder_fail<C_is_run_order>(file_status::with_error, p_folder_path, p_path,
+								"error: Unexpected end of file."_jt, v_line, v_text - v_start_line +1
+							);
+						}
+						if( just::is_one_of(*v_text, '\r', '\n') ) {
+							return folder_fail<C_is_run_order>(file_status::with_error, p_folder_path, p_path,
+								"error: Unexpected end of line."_jt, v_line, v_text - v_start_line +1
+							);
+						}
+						++v_text;
+					}
+					just::text v_file = just::text_traits::from_range(v_start_text, v_text);
+					v_file_path += static_cast<std::string_view>(v_file);
+					if( v_file_path.is_relative() ) {
+						fs::path v_quoted_path = v_file_path;
+						v_file_path = p_folder_path;
+						v_file_path /= v_quoted_path;
+					}
+					v_file_path = fs::weakly_canonical(v_file_path);
+					++v_text;
+					v_start_line = v_text;
+				}
+			}
+			if( just::is_one_of(*v_text, '\r', '\n', '\0') && (v_text != v_start_line) ) {
+				just::text v_name = just::text_traits::from_range(v_start_line, v_text);
+				v_file_path = p_folder_path;
+				v_file_path /= static_cast<std::string_view>(v_name);
+				v_file_path += static_cast<std::string_view>(v_ext);
+			}
+			if( ! v_file_path.empty() ) {
+				file_status v_file_status = load_file(C_is_run_order, v_file_path);
+				switch( v_file_status ) {
+				case file_status::absent :
+				{
+					just::text v_msg = "error: Given file is absent: "_jt;
+					std::string v_file_string = v_file_path.string();
+					return folder_fail<C_is_run_order>(file_status::with_error, p_folder_path, p_path,
+						just::implode<char>({v_msg, v_file_string}), v_line, 1
+					);
+				}
+				case file_status::with_error :
+				{
+					just::text v_msg = "error: Given file contains error: "_jt;
+					std::string v_file_string = v_file_path.string();
+					return folder_fail<C_is_run_order>(file_status::with_error, p_folder_path, p_path,
+						just::implode<char>({v_msg, v_file_string}), v_line, 1
+					);
+				}
+				}
+				v_file_path.clear();
+			}
+			if( *v_text == '\0' ) { break; }
+			if( just::is_one_of(*v_text, '\r', '\n') ) {
+				if( *v_text == '\r' && v_text[1] == '\n' ) {
+					v_text += 2;
+				} else {
+					++v_text;
+				}
+				v_start_line = v_text;
+				++v_line;
+				continue;
+			}
+			if( is_wrong_char(*v_text) ) {
+				return folder_fail<C_is_run_order>(file_status::with_error, p_folder_path, p_path,
+					"error: Wrong symbol was found."_jt, v_line, v_text - v_start_line +1
+				);
+			}
+			++v_text;
+		} while( true );
+		//
+		m_files.insert_or_assign(p_path, file_status::loaded);
+		return file_status::loaded;
 	}
 
 } // ns

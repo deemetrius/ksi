@@ -283,8 +283,9 @@ export namespace ksi { namespace rules {
 
 	}; // struct all
 
-	bool parse_declarative(
+	bool parse_file(
 		prepare_data::pointer p_data,
+		bool p_is_imperative,
 		fs::path p_path,
 		const t_text_value & p_contents,
 		tokens::nest_tokens & p_tokens,
@@ -292,6 +293,7 @@ export namespace ksi { namespace rules {
 		t_int_ptr p_tab_size = n_tab_size
 	) {
 		state v_state{p_path, p_contents.data(), &all::rule_module_name::parse, nest::declarative, p_tab_size};
+		if( p_is_imperative ) { v_state.flag_set(flag_allow_plain); }
 		do {
 			v_state.m_fn_parse(v_state, p_tokens, p_data);
 		} while( ! v_state.m_done );

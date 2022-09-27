@@ -27,7 +27,7 @@ int main(int p_args_count, char * p_args[], char * p_env[]) {
 		//
 		ksi::space v_space;
 		ksi::prepare_data v_data(&v_space, &v_log);
-		if( v_data.load_folder(p_args[1]) != ksi::file_status::loaded ) {
+		if( v_data.load_program(p_args[1]) != ksi::file_status::loaded ) {
 			just::g_console << "error: Unable to load path: " << p_args[1] << just::g_new_line;
 		} else if( v_data.late() ) {
 			v_data.apply();

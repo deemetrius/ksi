@@ -75,20 +75,20 @@ export namespace ksi { namespace rules {
 	using flags_raw = just::t_uint_max;
 
 	enum can : flags_raw {
-		can_keep			= 1 << 0,
-		can_close			= 1 << 1,
-		can_operator		= 1 << 2,
-		/*can_dot_param		= 1 << 2,
-		can_dot_var			= 1 << 3,
-		can_var_name		= 1 << 4,*/
+		can_keep,
+		can_close,
+		can_operator,
+		/* can_dot_param,
+		can_dot_var,
+		can_var_name, */
 	};
 
 	enum flags : flags_raw {
-		flag_allow_plain,	// = 1 << 0,
-		flag_was_refers,	// = 1 << 1,
-		flag_was_extends,	// = 1 << 2,
-		flag_was_fn_params,	// = 1 << 3,
-		flag_was_colon,		// = 1 << 4,
+		flag_allow_plain,
+		flag_was_refers,
+		flag_was_extends,
+		flag_was_fn_params,
+		flag_was_colon,
 	};
 
 	//
@@ -105,7 +105,7 @@ export namespace ksi { namespace rules {
 		t_nest				m_nest;
 		kind				m_kind = kind::start;
 		just::bits<flags>	m_flags;
-		flags_raw			m_can = 0;
+		just::bits<can>		m_can;
 		t_int_ptr			m_loop_depth = 0;
 		bool				m_was_space = false;
 		bool				m_nice = false;
@@ -128,14 +128,6 @@ export namespace ksi { namespace rules {
 		void nest_add(nest p_nest) { m_nest.push_back(p_nest); }
 		void nest_del() { m_nest.pop_back(); }
 
-		bool can_check(flags_raw p_flag) { return (m_can & p_flag) == p_flag; }
-		bool can_check_any(flags_raw p_flag) { return m_can & p_flag; }
-
-		/* bool flag_check(flags_raw p_flag) { return (m_flags & p_flag) == p_flag; }
-		bool flag_check_any(flags_raw p_flag) { return m_flags & p_flag; }
-		void flag_set(flags_raw p_flag) { m_flags |= p_flag; }
-		void flag_unset(flags_raw p_flag) { m_flags &= ~p_flag; } */
-
 		void done_nice() {
 			m_nice = true;
 			m_done = true;
@@ -153,7 +145,7 @@ export namespace ksi { namespace rules {
 
 		struct t_module_name {
 			static constexpr kind s_kind{ kind::special };
-			static constexpr flags_raw s_can{ 0 };
+			static constexpr just::bits<can> s_can{ };
 			static t_text_value name() { return "t_module_name"_jt; }
 			static bool check(state & p_state) { return true; }
 

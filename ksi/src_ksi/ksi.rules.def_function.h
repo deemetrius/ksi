@@ -7,7 +7,7 @@
 
 struct t_function_def_name {
 	static constexpr kind s_kind{ kind::start };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_function_def_name"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -39,7 +39,7 @@ struct t_function_def_name {
 
 struct t_function_overload_by_category {
 	static constexpr kind s_kind{ kind::category };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_function_overload_by_category"_jt; }
 	static bool check(state & p_state) { return p_state.m_kind == kind::start; }
 
@@ -57,7 +57,7 @@ struct t_function_overload_by_category {
 
 struct t_function_overload_by_type {
 	static constexpr kind s_kind{ kind::type };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_function_overload_by_type"_jt; }
 	static bool check(state & p_state) { return p_state.m_kind == kind::start; }
 
@@ -75,7 +75,7 @@ struct t_function_overload_by_type {
 
 struct t_function_arg {
 	static constexpr kind s_kind{ kind::variable };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_function_arg"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -105,7 +105,7 @@ struct t_function_arg {
 
 struct t_function_params_open {
 	static constexpr kind s_kind{ kind::start };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_function_params_open"_jt; }
 	static bool check(state & p_state) { return ! p_state.m_flags.has_any(flag_was_fn_params); }
 
@@ -122,7 +122,7 @@ struct t_function_params_open {
 
 struct t_function_params_close {
 	static constexpr kind s_kind{ kind::special };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_function_params_close"_jt; }
 	static bool check(state & p_state) { return ! just::is_one_of(p_state.m_kind, kind::start, kind::n_operator); }
 
@@ -137,7 +137,7 @@ struct t_function_params_close {
 
 struct t_function_param_name {
 	static constexpr kind s_kind{ kind::variable };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_function_param_name"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -158,24 +158,9 @@ struct t_function_param_name {
 	};
 };
 
-/*struct t_function_param_separator {
-	static constexpr kind s_kind{ kind::separator };
-	static constexpr flags_raw s_can{ 0 };
-	static t_text_value name() { return "t_function_param_separator"_jt; }
-	static bool check(state & p_state) {
-		return ! just::is_one_of(p_state.m_kind, kind::start, kind::n_operator, kind::separator);
-	}
-
-	struct t_data :
-		public is_char<',', ';'>
-	{
-		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {}
-	};
-};*/
-
 struct t_function_param_assign {
 	static constexpr kind s_kind{ kind::n_operator };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_function_param_assign"_jt; }
 	static bool check(state & p_state) {
 		return p_state.m_kind == kind::variable;
@@ -190,7 +175,7 @@ struct t_function_param_assign {
 
 struct t_function_open {
 	static constexpr kind s_kind{ kind::start };
-	static constexpr flags_raw s_can{ can_close };
+	static constexpr just::bits<can> s_can{ can_close };
 	static t_text_value name() { return "t_function_open"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -207,9 +192,9 @@ struct t_function_open {
 
 struct t_function_close {
 	static constexpr kind s_kind{ kind::special };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_function_close"_jt; }
-	static bool check(state & p_state) { return p_state.can_check_any(can_close); }
+	static bool check(state & p_state) { return p_state.m_can.has_any(can_close); }
 
 	struct t_data :
 		public is_char<')'>

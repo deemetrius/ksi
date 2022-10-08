@@ -72,7 +72,7 @@ export namespace just {
 	struct traits_flags {
 		using type = std::underlying_type_t<T_enum>;
 
-		static inline type convert(T_enum p_value) { return to_underlying(p_value); }
+		static constexpr type convert(T_enum p_value) { return to_underlying(p_value); }
 	};
 
 	template <c_enum T_enum>
@@ -80,7 +80,7 @@ export namespace just {
 		using type = std::underlying_type_t<T_enum>;
 		static constexpr type s_one = 1;
 
-		static inline type convert(T_enum p_value) { return s_one << to_underlying(p_value); }
+		static constexpr type convert(T_enum p_value) { return s_one << to_underlying(p_value); }
 	};
 
 	//

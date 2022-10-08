@@ -1,7 +1,7 @@
 
 struct t_imp_var_object {
 	static constexpr kind s_kind{ kind::special };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_imp_var_object"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -16,7 +16,7 @@ struct t_imp_var_object {
 
 struct t_imp_var_object_dot {
 	static constexpr kind s_kind{ kind::special };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_imp_var_object_dot"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -31,7 +31,7 @@ struct t_imp_var_object_dot {
 
 struct t_imp_var_name {
 	static constexpr kind s_kind{ kind::variable };
-	static constexpr flags_raw s_can{ can_close | can_operator };
+	static constexpr just::bits<can> s_can{ can_close, can_operator };
 	static t_text_value name() { return "t_imp_var_name"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -55,9 +55,9 @@ struct t_imp_var_name {
 
 struct t_imp_operator_common {
 	static constexpr kind s_kind{ kind::n_operator };
-	static constexpr flags_raw s_can{};
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_imp_operator_common"_jt; }
-	static bool check(state & p_state) { return p_state.can_check_any(can_operator); }
+	static bool check(state & p_state) { return p_state.m_can.has_any(can_operator); }
 
 	struct t_data {
 		using operator_info = ast::body::operator_info;
@@ -88,9 +88,9 @@ struct t_imp_operator_common {
 
 struct t_imp_operator_named {
 	static constexpr kind s_kind{ kind::n_operator };
-	static constexpr flags_raw s_can{};
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_imp_operator_named"_jt; }
-	static bool check(state & p_state) { return p_state.can_check_any(can_operator); }
+	static bool check(state & p_state) { return p_state.m_can.has_any(can_operator); }
 
 	struct t_data {
 		using operator_info = ast::body::operator_info;

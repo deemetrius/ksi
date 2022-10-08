@@ -1,7 +1,7 @@
 
 struct t_literal_null {
 	static constexpr kind s_kind{ kind::n_literal };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_literal_null"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -16,7 +16,7 @@ struct t_literal_null {
 
 struct t_literal_all {
 	static constexpr kind s_kind{ kind::n_literal };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_literal_all"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -31,7 +31,7 @@ struct t_literal_all {
 
 struct t_literal_false {
 	static constexpr kind s_kind{ kind::n_literal };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_literal_false"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -46,7 +46,7 @@ struct t_literal_false {
 
 struct t_literal_true {
 	static constexpr kind s_kind{ kind::n_literal };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_literal_true"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -61,7 +61,7 @@ struct t_literal_true {
 
 struct t_literal_int {
 	static constexpr kind s_kind{ kind::n_literal };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_literal_int"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -161,7 +161,7 @@ struct t_literal_int {
 
 struct t_literal_float {
 	static constexpr kind s_kind{ kind::n_literal };
-	static constexpr flags_raw s_can{ 0 };
+	static constexpr just::bits<can> s_can{ };
 	static t_text_value name() { return "t_literal_float"_jt; }
 	static bool check(state & p_state) { return true; }
 
@@ -255,7 +255,7 @@ struct rule_literal :
 	>
 {
 	static constexpr kind s_kind{ kind::keep };
-	static constexpr flags_raw s_can{ can_close | can_operator };
+	static constexpr just::bits<can> s_can{ can_close, can_operator };
 	static t_text_value name() { return "rule_literal"_jt; }
 
 	static bool check(state & p_state) {

@@ -35,6 +35,7 @@
     <ClCompile Include="..\src_just\just.aux.ixx" />
     <ClCompile Include="..\src_just\just.common.ixx" />
     <ClCompile Include="..\src_just\just.files.ixx" />
+    <ClCompile Include="..\src_just\just.flags_bits.ixx" />
     <ClCompile Include="..\src_just\just.hive.ixx" />
     <ClCompile Include="..\src_just\just.list.ixx" />
     <ClCompile Include="..\src_just\just.list_forward.ixx" />

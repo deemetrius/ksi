@@ -35,13 +35,13 @@ struct t_kw_refers {
 	static constexpr kind s_kind{ kind::special };
 	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_kw_refers"_jt; }
-	static bool check(state & p_state) { return ! p_state.flag_check_any(flag_was_refers | flag_was_extends); }
+	static bool check(state & p_state) { return p_state.m_flags.has_none(flag_was_refers, flag_was_extends); }
 
 	struct t_data :
 		public is_keyword<"refers">
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-			p_state.flag_set(flag_was_refers);
+			p_state.m_flags.set(flag_was_refers);
 			p_state.m_fn_parse = &rule_refers_open::parse;
 		}
 	};
@@ -98,14 +98,14 @@ struct t_kw_extends {
 	static constexpr kind s_kind{ kind::special };
 	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_kw_extends"_jt; }
-	static bool check(state & p_state) { return ! p_state.flag_check(flag_was_extends); }
+	static bool check(state & p_state) { return p_state.m_flags.has_none(flag_was_extends); }
 
 	struct t_data :
 		public is_keyword<"extends">
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 			p_state.m_fn_parse = &rule_extends_open::parse;
-			p_state.flag_set(flag_was_extends);
+			p_state.m_flags.set(flag_was_extends);
 		}
 	};
 };
@@ -201,7 +201,7 @@ struct t_struct_close {
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 			p_tokens.m_types.append( new tokens::token_struct_end() );
 			p_state.m_fn_parse = &rule_decl::parse;
-			p_state.flag_unset(flag_was_refers | flag_was_extends);
+			p_state.m_flags.unset(flag_was_refers, flag_was_extends);
 		}
 	};
 };

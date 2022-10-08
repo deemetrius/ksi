@@ -107,14 +107,14 @@ struct t_function_params_open {
 	static constexpr kind s_kind{ kind::start };
 	static constexpr flags_raw s_can{ 0 };
 	static t_text_value name() { return "t_function_params_open"_jt; }
-	static bool check(state & p_state) { return ! p_state.flag_check_any(flag_was_fn_params); }
+	static bool check(state & p_state) { return ! p_state.m_flags.has_any(flag_was_fn_params); }
 
 	struct t_data :
 		public is_char<'{'>
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 			p_state.m_fn_parse = &rule_function_params_inside::parse;
-			p_state.flag_set(flag_was_fn_params);
+			p_state.m_flags.set(flag_was_fn_params);
 			p_tokens.m_fn_put_literal = &tokens::nest_tokens::put_literal_fn_param_default;
 		}
 	};
@@ -219,7 +219,7 @@ struct t_function_close {
 				new tokens::late_token_function_body_close()
 			);
 			p_state.m_fn_parse = &rule_decl::parse;
-			p_state.flag_unset(flag_was_fn_params);
+			p_state.m_flags.unset(flag_was_fn_params);
 			p_state.nest_del();
 		}
 	};

@@ -25,8 +25,8 @@ export namespace just {
 		using type = traits::type;
 
 		template <std::same_as<T_enum> ... T_args>
-		static constexpr type merge(T_enum p_first, T_args ... p_rest) {
-			return traits::convert(p_first) | (traits::convert(p_rest) | ...);
+		static constexpr type merge(T_args ... p_args) {
+			return (traits::convert(p_args) | ...);
 		}
 
 		// data
@@ -78,8 +78,9 @@ export namespace just {
 	template <c_enum T_enum>
 	struct traits_bits {
 		using type = std::underlying_type_t<T_enum>;
+		static constexpr type s_one = 1;
 
-		static inline type convert(T_enum p_value) { return 1 << to_underlying(p_value); }
+		static inline type convert(T_enum p_value) { return s_one << to_underlying(p_value); }
 	};
 
 	//

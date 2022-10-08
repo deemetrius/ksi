@@ -9,6 +9,7 @@ import <cctype>;
 import <cinttypes>;
 import <cerrno>;
 import <limits>;
+export import just.flags_bits;
 export import ksi.tokens;
 
 export namespace ksi { namespace rules {
@@ -83,11 +84,11 @@ export namespace ksi { namespace rules {
 	};
 
 	enum flags : flags_raw {
-		flag_allow_plain	= 1 << 0,
-		flag_was_refers		= 1 << 1,
-		flag_was_extends	= 1 << 2,
-		flag_was_fn_params	= 1 << 3,
-		flag_was_colon		= 1 << 4,
+		flag_allow_plain,	// = 1 << 0,
+		flag_was_refers,	// = 1 << 1,
+		flag_was_extends,	// = 1 << 2,
+		flag_was_fn_params,	// = 1 << 3,
+		flag_was_colon,		// = 1 << 4,
 	};
 
 	//
@@ -98,17 +99,17 @@ export namespace ksi { namespace rules {
 		using t_nest = std::vector<nest>;
 
 		// data
-		fs::path		m_path;
-		t_raw_const		m_text_pos;
-		fn_parse		m_fn_parse;
-		t_nest			m_nest;
-		kind			m_kind = kind::start;
-		flags_raw		m_flags = 0;
-		flags_raw		m_can = 0;
-		t_int_ptr		m_loop_depth = 0;
-		bool			m_was_space = false;
-		bool			m_nice = false;
-		bool			m_done = false;
+		fs::path			m_path;
+		t_raw_const			m_text_pos;
+		fn_parse			m_fn_parse;
+		t_nest				m_nest;
+		kind				m_kind = kind::start;
+		just::bits<flags>	m_flags;
+		flags_raw			m_can = 0;
+		t_int_ptr			m_loop_depth = 0;
+		bool				m_was_space = false;
+		bool				m_nice = false;
+		bool				m_done = false;
 		tokens::token_function_add::pointer		m_token_function_add = nullptr;
 
 		state(const fs::path p_path, t_raw_const p_text_pos, fn_parse p_fn_parse, nest p_nest,
@@ -130,10 +131,10 @@ export namespace ksi { namespace rules {
 		bool can_check(flags_raw p_flag) { return (m_can & p_flag) == p_flag; }
 		bool can_check_any(flags_raw p_flag) { return m_can & p_flag; }
 
-		bool flag_check(flags_raw p_flag) { return (m_flags & p_flag) == p_flag; }
+		/* bool flag_check(flags_raw p_flag) { return (m_flags & p_flag) == p_flag; }
 		bool flag_check_any(flags_raw p_flag) { return m_flags & p_flag; }
 		void flag_set(flags_raw p_flag) { m_flags |= p_flag; }
-		void flag_unset(flags_raw p_flag) { m_flags &= ~p_flag; }
+		void flag_unset(flags_raw p_flag) { m_flags &= ~p_flag; } */
 
 		void done_nice() {
 			m_nice = true;
@@ -293,7 +294,7 @@ export namespace ksi { namespace rules {
 		t_int_ptr p_tab_size = n_tab_size
 	) {
 		state v_state{p_path, p_contents.data(), &all::rule_module_name::parse, nest::declarative, p_tab_size};
-		if( p_is_imperative ) { v_state.flag_set(flag_allow_plain); }
+		if( p_is_imperative ) { v_state.m_flags.set(flag_allow_plain); }
 		do {
 			v_state.m_fn_parse(v_state, p_tokens, p_data);
 		} while( ! v_state.m_done );

@@ -8,7 +8,7 @@ namespace ksi {
 
 	using namespace just::text_literals;
 
-	space::space() {
+	space::space() : m_plain_pos{&m_plain_list.m_zero} {
 		m_modules_map.try_emplace(var::g_config->m_mod_ksi.m_name, &var::g_config->m_mod_ksi);
 		m_module_global = new module_space{"@global#"_jt, true};
 		m_modules_list.append(m_module_global);

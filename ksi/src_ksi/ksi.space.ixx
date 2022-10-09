@@ -8,6 +8,20 @@ export import ksi.function;
 
 export namespace ksi {
 
+	using namespace just::text_literals;
+
+	struct plain :
+		public just::node_list<plain>,
+		public just::bases::with_deleter<plain *>
+	{
+		// data
+		function_body_user	m_fn_body;
+
+		plain(module_pointer p_module, const log_pos & p_log_pos) : m_fn_body{p_module, p_log_pos} {
+			m_fn_body.arg_add("args"_jt);
+		}
+	};
+
 	struct module_base :
 		public is_module
 	{
@@ -28,6 +42,9 @@ export namespace ksi {
 		using t_function_body_list = just::list<function_body_user,
 			just::closers::compound_call_deleter<false>::template t_closer
 		>;
+		using t_plain_list = just::list<plain,
+			just::closers::compound_call_deleter<false>::template t_closer
+		>;
 
 		// data
 		t_cats_list				m_cats_list;
@@ -37,6 +54,7 @@ export namespace ksi {
 		t_functions_list		m_functions_list;
 		t_functions_map			m_functions_map;
 		t_function_body_list	m_function_body_list;
+		t_plain_list			m_plain_list;
 
 		static pointer cast(module_pointer p_module) { return static_cast<pointer>(p_module); }
 
@@ -98,22 +116,26 @@ export namespace ksi {
 		using t_modules_list = just::list<module_space, just::closers::compound_call_deleter<false>::template t_closer>;
 		using t_modules_map = std::map<t_text_value, module_space::pointer, just::text_less>;
 		using t_literals = just::hive<var::any_var, std::monostate, var::any_less>;
+		using t_plain_list = just::list<function_body_user, just::closers::simple_none>;
 
 		// data
+		t_literals		m_literals;
 		t_modules_list	m_modules_list;
 		t_modules_map	m_modules_map;
+		t_plain_list	m_plain_list;
 		space_data		m_data;
-		t_literals		m_literals;
 	};
 
 	struct space :
 		public space_base
 	{
 		using t_files = std::set<fs::path>;
+		using t_plain_pos = function_body_user::node_pointer;
 
 		// data
 		t_files					m_files;
 		module_space::pointer	m_module_global;
+		t_plain_pos				m_plain_pos;
 
 		space();
 

@@ -134,6 +134,7 @@ export namespace ksi {
 			m_module->m_structs.splice(m_structs);
 			m_module->m_functions_list.splice(m_functions_list);
 			m_module->m_function_body_list.splice(m_function_body_list);
+			m_module->m_plain_list.splice(m_plain_list);
 		}
 
 		//
@@ -170,10 +171,6 @@ export namespace ksi {
 			v_fn->m_is_added = function_reg(v_fn);
 			return v_fn;
 		}
-
-		/*function::pointer function_last() {
-			return m_functions_list.m_zero.node_empty() ? nullptr : m_functions_list.m_zero.m_prev->node_target();
-		}*/
 
 		//
 
@@ -470,6 +467,7 @@ export namespace ksi {
 				m_space->m_modules_map.try_emplace(v_module->m_name, v_module);
 			});
 			m_space->m_modules_list.splice(m_modules_list);
+			m_space->m_plain_list.splice(m_plain_list);
 			for( typename t_files::value_type & v_it : m_files ) {
 				if( v_it.second == file_status::loaded ) {
 					m_space->m_files.emplace(v_it.first);

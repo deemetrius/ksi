@@ -131,6 +131,9 @@
     <ClCompile Include="..\src_just\just.flags_bits.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\src_just\just.prefix_tree.ixx">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\res\ksi.lang.file.ico">

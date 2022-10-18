@@ -9,6 +9,7 @@ import <cctype>;
 import <cinttypes>;
 import <cerrno>;
 import <limits>;
+import just.prefix_tree;
 export import just.flags_bits;
 export import ksi.tokens;
 

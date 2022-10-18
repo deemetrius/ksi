@@ -1,4 +1,5 @@
 
+/*
 struct t_literal_null {
 	static constexpr kind s_kind{ kind::n_literal };
 	static constexpr just::bits<can> s_can{ };
@@ -55,6 +56,60 @@ struct t_literal_true {
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
 			p_tokens.put_literal(true, p_data);
+		}
+	};
+};
+*/
+
+struct t_literal_named {
+	static constexpr kind s_kind{ kind::n_literal };
+	static constexpr just::bits<can> s_can{ };
+	static t_text_value name() { return "t_literal_named"_jt; }
+	static bool check(state & p_state) { return true; }
+
+	struct t_data {
+		static void action_null(t_data * p_this, state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+			if( p_state.nest_last() != nest::declarative ) { p_tokens.put_literal(var::any_var{}, p_data); }
+		}
+
+		static void action_all(t_data * p_this, state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+			p_tokens.put_literal(var::variant_all{}, p_data);
+		}
+
+		static void action_false(t_data * p_this, state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+			p_tokens.put_literal(false, p_data);
+		}
+
+		static void action_true(t_data * p_this, state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+			p_tokens.put_literal(true, p_data);
+		}
+
+		using t_fn = decltype(&action_null);
+		using t_tree = just::prefix_tree<t_char, t_fn>;
+
+		// data
+		t_fn	m_fn;
+
+		bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+			static t_tree v_tree{{
+				{"null"sv, &action_null}, {"all"sv, &action_all}, {"false"sv, &action_false}, {"true"sv, &action_true}
+			}};
+			typename t_tree::t_node::pointer v_node = &v_tree.m_root, v_next_node;
+			t_raw_const v_text_pos = p_state.m_text_pos;
+			while( v_next_node = v_node->find(*v_text_pos) ) {
+				++v_text_pos;
+				v_node = v_next_node;
+			}
+			if( t_fn * v_fn; !is_name_char(*v_text_pos) && (v_fn = v_node->done() ) ) {
+				m_fn = *v_fn;
+				p_state.m_text_pos = v_text_pos;
+				return true;
+			}
+			return false;
+		}
+
+		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+			m_fn(this, p_state, p_tokens, p_data);
 		}
 	};
 };
@@ -246,10 +301,11 @@ struct t_literal_float {
 
 struct rule_literal :
 	public rule_alt<false,
-		t_literal_null,
+		/* t_literal_null,
 		t_literal_all,
 		t_literal_false,
-		t_literal_true,
+		t_literal_true, */
+		t_literal_named,
 		t_literal_float,
 		t_literal_int
 	>

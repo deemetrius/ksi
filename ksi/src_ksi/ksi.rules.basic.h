@@ -246,12 +246,18 @@ struct rule_alt {
 
 //
 
+bool is_name_char(t_char p_char) {
+	return std::isalnum(p_char) || p_char == '_';
+}
+
 template <just::fixed_string C_text>
 struct is_keyword {
+	static
+
 	bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 		if( just::text_traits::cmp_n(p_state.m_text_pos, C_text.m_text, C_text.s_length) == 0 ) {
 			t_char v_after = p_state.m_text_pos[C_text.s_length];
-			if( std::isalnum(v_after) || v_after == '_' ) { return false; }
+			if( is_name_char(v_after) ) { return false; }
 			p_state.m_text_pos += C_text.s_length;
 			return true;
 		}
@@ -264,7 +270,7 @@ struct traits {
 	static bool impl_take_name(t_raw_const & p_text_pos) {
 		if( std::isalpha(*p_text_pos) ) {
 			++p_text_pos;
-			while( *p_text_pos == '_' || std::isalnum(*p_text_pos) ) { ++p_text_pos; }
+			while( is_name_char(*p_text_pos) ) { ++p_text_pos; }
 			if constexpr( C_allow_std ) {
 				if( *p_text_pos == '#' ) { ++p_text_pos; }
 			}

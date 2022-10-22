@@ -30,7 +30,7 @@ struct t_function_def_name {
 			p_tokens.m_functions.append(
 				p_state.m_token_function_add = new tokens::token_function_add({
 					m_name, m_is_local, {p_state.m_path, m_pos}
-					})
+				})
 			);
 			p_state.m_fn_parse = &rule_function_arg::parse;
 		}

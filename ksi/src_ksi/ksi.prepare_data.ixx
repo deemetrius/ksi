@@ -337,6 +337,13 @@ export namespace ksi {
 			return ret;
 		}
 
+		plain::pointer plain_add(module_extension::pointer p_ext_module, const log_pos & p_log_pos) {
+			plain::pointer ret;
+			p_ext_module->m_plain_list.append(ret = new plain{p_ext_module->m_module, p_log_pos});
+			m_plain_list.append(&ret->m_fn_body);
+			return ret;
+		}
+
 		//
 
 		var::category::pointer impl_category_find(

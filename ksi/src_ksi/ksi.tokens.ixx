@@ -295,7 +295,7 @@ export namespace ksi { namespace tokens {
 		function::pointer			m_local = nullptr;
 		function::pointer			m_global = nullptr;
 
-		void make_body(prepare_data::pointer p_data, function_body_user::pointer p_body) {
+		static void make_body(prepare_data::pointer p_data, function_body_user::pointer p_body) {
 			p_data->m_body = std::make_unique<ast::body>(p_body);
 		}
 	};
@@ -451,6 +451,61 @@ export namespace ksi { namespace tokens {
 			}
 		}
 	};
+
+	//
+
+	struct late_token_plain_start :
+		public token_base
+	{
+		using pointer = late_token_plain_start *;
+
+		t_text_value name() const override { return "late_token_plain_start"_jt; }
+
+		// data
+		log_pos						m_log_pos;
+		module_extension::pointer	m_ext_module;
+
+		late_token_plain_start(const log_pos & p_log_pos) : m_log_pos{p_log_pos} {}
+
+		void perform(prepare_data::pointer p_data) override {
+			p_data->m_ext_module_current = m_ext_module;
+			plain::pointer v_plain = p_data->plain_add(m_ext_module, m_log_pos);
+			//
+			late_token_function_body_add_base::make_body(p_data, &v_plain->m_fn_body);
+		}
+	};
+
+	struct late_token_plain_end :
+		public token_base
+	{
+		t_text_value name() const override { return "late_token_plain_end"_jt; }
+
+		late_token_plain_end() = default;
+
+		void perform(prepare_data::pointer p_data) override {
+			p_data->m_body->apply();
+			p_data->m_body->m_fn->write(&just::g_console); // debug
+			p_data->m_body.reset();
+		}
+	};
+
+	struct token_plain_start :
+		public token_base
+	{
+		t_text_value name() const override { return "token_plain_start"_jt; }
+
+		// data
+		late_token_plain_start::pointer		m_late_token;
+
+		token_plain_start(late_token_plain_start::pointer p_late_token) : m_late_token{p_late_token} {}
+
+		void perform(prepare_data::pointer p_data) override {
+			module_extension::pointer v_ext_module = p_data->m_ext_module_current;
+			m_late_token->m_ext_module = v_ext_module;
+		}
+	};
+
+	//
 
 	struct imp_token_put_literal :
 		public token_base

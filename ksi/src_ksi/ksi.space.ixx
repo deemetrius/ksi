@@ -14,6 +14,8 @@ export namespace ksi {
 		public just::node_list<plain>,
 		public just::bases::with_deleter<plain *>
 	{
+		using pointer = plain *;
+
 		// data
 		function_body_user	m_fn_body;
 

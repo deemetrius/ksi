@@ -133,6 +133,9 @@ export namespace ksi {
 	{
 		using t_files = std::set<fs::path>;
 		using t_plain_pos = function_body_user::node_pointer;
+		using t_ref_call_space = just::ref<call_space,
+			just::ref_traits_unique<false, just::closers::compound_call_deleter<false>::template t_closer>
+		>;
 
 		// data
 		t_files					m_files;
@@ -154,6 +157,14 @@ export namespace ksi {
 				p_type->m_is_global = m_module_global->type_reg(p_type);
 			}
 			return ret;
+		}
+
+		void run(log_base::pointer p_log) {
+			stack v_stack;
+			for( typename t_plain_list::t_node_pointer v_it : m_plain_list ) {
+				t_ref_call_space v_ref{v_it->node_target()->make_call_space()};
+				v_ref->run(this, &v_stack, p_log);
+			}
 		}
 	};
 

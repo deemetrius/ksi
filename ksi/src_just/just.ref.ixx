@@ -52,6 +52,31 @@ export namespace just {
 	};
 	
 	template <bool C_check_null, template <typename T1> typename T_closer>
+	struct ref_traits_unique {
+		template <typename T>
+		requires ( C_check_null == false || T_closer<T>::s_can_accept_null )
+		struct t_inner :
+			public T_closer<T *>
+		{
+			using t_ref_base = bases::with_handle_mutable<T>;
+			using pointer = T *;
+			using t_closer = T_closer<pointer>;
+
+			static constexpr bool s_allow_default = C_check_null;
+			static constexpr bool s_allow_move = true;
+			static constexpr bool s_allow_copy = true;
+
+			static void accept_init(pointer & p_to, pointer & p_from) {
+				std::ranges::swap(p_to, p_from);
+			}
+
+			static void accept(pointer & p_to, pointer & p_from) {
+				std::ranges::swap(p_to, p_from);
+			}
+		};
+	};
+
+	template <bool C_check_null, template <typename T1> typename T_closer>
 	struct ref_traits_count {
 		template <typename T>
 		requires ( C_check_null == false || T_closer<T>::s_can_accept_null )

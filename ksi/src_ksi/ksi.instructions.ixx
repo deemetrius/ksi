@@ -18,6 +18,7 @@ export namespace ksi {
 		static void do_pop(space * p_space, call_space * p_call, stack * p_stack,
 			log_base::pointer p_log, instr_data::const_reference p_data
 		) {
+			//just::g_console << "{pop}\n";
 			p_stack->var_remove(1);
 		}
 

@@ -26,23 +26,31 @@ int main(int p_args_count, char * p_args[], char * p_env[]) {
 		}
 		//
 		ksi::space v_space;
-		ksi::prepare_data v_data(&v_space, &v_log);
-		if( v_data.load_program(p_args[1]) != ksi::file_status::loaded ) {
-			just::g_console << "error: Unable to load path: " << p_args[1] << just::g_new_line;
-		} else if( v_data.late() ) {
-			v_data.apply();
-			/*ksi::module_space::pointer v_module = v_space.m_module_global;
-			just::g_console << "Types of @global# :\n";
-			for( typename ksi::module_space::t_types::value_type & v_it_type : v_module->m_types ) {
-				just::g_console << v_it_type.second->m_name_full << just::g_new_line;
-				for( typename ksi::var::category::t_includes::t_node_pointer v_it_cat :
-					v_it_type.second->m_categories.m_direct
-				) {
-					just::g_console << '\t' << v_it_cat->m_value->m_name_full << just::g_new_line;
-				}
-			}*/
+		bool v_nice = false;
+		//
+		{
+			ksi::prepare_data v_data(&v_space, &v_log);
+			if( v_data.load_program(p_args[1]) != ksi::file_status::loaded ) {
+				just::g_console << "error: Unable to load path: " << p_args[1] << just::g_new_line;
+			} else if( v_data.late() ) {
+				v_data.apply();
+				v_nice = true;
+				/*ksi::module_space::pointer v_module = v_space.m_module_global;
+				just::g_console << "Types of @global# :\n";
+				for( typename ksi::module_space::t_types::value_type & v_it_type : v_module->m_types ) {
+					just::g_console << v_it_type.second->m_name_full << just::g_new_line;
+					for( typename ksi::var::category::t_includes::t_node_pointer v_it_cat :
+						v_it_type.second->m_categories.m_direct
+					) {
+						just::g_console << '\t' << v_it_cat->m_value->m_name_full << just::g_new_line;
+					}
+				}*/
+			}
+			just::g_console << "Error count: " << v_data.m_error_count << just::g_new_line;
 		}
-		just::g_console << "Error count: " << v_data.m_error_count << just::g_new_line;
+		if( v_nice ) { 
+			v_space.run(&v_log);
+		}
 		v_log.out(just::g_console);
 	} catch( const std::bad_alloc & e ) {
 		just::g_console << "error: Memory allocation; " << e.what() << just::g_new_line;

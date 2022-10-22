@@ -145,6 +145,14 @@ export namespace just {
 			//friend auto operator <=> (const with_handle &, const with_handle &) = default;
 		};
 
+		template <typename T>
+		struct with_handle_mutable {
+			using pointer = T *;
+
+			// data
+			mutable pointer		m_handle = nullptr;
+		};
+
 		template <typename T, template <typename T1> typename T_closer = closers::simple_delete>
 		struct with_deleter {
 			using t_closer = T_closer<T>;

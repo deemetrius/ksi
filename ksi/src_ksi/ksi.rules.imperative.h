@@ -48,7 +48,7 @@ struct t_imp_var_name {
 			p_data->m_late.m_functions.append(
 				new tokens::imp_token_put_var(tokens::how_put::copy, m_name)
 			);
-			p_state.m_fn_parse = &rule_function_inside::parse;
+			next_parse_fn_body(p_state);
 		}
 	};
 };

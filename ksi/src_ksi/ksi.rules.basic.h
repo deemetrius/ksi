@@ -252,12 +252,14 @@ bool is_name_char(t_char p_char) {
 
 template <just::fixed_string C_text>
 struct is_keyword {
-	static
+	// data
+	position	m_pos;
 
 	bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
 		if( just::text_traits::cmp_n(p_state.m_text_pos, C_text.m_text, C_text.s_length) == 0 ) {
 			t_char v_after = p_state.m_text_pos[C_text.s_length];
 			if( is_name_char(v_after) ) { return false; }
+			m_pos = p_state.pos();
 			p_state.m_text_pos += C_text.s_length;
 			return true;
 		}

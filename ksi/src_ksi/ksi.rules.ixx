@@ -86,6 +86,7 @@ export namespace ksi { namespace rules {
 
 	enum flags : flags_raw {
 		flag_allow_plain,
+		flag_inside_plain,
 		flag_was_refers,
 		flag_was_extends,
 		flag_was_fn_params,
@@ -166,6 +167,13 @@ export namespace ksi { namespace rules {
 			};
 		};
 
+		static void next_parse_fn_body(state & p_state) {
+			p_state.m_fn_parse = (p_state.m_flags.has_any(flag_inside_plain) ?
+				&rule_function_inside<true>::parse :
+				&rule_function_inside<false>::parse
+			);
+		}
+
 		// def category
 		#include "ksi.rules.def_category.h"
 
@@ -191,7 +199,8 @@ export namespace ksi { namespace rules {
 			t_eof,
 			t_category_def_name,
 			t_type_def_name,
-			t_function_def_name
+			t_function_def_name,
+			t_plain_start
 		> {};
 
 		struct rule_category_open : public rule_alt<true, t_space,
@@ -258,8 +267,9 @@ export namespace ksi { namespace rules {
 			t_separator
 		> {};
 
+		template <bool C_is_plain>
 		struct rule_function_inside : public rule_alt<true, t_space,
-			t_function_close,
+			std::conditional_t<C_is_plain, t_plain_end, t_function_close>,
 			rule_literal,
 			t_separator,
 			t_imp_var_object,

@@ -85,7 +85,7 @@ export namespace ksi { namespace ast {
 			public just::node_list<tree>
 		{
 			//using pointer = tree *;
-			using t_node = just::node_list<tree>;
+			//using t_node = just::node_list<tree>;
 			using t_list = just::list<node_tree, just::closers::simple_none>;
 
 			// data
@@ -98,6 +98,8 @@ export namespace ksi { namespace ast {
 
 			node_tree_pointer root() { return m_nodes.first()->node_target(); }
 			node_tree_pointer last() { return m_nodes.last()->node_target(); }
+
+			bool empty() { return root()->empty(); }
 
 			void apply(body_pointer p_body) {
 				node_tree_pointer v_node = root();
@@ -159,8 +161,10 @@ export namespace ksi { namespace ast {
 				tree_pointer v_tree_last = tree_last();
 				for( tree_pointer v_it : m_trees ) {
 					v_it->apply(p_body);
-					if( v_it == v_tree_last ) { p_body->instr_add(m_instr_last); }
-					else { p_body->instr_add(m_instr_step); }
+					if( ! v_it->empty() ) {
+						if( v_it == v_tree_last ) { p_body->instr_add(m_instr_last); }
+						else { p_body->instr_add(m_instr_step); }
+					}
 				}
 			}
 		};

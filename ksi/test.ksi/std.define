@@ -15,6 +15,10 @@ struct ( step = 1 )
 	v.x + -1 mod null
 )
 
+plain
+
+true
+
 /*
 v.type = $range
 v.type{from: 0}

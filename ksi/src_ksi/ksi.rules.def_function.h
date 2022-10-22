@@ -183,7 +183,7 @@ struct t_function_open {
 		public is_char<'('>
 	{
 		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
-			p_state.m_fn_parse = &rule_function_inside::parse;
+			p_state.m_fn_parse = &rule_function_inside<false>::parse;
 			p_tokens.m_fn_put_literal = &tokens::nest_tokens::put_literal_imperative;
 			p_state.nest_add(nest::fn_body);
 		}
@@ -206,6 +206,53 @@ struct t_function_close {
 			p_state.m_fn_parse = &rule_decl::parse;
 			p_state.m_flags.unset(flag_was_fn_params);
 			p_state.nest_del();
+		}
+	};
+};
+
+struct t_plain_start {
+	static constexpr kind s_kind{ kind::start };
+	static constexpr just::bits<can> s_can{ can_close };
+	static t_text_value name() { return "t_plain_start"_jt; }
+	static bool check(state & p_state) { return true; }
+
+	struct t_data :
+		public is_keyword<"plain">
+	{
+		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+			p_state.m_fn_parse = &rule_function_inside<true>::parse;
+			p_tokens.m_fn_put_literal = &tokens::nest_tokens::put_literal_imperative;
+			p_state.nest_add(nest::fn_body);
+			p_state.m_flags.set(flag_inside_plain);
+			//
+			tokens::late_token_plain_start::pointer v_late_token;
+			p_data->m_late.m_functions.append(
+				v_late_token = new tokens::late_token_plain_start({p_state.m_path, m_pos})
+			);
+			p_tokens.m_functions.append(
+				new tokens::token_plain_start(v_late_token)
+			);
+		}
+	};
+};
+
+struct t_plain_end {
+	static constexpr kind s_kind{ kind::end };
+	static constexpr just::bits<can> s_can{ };
+	static t_text_value name() { return "t_plain_end"_jt; }
+	static bool check(state & p_state) { return p_state.m_can.has_any(can_close); }
+
+	struct t_data {
+		bool parse(state & p_state, tokens::nest_tokens & p_tokens, log_pointer p_log) {
+			return *p_state.m_text_pos == '\0';
+		}
+
+		void action(state & p_state, tokens::nest_tokens & p_tokens, prepare_data::pointer p_data) {
+			p_state.done_nice();
+			//
+			p_data->m_late.m_functions.append(
+				new tokens::late_token_plain_end()
+			);
 		}
 	};
 };

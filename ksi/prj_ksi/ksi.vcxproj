@@ -41,6 +41,7 @@
     <ClCompile Include="..\src_just\just.list_forward.ixx" />
     <ClCompile Include="..\src_just\just.map.ixx" />
     <ClCompile Include="..\src_just\just.output.ixx" />
+    <ClCompile Include="..\src_just\just.owned_ptr.ixx" />
     <ClCompile Include="..\src_just\just.pool.ixx" />
     <ClCompile Include="..\src_just\just.prefix_tree.ixx" />
     <ClCompile Include="..\src_just\just.ref.ixx" />

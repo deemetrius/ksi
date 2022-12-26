@@ -5,14 +5,17 @@ module;
 export module just.list;
 
 import <type_traits>;
+import <iterator>;
 export import just.aux;
 
 export namespace just {
 
 	template <typename T_node, bool C_reverse = false>
 	struct node_list_iterator {
+		using self = node_list_iterator;
 		using t_node_pointer = T_node *;
-		using target_pointer = T_node::target_pointer;
+		using iterator_category = std::forward_iterator_tag;
+		using value_type = T_node::target_pointer;
 
 		// data
 		t_node_pointer	m_current, m_next;
@@ -20,18 +23,17 @@ export namespace just {
 		node_list_iterator(t_node_pointer p_node) requires(C_reverse) : m_current{p_node}, m_next{p_node->m_prev} {}
 		node_list_iterator(t_node_pointer p_node) requires(!C_reverse) : m_current{p_node}, m_next{p_node->m_next} {}
 
-		node_list_iterator & operator ++ () {
+		self & operator ++ () {
 			m_current = m_next;
 			if constexpr( C_reverse ) { m_next = m_current->m_prev; }
 			else { m_next = m_current->m_next; }
 			return *this;
 		}
 
-		bool operator == (const node_list_iterator & p_other) const { return m_current == p_other.m_current; }
-		bool operator != (const node_list_iterator & p_other) const { return m_current != p_other.m_current; }
+		bool operator == (const self & p_other) const { return m_current == p_other.m_current; }
+		bool operator != (const self & p_other) const { return m_current != p_other.m_current; }
 
-		//t_node_pointer operator * () { return m_current; }
-		target_pointer operator * () { return m_current->node_target(); }
+		value_type operator * () { return m_current->node_target(); }
 	};
 
 	template <typename T_target>
@@ -77,7 +79,7 @@ export namespace just {
 		}
 
 		template <typename T_fn>
-		void node_apply_to_others(T_fn && p_fn) {
+		void node_apply_to_others(T_fn && p_fn) { // todo: убрать
 			node_pointer v_current = this->m_next, v_next;
 			while( v_current != this ) {
 				v_next = v_current->m_next;

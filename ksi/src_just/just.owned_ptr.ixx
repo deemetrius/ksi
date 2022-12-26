@@ -12,8 +12,52 @@ import <memory>;
 import <utility>;
 import <set>;
 
+export import just.list;
+
 export namespace just {
 
+	struct owned_ring {
+		struct is_owned_base :
+			public node_list<is_owned_base>
+		{
+			// data
+			std::exception_ptr		m_exception;
+
+			virtual ~is_owned_base() = default;
+		};
+
+		using t_zero = node_list<is_owned_base>;
+		using pointer = is_owned_base *;
+
+		static owned_ring s_ring;
+
+		// data
+		t_zero	m_zero;
+		t_index	m_count;
+
+		~owned_ring() { clear(); }
+
+		void add(pointer p_target, std::exception_ptr p_exception) {
+			p_target->m_exception = p_exception;
+			m_zero.node_attach(p_target);
+			++m_count;
+		}
+
+		void del(pointer p_target) {
+			p_target->node_detach();
+			--m_count;
+		}
+
+		void clear() {
+			for( typename t_zero::target_pointer it : m_zero.node_range() ) {
+				delete it;
+			}
+			m_zero.node_reset();
+			m_count = 0;
+		}
+	};
+
+	template <typename T_ring>
 	struct owner {
 		using pointer = owner *;
 		using t_items = std::list<pointer>;
@@ -31,11 +75,18 @@ export namespace just {
 
 	enum class owned_status { not_unset, unset_started, unset_done };
 
-	template <c_unsetable T>
-	struct is_owned {
+	template <typename T_ring, c_unsetable T>
+	struct is_owned :
+		public T_ring::is_owned_base
+	{
+		using t_owner = owner<T_ring>;
+		using t_ring = T_ring;
+		using t_ring_pointer = T_ring *;
+
 		// data
-		owner			m_owner;
+		t_owner			m_owner;
 		owned_status	m_unset_status{owned_status::not_unset};
+		t_ring_pointer	m_ring = &t_ring::s_ring;
 
 		void unset() {
 			if( m_unset_status == owned_status::not_unset) {
@@ -44,32 +95,35 @@ export namespace just {
 				m_unset_status = owned_status::unset_done;
 			}
 		}
+
+		~is_owned() { m_ring->del(this); }
 	};
 
-	template <typename T>
+	template <typename T, typename T_ring>
 	concept c_owned = std::derived_from<T, is_owned<T> >;
 
-	template <c_owned T>
+	template <typename T_ring, c_owned<T_ring> T>
 	struct owned_ptr {
 		using type = T;
 		using pointer = type *;
 		using reference = type &;
+		using t_owner = owner<T_ring>;
+		using t_ring = T_ring;
+		using t_ring_pointer = t_ring *;
 		
-		struct exception_state {
+		struct params {
 			// data
-			pointer				m_target{nullptr};
-			std::exception_ptr	m_exception;
+			pointer				m_target;
+			t_ring_pointer		m_ring = &t_ring::s_ring;
 		};
 
-		static exception_state s_state;
-
 		// data
-		owner::pointer		m_host;
-		owner::iterator		m_iterator;
-		pointer				m_target{nullptr};
+		typename t_owner::pointer		m_host;
+		typename t_owner::iterator		m_iterator;
+		pointer							m_target{nullptr};
 
 		template <typename ... T_args>
-		owned_ptr(owner::pointer p_host, T_args && ... p_args) :
+		owned_ptr(typename t_owner::pointer p_host, T_args && ... p_args) :
 			m_host{p_host}
 		{
 			std::unique_ptr<type> v_target{ std::make_unique<type>(std::forward<T_args>(p_args) ...) };
@@ -81,22 +135,21 @@ export namespace just {
 			try {
 				clear();
 			} catch( ... ) {
-				s_state.m_target = m_target;
-				s_state.m_exception = std::current_exception();
+				m_target->m_ring->add(m_target, std::current_exception() );
 			}
 		}
 
 		owned_ptr(const owned_ptr & p_other) = delete;
 		owned_ptr(owned_ptr && p_other) = delete;
 
-		owned_ptr(owner::pointer p_host, const owned_ptr & p_other) :
+		owned_ptr(typename t_owner::pointer p_host, const owned_ptr & p_other) :
 			m_host{p_host}
 		{
 			init(&p_other.m_target->m_owner.m_hosts);
 			m_target = p_other.m_target;
 		}
 
-		owned_ptr(owner::pointer p_host, owned_ptr && p_other) :
+		owned_ptr(typename t_owner::pointer p_host, owned_ptr && p_other) :
 			m_host{p_host}
 		{
 			std::ranges::swap(m_target, p_other.m_target);
@@ -122,7 +175,7 @@ export namespace just {
 		pointer operator -> () { return m_target; }
 
 	private:
-		void init(owner::t_items_pointer p_hosts) {
+		void init(typename t_owner::t_items_pointer p_hosts) {
 			m_iterator = p_hosts->cend();
 			p_hosts->push_front(m_host);
 			m_iterator = p_hosts->cbegin();
@@ -130,15 +183,15 @@ export namespace just {
 
 		void clear() {
 			if( m_target == nullptr ) { return; }
-			owner::t_items_pointer v_hosts = &m_target->m_owner.m_hosts;
+			typename t_owner::t_items_pointer v_hosts = &m_target->m_owner.m_hosts;
 			if( m_iterator != v_hosts->cend() ) { v_hosts->erase(m_iterator); }
 			if( v_hosts->empty() ) {
 				delete m_target;
 				m_target = nullptr;
 				return;
 			}
-			using t_set = std::set<owner::pointer>;
-			using iterator = owner::t_items::iterator;
+			using t_set = std::set<typename t_owner::pointer>;
+			using iterator = typename t_owner::t_items::iterator;
 			using t_pair = std::pair<iterator, iterator>;
 			using t_list = std::list<t_pair>;
 			t_set v_set;
@@ -151,7 +204,7 @@ export namespace just {
 					v_list.pop_back();
 					if( v_list->empty() ) { break; }
 				} else {
-					owner::pointer v_owner = *v_pair.first;
+					typename t_owner::pointer v_owner = *v_pair.first;
 					if( v_owner == nullptr ) { return; }
 					if( ! v_set.contains(v_owner) ) {
 						v_set.insert(v_owner);

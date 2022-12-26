@@ -1,0 +1,10 @@
+is_end
+get		ret: (key value) -- (null null)
+next
+prev
+to_last
+skip	arg: int
+count	ret: int
+
+	not needed:
+rewind: since we can get another one from start

@@ -1,0 +1,84 @@
+
+@std
+
+_range ()
+
+$range : _range (
+	%from
+	%to = all
+)
+
+$range_step : $range (
+	%step = 1
+)
+
+&contains _range: %range {
+	%number
+	%from_strict = true
+	%to_strict = false
+} ret $bool# (
+	static (%omg)
+	%ret = (&&
+		(%from_strict then (>=) else (>))(%number, %range.from)
+		(%to_strict then (<=) else (<))(%number, %range.to)
+	)
+)
+
+--
+
+$enum_element@std (%index %source %value value#)
+
+$answer_simple enum (yes# = 1, no#! = 0)
+
+--
+
+@std
+
+$category {$: cat#}
+
+$type {$category: cat#}
+
+$array {$hint: value#}
+
+$map {$hint: key#, value#}
+
+/*$type_list {$array#{$type#}: types#} req (types# &no_duplicates) std
+
+$hint# {$category#: cat#} = $[$category#{cat#}, $type#{cat#}]
+
+_callable# ()
+
+$fn# : _callable std
+
+$fn_exact# {
+	$hint#:
+	arg#
+	ret#
+	
+	$type#{_struct#}:
+	params#
+} : _callable std
+
+--
+
+$point_2d {$hint#{_simple_number#}: axis#} (
+	axis#: %x %y
+)
+
+$point_3d {$hint#{_simple_number#}: axis#} : $point_2d{axis#} (
+	axis#: %z
+)
+
+--
+
+$player ($text#: %name, $int#: %score) static (%max_score, factor# = 1.0)
+
+$f = $fn_exact#{arg: $int#, params: struct : $player ($int#: %x %y _any#: %value), ret: $bool#}
+
+&fn %x params $f.params# ()
+&fn : $f ()
+
+plain
+$f.params#.max_score
+$f: %f = &fn.$int#&
+$fn#: %fn = &fn& */

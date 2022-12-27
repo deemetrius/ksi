@@ -51,8 +51,11 @@ export namespace just {
 		}
 
 		void clear() {
-			for( typename t_zero::target_pointer it : m_zero.node_range() ) {
-				delete it;
+			while( ! m_zero.node_empty() ) { // since (delete it) might add some to ring in front
+				for( typename t_zero::target_pointer it : m_zero.node_range() ) { // forward it
+					it->node_detach();
+					delete it;
+				}
 			}
 			m_zero.node_reset();
 			m_count = 0;

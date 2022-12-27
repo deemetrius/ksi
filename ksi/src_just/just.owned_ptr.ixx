@@ -44,8 +44,10 @@ export namespace just {
 		}
 
 		void del(pointer p_target) {
-			p_target->node_detach();
-			--m_count;
+			if( ! p_target->node_empty() ) {
+				p_target->node_detach();
+				--m_count;
+			}
 		}
 
 		void clear() {

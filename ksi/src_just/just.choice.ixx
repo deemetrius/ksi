@@ -40,10 +40,10 @@ export namespace just {
 		c_max_align = std::max<t_size>({alignof(T_items) ...});
 		using t_data = std::aligned_storage_t<c_max_size, c_max_align>;
 
-		template <typename T>
+		template <c_any_of<T_items...> T>
 		static void deleter(t_data * p_data) { reinterpret_cast<T *>(p_data)->~T(); }
 
-		template <typename T>
+		template <c_any_of<T_items...> T>
 		static void initer(t_data * p_data, const choice & p_other) {
 			new (p_data) T(*reinterpret_cast<T *>(&p_other->m_data));
 		}

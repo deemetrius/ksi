@@ -2,7 +2,7 @@ module;
 
 #include "../src/pre.h"
 
-export module just.owned_ptr;
+export module just.optr;
 
 export import <type_traits>;
 export import <concepts>;
@@ -62,166 +62,167 @@ export namespace just {
 		}
 	};
 
-	template <typename T_ring>
-	struct owner {
-		using pointer = owner *;
-		using t_items = std::list<pointer>;
-		using t_items_pointer = t_items *;
-		using iterator = t_items::const_iterator;
-
-		// data
-		t_items		m_hosts;
-	};
-
 	template <typename T>
 	concept c_unsetable = requires(T & p) {
 		p.unset_elements();
 	};
 
-	enum class owned_status { not_unset, unset_started, unset_done };
+	template <typename T_ring>
+	struct with_ring {
 
-	template <typename T_ring, c_unsetable T>
-	struct is_owned :
-		public T_ring::is_owned_base
-	{
-		using t_owner = owner<T_ring>;
-		using t_ring = T_ring;
-		using t_ring_pointer = T_ring *;
+		struct owner {
+			using pointer = owner *;
+			using t_items = std::list<pointer>;
+			using t_items_pointer = t_items *;
+			using iterator = t_items::const_iterator;
 
-		// data
-		t_owner			m_owner;
-		owned_status	m_unset_status{owned_status::not_unset};
-		t_ring_pointer	m_ring = &t_ring::s_ring;
-
-		void unset() {
-			if( m_unset_status == owned_status::not_unset) {
-				m_unset_status = owned_status::unset_started;
-				static_cast<T *>(this)->unset_elements();
-				m_unset_status = owned_status::unset_done;
-			}
-		}
-
-		~is_owned() { m_ring->del(this); }
-	};
-
-	template <typename T, typename T_ring>
-	concept c_owned = std::derived_from<T, is_owned<T> >;
-
-	template <typename T_ring, c_owned<T_ring> T>
-	struct owned_ptr {
-		using type = T;
-		using pointer = type *;
-		using reference = type &;
-		using t_owner = owner<T_ring>;
-		using t_ring = T_ring;
-		using t_ring_pointer = t_ring *;
-		
-		struct params {
 			// data
-			pointer				m_target;
-			t_ring_pointer		m_ring = &t_ring::s_ring;
+			t_items		m_hosts;
 		};
 
-		// data
-		typename t_owner::pointer		m_host;
-		typename t_owner::iterator		m_iterator;
-		pointer							m_target{nullptr};
+		enum class owned_status { not_unset, unset_started, unset_done };
 
-		template <typename ... T_args>
-		owned_ptr(typename t_owner::pointer p_host, T_args && ... p_args) :
-			m_host{p_host}
+		template <typename T>
+		struct is_owned :
+			public T_ring::is_owned_base
 		{
-			std::unique_ptr<type> v_target{ std::make_unique<type>(std::forward<T_args>(p_args) ...) };
-			init(&v_target->m_owner.m_hosts);
-			m_target = v_target.release();
-		}
+			using t_ring = T_ring;
+			using t_ring_pointer = T_ring *;
 
-		~owned_ptr() {
-			try {
-				clear();
-			} catch( ... ) {
-				m_target->m_ring->add(m_target, std::current_exception() );
-			}
-		}
+			// data
+			owner			m_owner;
+			owned_status	m_unset_status{owned_status::not_unset};
+			t_ring_pointer	m_ring = &t_ring::s_ring;
 
-		owned_ptr(const owned_ptr & p_other) = delete;
-		owned_ptr(owned_ptr && p_other) = delete;
-
-		owned_ptr(typename t_owner::pointer p_host, const owned_ptr & p_other) :
-			m_host{p_host}
-		{
-			init(&p_other.m_target->m_owner.m_hosts);
-			m_target = p_other.m_target;
-		}
-
-		owned_ptr(typename t_owner::pointer p_host, owned_ptr && p_other) :
-			m_host{p_host}
-		{
-			std::ranges::swap(m_target, p_other.m_target);
-			std::ranges::swap(m_iterator, p_other.m_iterator);
-		}
-
-		owned_ptr & operator = (const owned_ptr & p_other) {
-			if( m_target == p_other.m_target ) { return; }
-			clear();
-			init(&p_other.m_target->m_owner.m_hosts);
-			m_target = p_other.m_target;
-			return *this;
-		}
-
-		owned_ptr & operator = (owned_ptr && p_other) {
-			if( m_target == p_other.m_target ) { return; }
-			std::ranges::swap(m_target, p_other.m_target);
-			std::ranges::swap(m_iterator, p_other.m_iterator);
-			return *this;
-		}
-
-		reference operator * () { return *m_target; }
-		pointer operator -> () { return m_target; }
-
-	private:
-		void init(typename t_owner::t_items_pointer p_hosts) {
-			m_iterator = p_hosts->cend();
-			p_hosts->push_front(m_host);
-			m_iterator = p_hosts->cbegin();
-		}
-
-		void clear() {
-			if( m_target == nullptr ) { return; }
-			typename t_owner::t_items_pointer v_hosts = &m_target->m_owner.m_hosts;
-			if( m_iterator != v_hosts->cend() ) { v_hosts->erase(m_iterator); }
-			if( v_hosts->empty() ) {
-				delete m_target;
-				m_target = nullptr;
-				return;
-			}
-			using t_set = std::set<typename t_owner::pointer>;
-			using iterator = typename t_owner::t_items::iterator;
-			using t_pair = std::pair<iterator, iterator>;
-			using t_list = std::list<t_pair>;
-			t_set v_set;
-			v_set.insert(&m_target->m_owner);
-			t_list v_list;
-			v_list.emplace_back(v_hosts->begin(), v_hosts->end() );
-			do {
-				t_pair * v_pair = &v_list.back();
-				if( v_pair->first == v_pair->second ) {
-					v_list.pop_back();
-					if( v_list->empty() ) { break; }
-				} else {
-					typename t_owner::pointer v_owner = *v_pair.first;
-					if( v_owner == nullptr ) { return; }
-					if( ! v_set.contains(v_owner) ) {
-						v_set.insert(v_owner);
-						v_list.emplace_back(v_owner->m_hosts.begin(), v_owner->m_hosts.end() );
-					}
-					++v_pair.first;
+			void unset() {
+				if( m_unset_status == owned_status::not_unset) {
+					m_unset_status = owned_status::unset_started;
+					static_assert(c_unsetable<T>);
+					static_cast<T *>(this)->unset_elements();
+					m_unset_status = owned_status::unset_done;
 				}
-			} while( true );
-			// no roots found
-			m_target->unset();
-			m_target = nullptr;
-		} // fn
+			}
+
+			~is_owned() { m_ring->del(this); }
+		};
+
+		template <typename T>
+		requires (std::derived_from<T, is_owned<T> >)
+		struct optr {
+			using type = T;
+			using pointer = type *;
+			using reference = type &;
+			using t_ring = T_ring;
+			using t_ring_pointer = t_ring *;
+		
+			struct params {
+				// data
+				pointer				m_target;
+				t_ring_pointer		m_ring = &t_ring::s_ring;
+			};
+
+			// data
+			owner::pointer		m_host;
+			owner::iterator		m_iterator;
+			pointer				m_target{nullptr};
+
+			template <typename ... T_args>
+			optr(owner::pointer p_host, T_args && ... p_args) :
+				m_host{p_host}
+			{
+				std::unique_ptr<type> v_target{ std::make_unique<type>(std::forward<T_args>(p_args) ...) };
+				init(&v_target->m_owner.m_hosts);
+				m_target = v_target.release();
+			}
+
+			~optr() {
+				try {
+					clear();
+				} catch( ... ) {
+					m_target->m_ring->add(m_target, std::current_exception() );
+				}
+			}
+
+			optr(const optr & p_other) = delete;
+			optr(optr && p_other) = delete;
+
+			optr(owner::pointer p_host, const optr & p_other) :
+				m_host{p_host}
+			{
+				init(&p_other.m_target->m_owner.m_hosts);
+				m_target = p_other.m_target;
+			}
+
+			optr(owner::pointer p_host, optr && p_other) :
+				m_host{p_host}
+			{
+				std::ranges::swap(m_target, p_other.m_target);
+				std::ranges::swap(m_iterator, p_other.m_iterator);
+			}
+
+			optr & operator = (const optr & p_other) {
+				if( m_target == p_other.m_target ) { return; }
+				clear();
+				init(&p_other.m_target->m_owner.m_hosts);
+				m_target = p_other.m_target;
+				return *this;
+			}
+
+			optr & operator = (optr && p_other) {
+				if( m_target == p_other.m_target ) { return; }
+				std::ranges::swap(m_target, p_other.m_target);
+				std::ranges::swap(m_iterator, p_other.m_iterator);
+				return *this;
+			}
+
+			reference operator * () { return *m_target; }
+			pointer operator -> () { return m_target; }
+
+		private:
+			void init(owner::t_items_pointer p_hosts) {
+				m_iterator = p_hosts->cend();
+				p_hosts->push_front(m_host);
+				m_iterator = p_hosts->cbegin();
+			}
+
+			void clear() {
+				if( m_target == nullptr ) { return; }
+				typename owner::t_items_pointer v_hosts = &m_target->m_owner.m_hosts;
+				if( m_iterator != v_hosts->cend() ) { v_hosts->erase(m_iterator); }
+				if( v_hosts->empty() ) {
+					delete m_target;
+					m_target = nullptr;
+					return;
+				}
+				using t_set = std::set<owner::pointer>;
+				using iterator = owner::t_items::iterator;
+				using t_pair = std::pair<iterator, iterator>;
+				using t_list = std::list<t_pair>;
+				t_set v_set;
+				v_set.insert(&m_target->m_owner);
+				t_list v_list;
+				v_list.emplace_back(v_hosts->begin(), v_hosts->end() );
+				do {
+					t_pair * v_pair = &v_list.back();
+					if( v_pair->first == v_pair->second ) {
+						v_list.pop_back();
+						if( v_list->empty() ) { break; }
+					} else {
+						typename owner::pointer v_owner = *v_pair.first;
+						if( v_owner == nullptr ) { return; }
+						if( ! v_set.contains(v_owner) ) {
+							v_set.insert(v_owner);
+							v_list.emplace_back(v_owner->m_hosts.begin(), v_owner->m_hosts.end() );
+						}
+						++v_pair.first;
+					}
+				} while( true );
+				// no roots found
+				m_target->unset();
+				m_target = nullptr;
+			} // fn
+		}; // struct
+
 	}; // struct
 
 } // ns

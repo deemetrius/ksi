@@ -62,7 +62,7 @@ export namespace just {
 		s_deleters[sizeof...(T_items)]{&detail::choice_traits<T_items>::deleter ...};
 
 		static constexpr decltype(&detail::choice_traits< choice_at_t<0, T_items ...> >::initer)
-		s_initers[sizeof...(T_items)]{&detail::choice_traits<T_items>::initers ...};
+		s_initers[sizeof...(T_items)]{&detail::choice_traits<T_items>::initer ...};
 
 		// data
 		alignas(c_max_align) t_byte_under	m_data[c_max_size];

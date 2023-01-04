@@ -35,6 +35,9 @@ export namespace just {
 	template <typename T, typename ... U>
 	concept c_any_of = ( std::same_as<T, U> || ... );
 
+	/*template <typename T_base, typename ... T_derived>
+	concept c_base_of = ( std::derived_from<T_derived, T_base> && ... );*/
+
 	template <typename T, typename T_left>
 	concept c_inequal_comparable_with_left = requires(const T & p_target, const T_left & p_left) {
 		static_cast<bool>(p_left != p_target);

@@ -60,12 +60,12 @@ export namespace just {
 	//
 
 	template <t_size C_size, t_size C_align>
-	struct alignas(C_align) aligned_data {
+	struct aligned_data {
 		using type = t_byte_under;
 		enum : t_size { s_size = C_size, s_align = C_align };
 
 		// data
-		type	m_data[s_size];
+		alignas(C_align) type	m_data[s_size];
 	};
 
 	template <typename T>

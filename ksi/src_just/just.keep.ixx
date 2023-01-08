@@ -47,7 +47,7 @@ export namespace just {
 
 		operator bool () const { return m_index != choice_none; }
 
-		choice() = default;
+		keep() = default;
 		~keep() { clear(); }
 
 		// in_place

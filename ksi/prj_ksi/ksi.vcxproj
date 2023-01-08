@@ -21,49 +21,20 @@
   <ItemGroup>
     <ClInclude Include="..\res\resource.h" />
     <ClInclude Include="..\src\pre.h" />
-    <ClInclude Include="..\src_ksi\ksi.rules.basic.h" />
-    <ClInclude Include="..\src_ksi\ksi.rules.def_category.h" />
-    <ClInclude Include="..\src_ksi\ksi.rules.def_function.h" />
-    <ClInclude Include="..\src_ksi\ksi.rules.imperative.h" />
-    <ClInclude Include="..\src_ksi\ksi.rules.literals.h" />
-    <ClInclude Include="..\src_ksi\ksi.rules.def_struct.h" />
-    <ClInclude Include="..\src_ksi\ksi.var.types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src_bin\main.cpp" />
-    <ClCompile Include="..\src_just\just.array.ixx" />
     <ClCompile Include="..\src_just\just.aux.ixx" />
     <ClCompile Include="..\src_just\just.choice.ixx" />
     <ClCompile Include="..\src_just\just.common.ixx" />
-    <ClCompile Include="..\src_just\just.files.ixx" />
     <ClCompile Include="..\src_just\just.flags_bits.ixx" />
-    <ClCompile Include="..\src_just\just.hive.ixx" />
     <ClCompile Include="..\src_just\just.keep.ixx" />
     <ClCompile Include="..\src_just\just.list.ixx" />
     <ClCompile Include="..\src_just\just.list_forward.ixx" />
-    <ClCompile Include="..\src_just\just.map.ixx" />
     <ClCompile Include="..\src_just\just.output.ixx" />
     <ClCompile Include="..\src_just\just.owned_ptr.ixx" />
     <ClCompile Include="..\src_just\just.pool.ixx" />
-    <ClCompile Include="..\src_just\just.prefix_tree.ixx" />
-    <ClCompile Include="..\src_just\just.ref.ixx" />
-    <ClCompile Include="..\src_just\just.text.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.ast.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.config.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.prepare_data.cpp" />
-    <ClCompile Include="..\src_ksi\ksi.prepare_data.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.function.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.instructions.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.log.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.rules.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.space.cpp" />
-    <ClCompile Include="..\src_ksi\ksi.space.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.tokens.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.var.conv.cpp" />
     <ClCompile Include="..\src_ksi\ksi.var.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.var.ops.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.variable.cpp" />
-    <ClCompile Include="..\src_ksi\ksi.variable.ixx" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\res\ksi.lang.file.ico" />

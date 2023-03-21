@@ -4,17 +4,29 @@ module;
 
 export module just.output;
 
+export import just.std;
+import <type_traits>;
 import <cstdio>;
-import <cwchar>;
+//import <cwchar>;
 import <limits>;
 import <cmath>;
-export import just.common;
 
 export namespace just {
 	
-	struct output_base {
+	namespace detail {
+	
+		struct output_base {
+			virtual bool write(t_integer p_value) { return false; }
+		};
+	
+	} // ns
+
+	struct output_base :
+		public std::conditional_t<g_index_is_integer, none, detail::output_base>
+	{
 		// data
-		t_int_ptr	m_errors = 0;
+		t_integer
+			m_errors = 0;
 		
 		operator bool () const {
 			return m_errors;
@@ -22,18 +34,34 @@ export namespace just {
 
 		virtual bool write(char p_value)				{ return false; }
 		virtual bool write(wchar_t p_value)				{ return false; }
-		virtual bool write(t_plain_text p_value)		{ return false; }
-		virtual bool write(t_plain_text_wide p_value)	{ return false; }
-		virtual bool write(int p_value)					{ return false; }
-		virtual bool write(unsigned int p_value)		{ return false; }
-		virtual bool write(t_diff p_value)				{ return false; }
+		virtual bool write(t_const_text p_value)		{ return false; }
+		virtual bool write(t_const_text_wide p_value)	{ return false; }
+		virtual bool write(t_index p_value)				{ return false; }
 		virtual bool write(t_size p_value)				{ return false; }
 		virtual bool write(double p_value)				{ return false; }
 		virtual bool write(long double p_value)			{ return false; }
 	};
 	
+	namespace detail {
+	
+		template <typename T_target, typename T_base>
+		struct output_file :
+			public T_base
+		{
+			bool write(t_integer p_value) override {
+				T_target * v = static_cast<T_target *>(this);
+				if( std::fprintf(v->m_handle, "%zd", p_value) < 0 ) {
+					++v->m_errors;
+					return true;
+				}
+				return false;
+			}
+		};
+	
+	} // ns
+
 	struct output_file :
-		public output_base
+		public std::conditional_t<g_index_is_integer, output_base, detail::output_file<output_file, output_base> >
 	{
 		using t_handle = std::FILE *;
 		using t_limits_double = std::numeric_limits<double>;
@@ -43,7 +71,8 @@ export namespace just {
 		static constexpr int s_digits_double_long = t_limits_double_long::digits10;
 
 		// data
-		t_handle	m_handle = stdout;
+		t_handle
+			m_handle = stdout;
 
 		bool write(char p_value) override {
 			if( std::fputc(p_value, m_handle) == EOF ) {
@@ -61,7 +90,7 @@ export namespace just {
 			return false;
 		}
 
-		bool write(t_plain_text p_value) override {
+		bool write(t_const_text p_value) override {
 			if( std::fputs(p_value, m_handle) == EOF ) {
 				++m_errors;
 				return true;
@@ -69,7 +98,7 @@ export namespace just {
 			return false;
 		}
 
-		bool write(t_plain_text_wide p_value) override {
+		bool write(t_const_text_wide p_value) override {
 			if( std::fputws(p_value, m_handle) == EOF ) {
 				++m_errors;
 				return true;
@@ -77,23 +106,7 @@ export namespace just {
 			return false;
 		}
 
-		bool write(int p_value) override {
-			if( std::fprintf(m_handle, "%d", p_value) < 0 ) {
-				++m_errors;
-				return true;
-			}
-			return false;
-		}
-
-		bool write(unsigned int p_value) override {
-			if( std::fprintf(m_handle, "%u", p_value) < 0 ) {
-				++m_errors;
-				return true;
-			}
-			return false;
-		}
-
-		bool write(t_diff p_value) override {
+		bool write(t_index p_value) override {
 			if( std::fprintf(m_handle, "%td", p_value) < 0 ) {
 				++m_errors;
 				return true;
@@ -159,10 +172,9 @@ export namespace just {
 	
 	template <c_any_of<
 		char, wchar_t,
-		t_plain_text, t_plain_text_wide,
+		t_const_text, t_const_text_wide,
 		t_text, t_text_wide,
-		int, unsigned int,
-		t_diff, t_size,
+		t_size, t_index, t_integer,
 		double, long double
 	> T>
 	output_base & operator << (output_base & p_out, T p_value) {
@@ -170,7 +182,7 @@ export namespace just {
 		return p_out;
 	}
 
-	template <typename T>
-	constexpr bool g_always_false = false;
+	//template <typename T>
+	//constexpr bool g_always_false = false;
 
 } // ns

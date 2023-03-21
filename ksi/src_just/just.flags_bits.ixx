@@ -30,7 +30,8 @@ export namespace just {
 		}
 
 		// data
-		type	m_value = 0;
+		type
+			m_value = 0;
 
 		constexpr flags_bits() = default;
 

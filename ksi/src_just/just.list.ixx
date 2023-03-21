@@ -4,28 +4,34 @@ module;
 
 export module just.list;
 
-import <type_traits>;
-import <iterator>;
 export import just.aux;
+export import just.iter;
+import <type_traits>;
 
 export namespace just {
 
-	template <typename T_node, bool C_reverse = false>
-	struct node_list_iterator {
-		using self = node_list_iterator;
+	template <typename T_node, direction C_direction = direction::forward>
+	struct list_iterator_forward {
+		using self = list_iterator_forward;
 		using t_node_pointer = T_node *;
-		using iterator_category = std::forward_iterator_tag;
 		using value_type = T_node::target_pointer;
 
-		// data
-		t_node_pointer	m_current, m_next;
+		static constexpr direction s_direction = C_direction;
 
-		node_list_iterator(t_node_pointer p_node) requires(C_reverse) : m_current{p_node}, m_next{p_node->m_prev} {}
-		node_list_iterator(t_node_pointer p_node) requires(!C_reverse) : m_current{p_node}, m_next{p_node->m_next} {}
+		// data
+		t_node_pointer
+			m_current,
+			m_next;
+
+		list_iterator_forward(t_node_pointer p_node)
+		requires(s_direction == direction::reverse) : m_current{p_node}, m_next{p_node->m_prev} {}
+
+		list_iterator_forward(t_node_pointer p_node)
+		requires(s_direction == direction::forward) : m_current{p_node}, m_next{p_node->m_next} {}
 
 		self & operator ++ () {
 			m_current = m_next;
-			if constexpr( C_reverse ) { m_next = m_current->m_prev; }
+			if constexpr( s_direction == direction::reverse ) { m_next = m_current->m_prev; }
 			else { m_next = m_current->m_next; }
 			return *this;
 		}
@@ -40,15 +46,19 @@ export namespace just {
 	struct node_list {
 		using target = T_target;
 		using target_pointer = target *;
+
 		using node_pointer = node_list *;
-		using t_node_iterator = node_list_iterator<node_list>;
+
+		using t_node_iterator = list_iterator_forward<node_list>;
 		using t_node_range = range_for<t_node_iterator>;
-		using t_node_iterator_reverse = node_list_iterator<node_list, true>;
+
+		using t_node_iterator_reverse = list_iterator_forward<node_list, direction::reverse>;
 		using t_node_range_reverse = range_for<t_node_iterator_reverse>;
 		
 		// data
-		node_pointer	m_next = this;
-		node_pointer	m_prev = this;
+		node_pointer
+			m_next = this,
+			m_prev = this;
 
 		inline target_pointer node_target() {
 			return static_cast<target_pointer>(this);
@@ -78,16 +88,6 @@ export namespace just {
 			this->m_prev = this;
 		}
 
-		template <typename T_fn>
-		void node_apply_to_others(T_fn && p_fn) { // todo: убрать
-			node_pointer v_current = this->m_next, v_next;
-			while( v_current != this ) {
-				v_next = v_current->m_next;
-				p_fn(v_current);
-				v_current = v_next;
-			}
-		}
-
 		t_node_range node_range() { return {this->m_next, this}; }
 		t_node_range_reverse node_range_reverse() { return {this->m_prev, this}; }
 	};
@@ -96,22 +96,22 @@ export namespace just {
 	struct list {
 		using type = T_target;
 		using pointer = type *;
+		using t_closer = T_closer<pointer>;
+
 		using t_node = node_list<T_target>;
 		using t_node_pointer = t_node *;
-		using t_closer = T_closer<T_target *>;
+
 		using iterator = t_node::t_node_iterator;
 		using t_range_reverse = t_node::t_node_range_reverse;
 
 		static constexpr bool s_need_close = ! std::is_same_v<t_closer, closers::simple_none<T_target *> >;
 		
 		// data
-		t_node	m_zero;
+		t_node
+			m_zero;
 		
 		list() = default;
-		~list() requires(!s_need_close) = default;
-		~list() requires(s_need_close) {
-			clear();
-		}
+		~list() requires(s_need_close) { clear(); }
 
 		// no no
 		list(const list &) = delete;
@@ -119,13 +119,19 @@ export namespace just {
 		list & operator = (const list &) = delete;
 		list & operator = (list &&) = delete;
 
+		iterator begin() { return m_zero.m_next; }
+		iterator end() { return &m_zero; }
+
+		t_range_reverse range_reverse() { return {m_zero.m_prev, &m_zero}; }
+
+		t_node_pointer first() { return m_zero.m_next; }
+		t_node_pointer last() { return m_zero.m_prev; }
+
 		bool empty() { return m_zero.node_empty(); }
 
 		void clear() {
 			if constexpr( s_need_close ) {
-				m_zero.node_apply_to_others([](t_node_pointer p_node){
-					t_closer::close(p_node->node_target() );
-				});
+				for( pointer it : range_reverse() ) { t_closer::close(it); }
 			}
 			m_zero.node_reset();
 		}
@@ -134,13 +140,6 @@ export namespace just {
 			p_node->node_detach();
 			if constexpr( s_need_close ) { t_closer::close(p_node); }
 		}
-
-		iterator begin() { return m_zero.m_next; }
-		iterator end() { return &m_zero; }
-		t_range_reverse range_reverse() { return {m_zero.m_prev, &m_zero}; }
-
-		t_node_pointer first() { return m_zero.m_next; }
-		t_node_pointer last() { return m_zero.m_prev; }
 
 		void append(t_node_pointer p_node) {
 			m_zero.m_prev->node_connect_with(p_node);

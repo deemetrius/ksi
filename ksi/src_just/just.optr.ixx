@@ -8,20 +8,28 @@ export import <type_traits>;
 export import <concepts>;
 export import <list>;
 export import <exception>;
+
 import <memory>;
 import <utility>;
 import <set>;
+import <ranges>;
+
+export import <vector>;
+export import <map>;
 
 export import just.list;
 
 export namespace just {
+
+	struct separator {};
 
 	struct owned_ring {
 		struct is_owned_base :
 			public node_list<is_owned_base>
 		{
 			// data
-			std::exception_ptr		m_exception;
+			std::exception_ptr
+				m_exception;
 
 			virtual ~is_owned_base() = default;
 		};
@@ -32,8 +40,10 @@ export namespace just {
 		static owned_ring s_ring;
 
 		// data
-		t_zero	m_zero;
-		t_index	m_count;
+		t_zero
+			m_zero;
+		t_index
+			m_count;
 
 		~owned_ring() { clear(); }
 
@@ -62,10 +72,14 @@ export namespace just {
 		}
 	};
 
+	owned_ring owned_ring::s_ring;
+
 	template <typename T>
 	concept c_unsetable = requires(T & p) {
 		p.unset_elements();
 	};
+
+	enum class owned_status { not_unset, unset_started, unset_done };
 
 	template <typename T_ring>
 	struct with_ring {
@@ -77,10 +91,9 @@ export namespace just {
 			using iterator = t_items::const_iterator;
 
 			// data
-			t_items		m_hosts;
+			t_items
+				m_hosts;
 		};
-
-		enum class owned_status { not_unset, unset_started, unset_done };
 
 		template <typename T>
 		struct is_owned :
@@ -90,9 +103,12 @@ export namespace just {
 			using t_ring_pointer = T_ring *;
 
 			// data
-			owner			m_owner;
-			owned_status	m_unset_status{owned_status::not_unset};
-			t_ring_pointer	m_ring = &t_ring::s_ring;
+			owner
+				m_owner;
+			owned_status
+				m_unset_status{owned_status::not_unset};
+			t_ring_pointer
+				m_ring = &t_ring::s_ring;
 
 			void unset() {
 				if( m_unset_status == owned_status::not_unset) {
@@ -106,6 +122,8 @@ export namespace just {
 			~is_owned() { m_ring->del(this); }
 		};
 
+		// optr
+
 		template <typename T>
 		requires (std::derived_from<T, is_owned<T> >)
 		struct optr {
@@ -117,17 +135,33 @@ export namespace just {
 		
 			struct params {
 				// data
-				pointer				m_target;
-				t_ring_pointer		m_ring = &t_ring::s_ring;
+				pointer
+					m_target;
+				t_ring_pointer
+					m_ring = &t_ring::s_ring;
 			};
 
 			// data
-			owner::pointer		m_host;
-			owner::iterator		m_iterator;
-			pointer				m_target{nullptr};
+			owner::pointer
+				m_host;
+			owner::iterator
+				m_iterator;
+			pointer
+				m_target{nullptr};
+
+			/*template <typename ... T_args>
+			void set(owner::pointer p_host, T_args && ... p_args) {
+				if( m_target != nullptr ) { return; }
+				m_host = p_host;
+				std::unique_ptr<type> v_target{ std::make_unique<type>(std::forward<T_args>(p_args) ...) };
+				init(&v_target->m_owner.m_hosts);
+				m_target = v_target.release();
+			}
+
+			optr() = default;*/
 
 			template <typename ... T_args>
-			optr(owner::pointer p_host, T_args && ... p_args) :
+			optr(owner::pointer p_host, separator = {}, T_args && ... p_args) :
 				m_host{p_host}
 			{
 				std::unique_ptr<type> v_target{ std::make_unique<type>(std::forward<T_args>(p_args) ...) };
@@ -144,7 +178,7 @@ export namespace just {
 			}
 
 			optr(const optr & p_other) = delete;
-			optr(optr && p_other) = delete;
+			optr(optr && p_other) = default;
 
 			optr(owner::pointer p_host, const optr & p_other) :
 				m_host{p_host}
@@ -153,12 +187,12 @@ export namespace just {
 				m_target = p_other.m_target;
 			}
 
-			optr(owner::pointer p_host, optr && p_other) :
+			/*optr(owner::pointer p_host, optr && p_other) :
 				m_host{p_host}
 			{
 				std::ranges::swap(m_target, p_other.m_target);
 				std::ranges::swap(m_iterator, p_other.m_iterator);
-			}
+			}*/
 
 			optr & operator = (const optr & p_other) {
 				if( m_target == p_other.m_target ) { return; }
@@ -168,22 +202,16 @@ export namespace just {
 				return *this;
 			}
 
-			optr & operator = (optr && p_other) {
+			/*optr & operator = (optr && p_other) {
 				if( m_target == p_other.m_target ) { return; }
 				std::ranges::swap(m_target, p_other.m_target);
 				std::ranges::swap(m_iterator, p_other.m_iterator);
 				return *this;
-			}
+			}*/
 
 			reference operator * () { return *m_target; }
 			pointer operator -> () { return m_target; }
-
-		private:
-			void init(owner::t_items_pointer p_hosts) {
-				m_iterator = p_hosts->cend();
-				p_hosts->push_front(m_host);
-				m_iterator = p_hosts->cbegin();
-			}
+			pointer get() { return m_target; }
 
 			void clear() {
 				if( m_target == nullptr ) { return; }
@@ -206,22 +234,32 @@ export namespace just {
 					t_pair * v_pair = &v_list.back();
 					if( v_pair->first == v_pair->second ) {
 						v_list.pop_back();
-						if( v_list->empty() ) { break; }
+						if( v_list.empty() ) { break; }
 					} else {
-						typename owner::pointer v_owner = *v_pair.first;
+						typename owner::pointer v_owner = *v_pair->first;
 						if( v_owner == nullptr ) { return; }
 						if( ! v_set.contains(v_owner) ) {
 							v_set.insert(v_owner);
 							v_list.emplace_back(v_owner->m_hosts.begin(), v_owner->m_hosts.end() );
 						}
-						++v_pair.first;
+						++v_pair->first;
 					}
 				} while( true );
 				// no roots found
 				m_target->unset();
 				m_target = nullptr;
 			} // fn
+
+		private:
+			void init(owner::t_items_pointer p_hosts) {
+				m_iterator = p_hosts->cend();
+				p_hosts->push_front(m_host);
+				m_iterator = p_hosts->cbegin();
+			}
 		}; // struct
+
+		#include "just.optr.vector.h"
+		#include "just.optr.map.h"
 
 	}; // struct
 

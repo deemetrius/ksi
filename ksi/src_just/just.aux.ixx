@@ -4,10 +4,56 @@ module;
 
 export module just.aux;
 
+//export import just.std;
 import <concepts>;
-export import just.common;
 
 export namespace just {
+
+	namespace closers {
+
+		template <typename T>
+			requires ( std::is_pointer_v<T> )
+		struct simple_none {
+			using type = T;
+
+			static constexpr bool s_can_accept_null = true;
+
+			static void close(type p_handle) {}
+		};
+
+		template <typename T>
+			requires ( std::is_pointer_v<T> )
+		struct simple_delete {
+			using type = T;
+
+			static constexpr bool s_can_accept_null = true;
+
+			static void close(type p_value) { delete p_value; }
+		};
+
+	} // ns
+
+	template <typename T, template <typename> typename Closer = closers::simple_delete>
+	struct with_deleter {
+		using t_closer = Closer<T *>;
+		using t_close = decltype(&t_closer::close);
+
+		// data
+		t_close
+			m_close = &t_closer::close;
+	};
+
+	struct hold_deleter {
+		template <typename T>
+		void operator () (T * p) const { p->m_close(p); }
+
+		hold_deleter() = default;
+
+		template <typename T>
+		hold_deleter(const T &) {}
+	};
+
+	/*
 
 	namespace closers {
 
@@ -158,11 +204,11 @@ export namespace just {
 			using t_closer = T_closer<T>;
 			using t_deleter = decltype(&t_closer::close);
 
-			t_deleter m_deleter = t_closer::close;
+			t_deleter	m_deleter = &t_closer::close;
 		};
 
 		struct with_ref_count {
-			using t_refs = t_int_ptr;
+			using t_refs = t_integer;
 
 			// data
 			t_refs	m_refs = 1;
@@ -172,5 +218,7 @@ export namespace just {
 		};
 
 	} // ns
+
+	*/
 
 } // ns

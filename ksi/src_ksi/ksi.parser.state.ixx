@@ -5,22 +5,13 @@ module;
 export module ksi.parser:state;
 
 import ksi.log;
+export import ksi.ast;
 
 namespace ksi {
 
 	namespace tokens {
 
 		struct nest {};
-
-	} // ns
-
-	namespace ast {
-
-		struct prepare_data {
-			// data
-			log_base::pointer
-				m_log;
-		};
 
 	} // ns
 

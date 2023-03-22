@@ -19,10 +19,10 @@ export namespace ksi {
 			t_opt_space
 		> {};
 
-		bool parse(fs::path p_path, t_text p_file, log_base::pointer p_log) {
+		bool parse(space::pointer p_space, fs::path p_path, t_text p_file, log_base::pointer p_log) {
 			state v_state{p_path, p_file->data(), &rule_file::parse};
 			tokens::nest v_tokens;
-			ast::prepare_data v_data{p_log};
+			ast::prepare_data v_data{p_space, p_log};
 			do {
 				if( ! v_state.m_next_parse(v_state, v_tokens, v_data) ) { v_state.done(); }
 			} while( ! v_state.m_done );

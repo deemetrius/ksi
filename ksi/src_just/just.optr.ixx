@@ -260,6 +260,7 @@ export namespace just {
 
 		#include "just.optr.vector.h"
 		#include "just.optr.map.h"
+		#include "just.optr.hive.h"
 
 	}; // struct
 

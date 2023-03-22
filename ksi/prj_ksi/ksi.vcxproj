@@ -9,6 +9,7 @@
   <ItemGroup>
     <ClInclude Include="..\res\resource.h" />
     <ClInclude Include="..\src\pre.h" />
+    <ClInclude Include="..\src_just\just.optr.hive.h" />
     <ClInclude Include="..\src_just\just.optr.map.h" />
     <ClInclude Include="..\src_just\just.optr.vector.h" />
   </ItemGroup>
@@ -30,6 +31,7 @@
     <ClCompile Include="..\src_just\just.pool.ixx" />
     <ClCompile Include="..\src_just\just.std.ixx" />
     <ClCompile Include="..\src_just\just.text.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.ast.ixx" />
     <ClCompile Include="..\src_ksi\ksi.var.array.ixx" />
     <ClCompile Include="..\src_ksi\ksi.var.config.ixx" />
     <ClCompile Include="..\src_ksi\ksi.log.ixx" />

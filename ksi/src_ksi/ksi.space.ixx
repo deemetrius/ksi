@@ -11,7 +11,7 @@ export namespace ksi {
 
 	struct t_module : public var::with_id_name, public just::with_deleter<t_module> {
 		using pointer = t_module *;
-		using t_vars = var::with_ring::o_map<text_str, var::value, var::value_less>;
+		using t_vars = var::with_ring::o_hive<text_str, var::value, var::value_less>;
 		using t_owner = var::with_ring::owner;
 
 		// data
@@ -24,6 +24,7 @@ export namespace ksi {
 	};
 
 	struct space {
+		using pointer = space *;
 		using t_mod_ptr = std::unique_ptr<t_module, just::hold_deleter>;
 		using t_mods = std::map<text_str, t_mod_ptr, std::ranges::less>;
 		using t_try_emplace = std::pair<t_mods::iterator, bool>;
@@ -44,6 +45,11 @@ export namespace ksi {
 				return v_try.first->second.get();
 			}
 			return v_it->second.get();
+		}
+
+		t_module::pointer mod_find(t_text p_name) {
+			typename t_mods::iterator v_it = m_mods.find(*p_name);
+			return v_it == m_mods.end() ? nullptr : v_it->second.get();
 		}
 	};
 

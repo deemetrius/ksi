@@ -47,6 +47,9 @@ struct ot_map : public is_owned< ot_map<Key, Value, Less> >, public o_map<Key, V
 	ot_map() : t_base{&this->m_owner} {}
 
 	void unset_elements() {
-		for( value_type & v_it : std::ranges::reverse_view{this->m_items} ) { Less::unset(v_it.first); v_it.second->unset(); }
+		for( value_type & v_it : std::ranges::reverse_view{this->m_items} ) {
+			//Less::unset(v_it.first);
+			v_it.second->unset();
+		}
 	}
 };

@@ -81,7 +81,7 @@ export namespace ksi {
 				return compare(p1, p2) == t_compare::less;
 			}
 
-			static void unset(const value & p) { /*const_cast<value *>(&p)->unset();*/ }
+			//static void unset(const value & p) { /*const_cast<value *>(&p)->unset();*/ }
 		};
 
 	} // ns

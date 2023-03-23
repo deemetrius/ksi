@@ -22,7 +22,7 @@ export namespace ksi {
 			value_map(owner_pointer p_owner) : m_ptr{p_owner} {}
 			value_map(owner_pointer p_owner, value_map * p_other) : m_ptr{p_owner, p_other->m_ptr} {}
 
-			t_type get_type() const override { return &hcfg->mt_map; }
+			t_type get_type() const override { return &config::handle->mt_map; }
 			t_ptr copy(owner_pointer p_owner) override { return std::make_unique<value_map>(p_owner, this); }
 			t_variant variant() override { return static_cast<t_map>(this); }
 

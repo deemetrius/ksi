@@ -22,7 +22,7 @@ export namespace ksi {
 			value_array(owner_pointer p_owner) : m_ptr{p_owner} {}
 			value_array(owner_pointer p_owner, value_array * p_other) : m_ptr{p_owner, p_other->m_ptr} {}
 
-			t_type get_type() const override { return &hcfg->mt_array; }
+			t_type get_type() const override { return &config::handle->mt_array; }
 			t_ptr copy(owner_pointer p_owner) override { return std::make_unique<value_array>(p_owner, this); }
 			t_variant variant() override { return static_cast<t_array>(this); }
 

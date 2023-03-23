@@ -68,12 +68,12 @@ export namespace ksi {
 		template <> struct vtype<t_integer> { using type = value_int; };
 		template <> struct vtype<t_floating> { using type = value_float; };
 
-		template <> t_type value_cat::get_type() const { return &hcfg->mt_cat; }
-		template <> t_type value_type::get_type() const { return &hcfg->mt_type; }
-		template <> t_type value_bool::get_type() const { return &hcfg->mt_bool; }
-		template <> t_type value_int::get_type() const { return &hcfg->mt_int; }
-		template <> t_type value_float::get_type() const { return &hcfg->mt_float; }
-		template <> t_type value_text::get_type() const { return &hcfg->mt_text; }
+		template <> t_type value_cat::get_type() const { return &config::handle->mt_cat; }
+		template <> t_type value_type::get_type() const { return &config::handle->mt_type; }
+		template <> t_type value_bool::get_type() const { return &config::handle->mt_bool; }
+		template <> t_type value_int::get_type() const { return &config::handle->mt_int; }
+		template <> t_type value_float::get_type() const { return &config::handle->mt_float; }
+		template <> t_type value_text::get_type() const { return &config::handle->mt_text; }
 
 		//
 
@@ -84,7 +84,7 @@ export namespace ksi {
 			value_base::t_ptr
 				m_value;
 
-			value() : m_value{std::make_unique<value_cat>(&hcfg->mc_null)} {}
+			value() : m_value{std::make_unique<value_cat>(&config::handle->mc_null)} {}
 
 			template <just::c_any_of<t_cat, t_type, bool, t_integer, t_floating> T>
 			value(T p) : m_value{std::make_unique< vtype<T>::type >(p)} {}

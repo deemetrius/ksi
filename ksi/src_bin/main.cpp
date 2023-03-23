@@ -24,7 +24,7 @@ int wmain(int p_args_count, wchar_t * p_args[], wchar_t * p_env[]) {
 			//std::getchar();
 			return 0;
 		}
-		ksi::make_config();
+		ksi::config::make();
 		//
 		just::fs::path v_path = just::fs::weakly_canonical(p_args[1]);
 		ksi::t_text v_f = just::read_wide(v_path);

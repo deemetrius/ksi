@@ -44,6 +44,8 @@ export namespace ksi {
 				m_mod_id;
 			t_mods
 				m_mods;
+			t_module_extension::pointer
+				m_mod_current;
 
 			prepare_data(space::pointer p_space, log_base::pointer p_log) :
 				m_space{p_space},

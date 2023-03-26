@@ -4,7 +4,8 @@ module;
 
 export module ksi.parser:basic;
 
-import :state;
+export import :state;
+import <cwctype>;
 
 namespace ksi {
 
@@ -131,6 +132,23 @@ namespace ksi {
 			}; // t_data
 		}; // t_opt_space
 	
+		template <text_str::value_type C_char>
+		struct is_prefix_name {
+			// data
+			t_text
+				m_name;
+
+			bool parse(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
+				position v_pos = p_state.m_pos;
+				if( *v_pos.m_pos != C_char || ! std::iswalpha(v_pos.m_pos[1]) ) { return false; }
+				v_pos.next(2);
+				while( std::iswalnum(*v_pos.m_pos) || *v_pos.m_pos == L'_' ) { v_pos.next(); }
+				m_name = text_str{p_state.m_pos.m_pos, v_pos.m_pos};
+				p_state.m_pos = v_pos;
+				return true;
+			}
+		};
+
 	} // ns
 
 } // ns

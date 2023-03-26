@@ -3,6 +3,7 @@ module;
 #include "../src/pre.h"
 
 export module just.input;
+
 export import <filesystem>;
 export import <fstream>;
 import <cstdlib>;

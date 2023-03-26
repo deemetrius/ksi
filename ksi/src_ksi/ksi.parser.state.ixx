@@ -5,15 +5,9 @@ module;
 export module ksi.parser:state;
 
 import ksi.log;
-export import ksi.ast;
+export import ksi.tokens;
 
 namespace ksi {
-
-	namespace tokens {
-
-		struct nest {};
-
-	} // ns
 
 	namespace parser {
 

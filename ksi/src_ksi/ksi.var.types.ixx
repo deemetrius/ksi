@@ -13,6 +13,7 @@ export import <variant>;
 
 export namespace ksi {
 
+	using t_index = just::t_index;
 	using t_integer = just::t_integer;
 	using t_floating = double;
 

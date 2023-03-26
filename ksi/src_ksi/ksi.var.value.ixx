@@ -15,7 +15,8 @@ export namespace ksi {
 
 		using ring = just::owned_ring;
 		using with_ring = just::with_ring<ring>;
-		using owner_pointer = with_ring::owner::pointer;
+		using owner = var::with_ring::owner;
+		using owner_pointer = owner::pointer;
 
 		struct value_base : public just::with_deleter<value_base> {
 			using pointer = value_base *;

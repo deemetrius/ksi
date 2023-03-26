@@ -9,6 +9,7 @@ export import ksi.log;
 import :state;
 import :basic;
 import :alt;
+import :mod;
 
 export namespace ksi {
 
@@ -16,7 +17,8 @@ export namespace ksi {
 
 		struct rule_file : public rule_alt<
 			t_eof,
-			t_opt_space
+			t_opt_space,
+			t_module_def
 		> {};
 
 		bool parse(space::pointer p_space, fs::path p_path, t_text p_file, log_base::pointer p_log) {

@@ -33,7 +33,7 @@ int wmain(int p_args_count, wchar_t * p_args[], wchar_t * p_env[]) {
 		ksi::log_vector v_log;
 		ksi::space v_space;
 		ksi::t_integer v_res = ksi::parser::parse(&v_space, v_path, v_f, &v_log);
-		just::g_console << v_res << just::g_new_line;
+		just::g_console << (v_res ? "* Parsed" : "* Not parsed") << just::g_new_line;
 		v_log.out();
 
 		/*ksi::var::value v1{&ksi::hcfg->mc_null}, v2{&ksi::hcfg->mt_cat};

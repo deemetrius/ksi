@@ -20,6 +20,7 @@
     <ClCompile Include="..\src_just\just.aux.ixx" />
     <ClCompile Include="..\src_just\just.choice.ixx" />
     <ClCompile Include="..\src_just\just.fixed_array.ixx" />
+    <ClCompile Include="..\src_just\just.hive.ixx" />
     <ClCompile Include="..\src_just\just.input.ixx" />
     <ClCompile Include="..\src_just\just.iter.ixx" />
     <ClCompile Include="..\src_just\just.flags_bits.ixx" />
@@ -31,7 +32,11 @@
     <ClCompile Include="..\src_just\just.pool.ixx" />
     <ClCompile Include="..\src_just\just.std.ixx" />
     <ClCompile Include="..\src_just\just.text.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.act.cpp" />
+    <ClCompile Include="..\src_ksi\ksi.act.ixx" />
     <ClCompile Include="..\src_ksi\ksi.ast.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.parser.module.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.tokens.ixx" />
     <ClCompile Include="..\src_ksi\ksi.var.array.ixx" />
     <ClCompile Include="..\src_ksi\ksi.var.config.ixx" />
     <ClCompile Include="..\src_ksi\ksi.log.ixx" />

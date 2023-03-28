@@ -34,8 +34,8 @@ export namespace ksi {
 			}
 		};
 	
-		value::value(marker_map) : m_value{std::make_unique<value_map>(&this->m_owner)} {}
-		value & value::operator = (marker_map) { m_value = std::make_unique<value_map>(&this->m_owner); return *this; }
+		value::value(marker_map) : m_value{std::make_unique<value_map>( this->m_owner.get() )} {}
+		value & value::operator = (marker_map) { m_value = std::make_unique<value_map>( this->m_owner.get() ); return *this; }
 
 	} // ns
 

@@ -53,7 +53,7 @@ struct o_hive {
 	// no copy, no move
 
 	o_hive(const o_hive &) = delete;
-	o_hive(o_hive &&) = delete;
+	o_hive(o_hive &&) = default;
 
 	o_hive & operator = (const o_hive &) = delete;
 	o_hive & operator = (o_hive &&) = delete;
@@ -109,7 +109,7 @@ struct ot_hive : public is_owned< ot_hive<Key, Value, Less> >, public o_hive<Key
 	using t_vector_value_type = t_vector::value_type;
 	using t_map_value_type = t_map::value_type;
 
-	ot_hive() : t_base{&this->m_owner} {}
+	ot_hive() : t_base{this->m_owner.get()} {}
 
 	void unset_elements() {
 		for( t_vector_value_type & v_it : std::ranges::reverse_view{this->m_vector} ) { v_it.second->unset(); }

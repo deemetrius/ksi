@@ -95,9 +95,11 @@ export namespace ksi {
 
 			//
 
-			value(const value & p) : m_value{p->copy(&this->m_owner)} {}
+			value(const value & p) : m_value{p->copy( this->m_owner.get() )} {}
+			value(value && p) : m_value{p->copy( this->m_owner.get() )} {}
 
-			value & operator = (const value & p) { m_value = p->copy(&this->m_owner); return *this; }
+			value & operator = (const value & p) { m_value = p->copy( this->m_owner.get() ); return *this; }
+			value & operator = (value && p) { m_value = p->copy( this->m_owner.get() ); return *this; }
 
 			//
 

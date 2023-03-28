@@ -99,16 +99,23 @@ export namespace just {
 		struct is_owned :
 			public T_ring::is_owned_base
 		{
+			using t_ptr = std::unique_ptr<owner>;
 			using t_ring = T_ring;
 			using t_ring_pointer = T_ring *;
 
 			// data
-			owner
+			t_ptr
 				m_owner;
 			owned_status
 				m_unset_status{owned_status::not_unset};
 			t_ring_pointer
 				m_ring = &t_ring::s_ring;
+
+			is_owned() : m_owner{std::make_unique<owner>()} {}
+
+			is_owned(is_owned &&) = default;
+
+			~is_owned() { m_ring->del(this); }
 
 			void unset() {
 				if( m_unset_status == owned_status::not_unset) {
@@ -118,8 +125,6 @@ export namespace just {
 					m_unset_status = owned_status::unset_done;
 				}
 			}
-
-			~is_owned() { m_ring->del(this); }
 		};
 
 		// optr
@@ -149,23 +154,12 @@ export namespace just {
 			pointer
 				m_target{nullptr};
 
-			/*template <typename ... T_args>
-			void set(owner::pointer p_host, T_args && ... p_args) {
-				if( m_target != nullptr ) { return; }
-				m_host = p_host;
-				std::unique_ptr<type> v_target{ std::make_unique<type>(std::forward<T_args>(p_args) ...) };
-				init(&v_target->m_owner.m_hosts);
-				m_target = v_target.release();
-			}
-
-			optr() = default;*/
-
 			template <typename ... T_args>
 			optr(owner::pointer p_host, separator = {}, T_args && ... p_args) :
 				m_host{p_host}
 			{
 				std::unique_ptr<type> v_target{ std::make_unique<type>(std::forward<T_args>(p_args) ...) };
-				init(&v_target->m_owner.m_hosts);
+				init(&v_target->m_owner->m_hosts);
 				m_target = v_target.release();
 			}
 
@@ -183,7 +177,7 @@ export namespace just {
 			optr(owner::pointer p_host, const optr & p_other) :
 				m_host{p_host}
 			{
-				init(&p_other.m_target->m_owner.m_hosts);
+				init(&p_other.m_target->m_owner->m_hosts);
 				m_target = p_other.m_target;
 			}
 
@@ -197,7 +191,7 @@ export namespace just {
 			optr & operator = (const optr & p_other) {
 				if( m_target == p_other.m_target ) { return; }
 				clear();
-				init(&p_other.m_target->m_owner.m_hosts);
+				init(&p_other.m_target->m_owner->m_hosts);
 				m_target = p_other.m_target;
 				return *this;
 			}
@@ -215,7 +209,7 @@ export namespace just {
 
 			void clear() {
 				if( m_target == nullptr ) { return; }
-				typename owner::t_items_pointer v_hosts = &m_target->m_owner.m_hosts;
+				typename owner::t_items_pointer v_hosts = &m_target->m_owner->m_hosts;
 				if( m_iterator != v_hosts->cend() ) { v_hosts->erase(m_iterator); }
 				if( v_hosts->empty() ) {
 					delete m_target;
@@ -227,7 +221,7 @@ export namespace just {
 				using t_pair = std::pair<iterator, iterator>;
 				using t_list = std::list<t_pair>;
 				t_set v_set;
-				v_set.insert(&m_target->m_owner);
+				v_set.insert( m_target->m_owner.get() );
 				t_list v_list;
 				v_list.emplace_back(v_hosts->begin(), v_hosts->end() );
 				do {

@@ -69,6 +69,10 @@ export namespace ksi {
 		t_module::pointer mod_get(t_index p_index) {
 			return m_mods.m_vec[p_index].get();
 		}
+
+		act::sequence::pointer seq_get(act::pos_seq p_seq_pos) {
+			return &mod_get(p_seq_pos.m_module_id)->m_seqs[p_seq_pos.m_seq_id];
+		}
 	};
 
 } // ns

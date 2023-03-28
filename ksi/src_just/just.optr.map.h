@@ -19,7 +19,7 @@ struct o_map {
 	//
 
 	o_map(const o_map &) = delete;
-	o_map(o_map &&) = delete;
+	o_map(o_map &&) = default;
 
 	o_map & operator = (const o_map &) = delete;
 	o_map & operator = (o_map &&) = delete;
@@ -44,7 +44,7 @@ struct ot_map : public is_owned< ot_map<Key, Value, Less> >, public o_map<Key, V
 	using t_base::t_items;
 	using value_type = t_items::value_type;
 
-	ot_map() : t_base{&this->m_owner} {}
+	ot_map() : t_base{this->m_owner.get()} {}
 
 	void unset_elements() {
 		for( value_type & v_it : std::ranges::reverse_view{this->m_items} ) {

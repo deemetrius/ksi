@@ -17,7 +17,7 @@ struct o_vector {
 	//
 
 	o_vector(const o_vector &) = delete;
-	o_vector(o_vector &&) = delete;
+	o_vector(o_vector &&) = default;
 
 	o_vector & operator = (const o_vector &) = delete;
 	o_vector & operator = (o_vector &&) = delete;
@@ -28,9 +28,11 @@ struct o_vector {
 
 	template <typename ... Args>
 	o_vector(owner::pointer p_owner, t_size p_size, Args && ... p_args) : mp_owner{p_owner} {
-		m_items.reserve(p_size);
-		for( size_t i = 0; i < p_size; ++i ) {
-			m_items.emplace_back(mp_owner, std::forward<Args>(p_args) ...);
+		if( p_size > 0 ) {
+			m_items.reserve(p_size);
+			for( size_t i = 0; i < p_size; ++i ) {
+				m_items.emplace_back(mp_owner, std::forward<Args>(p_args) ...);
+			}
 		}
 	}
 
@@ -51,7 +53,7 @@ struct ot_vector : public is_owned< ot_vector<T> >, public o_vector<T>
 	using t_base = o_vector<T>;
 	using t_optr = t_base::t_optr;
 
-	ot_vector() : t_base{&this->m_owner} {}
+	ot_vector() : t_base{this->m_owner.get()} {}
 
 	void unset_elements() {
 		for( t_optr & v_it : std::ranges::reverse_view{this->m_items} ) { v_it->unset(); }

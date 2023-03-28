@@ -11,7 +11,13 @@ export namespace ksi {
 
 	namespace tokens {
 
+		enum class mode { n_default, n_target };
+
 		struct token_base : public just::with_deleter<token_base> {
+			// data
+			mode
+				m_mode = mode::n_default;
+			
 			virtual ~token_base() {}
 
 			virtual void perform(ast::prepare_data & p_data) = 0;
@@ -44,6 +50,12 @@ export namespace ksi {
 			void add(T_data * p_data) {
 				using t_item = token_exact<T_data>;
 				m_items.emplace_back( std::make_unique<t_item>( std::move(*p_data) ) );
+			}
+
+			void go(ast::prepare_data & p_data) {
+				for( t_ptr & v_it : m_items ) {
+					v_it->perform(p_data);
+				}
 			}
 		};
 

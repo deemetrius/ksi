@@ -26,11 +26,11 @@ export namespace ksi {
 
 		//
 
-		struct pos_seq {
+		struct pos_module_aspect {
 			// data
 			t_index
-				m_module_id,
-				m_seq_id;
+				m_module_id = 0,
+				m_aspect_id = 0;
 		};
 
 		struct pos_action {
@@ -60,12 +60,12 @@ export namespace ksi {
 			using t_items = std::vector<group_space>;
 
 			// data
-			pos_seq
+			pos_module_aspect
 				m_seq_pos;
 			t_items
 				m_act_poses;
 
-			seq_space(pos_seq p_seq_pos, space_pointer p_space);
+			seq_space(pos_module_aspect p_seq_pos, space_pointer p_space);
 
 			t_items::reference back() { return m_act_poses.back(); }
 		};
@@ -83,7 +83,7 @@ export namespace ksi {
 				m_call_stack;
 
 			run_space(space_pointer p_space, log_base::pointer p_log) : m_space{p_space}, m_log{p_log} {
-				m_call_stack.emplace_back(pos_seq{0, 0}, p_space);
+				m_call_stack.emplace_back(pos_module_aspect{0, 0}, p_space);
 			}
 
 			t_items::reference back() { return m_call_stack.back(); }
@@ -100,10 +100,9 @@ export namespace ksi {
 			t_pos
 				m_pos;
 			t_integer
-				m_value = 0,
-				m_id = 0;
-			t_index
-				m_module_id = 0;
+				m_value = 0;
+			pos_module_aspect
+				m_aspect_pos;
 		};
 
 		struct action_type {

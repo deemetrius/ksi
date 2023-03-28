@@ -30,6 +30,9 @@
     <ClInclude Include="..\src_just\just.optr.hive.h">
       <Filter>Исходные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="..\src_ksi\ksi.parser.module.h">
+      <Filter>Исходные файлы</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src_just\just.iter.ixx">
@@ -128,9 +131,6 @@
     <ClCompile Include="..\src_ksi\ksi.tokens.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\src_ksi\ksi.parser.module.ixx">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="..\src_ksi\ksi.act.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -138,6 +138,9 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="..\src_ksi\ksi.act.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src_ksi\ksi.parser.rules.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

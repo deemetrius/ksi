@@ -58,12 +58,12 @@ export namespace just {
 		iterator begin() { return {m_map.begin(), &m_vec}; }
 		iterator end() { return {m_map.end(), &m_vec}; }
 
-		template <typename T_key, typename ... Args>
-		iterator try_emplace(T_key && p_key, Args ... p_args) {
+		template <typename ... Args>
+		iterator try_emplace(const Key & p_key, Args && ... p_args) {
 			t_map_iterator v_it = m_map.find(p_key);
 			if( v_it == m_map.end() ) {
 				t_index v_id = std::ssize(m_vec);
-				t_pair v_pair = m_map.try_emplace(std::forward<T_key>(p_key), v_id);
+				t_pair v_pair = m_map.try_emplace(p_key, v_id);
 				m_vec.emplace_back(std::forward<Args>(p_args) ...);
 				return {v_pair.first, &m_vec, v_pair.second};
 			}

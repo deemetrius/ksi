@@ -4,5 +4,6 @@ module;
 
 export module ksi.var;
 
+export import :value;
 export import :array;
 export import :map;

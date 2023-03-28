@@ -12,6 +12,7 @@
     <ClInclude Include="..\src_just\just.optr.hive.h" />
     <ClInclude Include="..\src_just\just.optr.map.h" />
     <ClInclude Include="..\src_just\just.optr.vector.h" />
+    <ClInclude Include="..\src_ksi\ksi.parser.module.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src_bin\main.cpp" />
@@ -35,7 +36,7 @@
     <ClCompile Include="..\src_ksi\ksi.act.cpp" />
     <ClCompile Include="..\src_ksi\ksi.act.ixx" />
     <ClCompile Include="..\src_ksi\ksi.ast.ixx" />
-    <ClCompile Include="..\src_ksi\ksi.parser.module.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.parser.rules.ixx" />
     <ClCompile Include="..\src_ksi\ksi.tokens.ixx" />
     <ClCompile Include="..\src_ksi\ksi.var.array.ixx" />
     <ClCompile Include="..\src_ksi\ksi.var.config.ixx" />

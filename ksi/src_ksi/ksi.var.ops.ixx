@@ -77,7 +77,7 @@ export namespace ksi {
 		}
 
 		struct value_less {
-			bool operator () (const value & p1, const value & p2) {
+			bool operator () (const value & p1, const value & p2) const {
 				return compare(p1, p2) == t_compare::less;
 			}
 

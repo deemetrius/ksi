@@ -27,10 +27,12 @@ struct o_hive {
 		t_map::iterator
 			m_map_it;
 		t_vector_pointer
-			m_vector;
+			m_vec;
+		bool
+			m_is_added = false;
 
 		value_type operator * () const {
-			return {&m_map_it->first, m_map_it->second, (*m_vector)[m_map_it->second].get()};
+			return {&m_map_it->first, m_map_it->second, (*m_vec)[m_map_it->second].get()};
 		}
 
 		iterator & operator ++ () { ++m_map_it; return *this; }
@@ -39,7 +41,6 @@ struct o_hive {
 		bool operator != (const iterator & p_other) const { return m_map_it != p_other.m_map_it; }
 	};
 
-	using t_try_emplace = std::pair<iterator, bool>;
 	using t_map_try_emplace = std::pair<typename t_map::iterator, bool>;
 
 	// data
@@ -48,7 +49,7 @@ struct o_hive {
 	t_map
 		m_map;
 	t_vector
-		m_vector;
+		m_vec;
 
 	// no copy, no move
 
@@ -62,38 +63,42 @@ struct o_hive {
 
 	o_hive(owner::pointer p_owner) : mp_owner{p_owner} {}
 
-	iterator begin() { return {m_map.begin(), &m_vector}; }
-	iterator end() { return {m_map.end(), &m_vector}; }
+	iterator begin() { return {m_map.begin(), &m_vec}; }
+	iterator end() { return {m_map.end(), &m_vec}; }
 
 	iterator find(const Key & p_key) {
-		return {m_map.find(p_key), &m_vector};
+		return {m_map.find(p_key), &m_vec};
 	}
 
 	template <typename T_key, typename ... Args>
-	t_try_emplace assign(T_key && p_key, Args && ... p_args) {
+	iterator assign(T_key && p_key, Args && ... p_args) {
 		map_iterator v_map_it = m_map.find(p_key);
 		if( v_map_it == m_map.end() ) {
-			t_index v_index = std::ssize(m_vector);
+			t_index v_index = std::ssize(m_vec);
 			t_map_try_emplace v_map_try = m_map.try_emplace(std::forward<T_key>(p_key), v_index);
-			m_vector.emplace_back(mp_owner, std::forward<Args>(p_args) ...);
-			return {{v_map_try.first, &m_vector}, v_map_try.second};
+			m_vec.emplace_back(mp_owner, std::forward<Args>(p_args) ...);
+			return {v_map_try.first, &m_vec, v_map_try.second};
 		}
 		t_index v_index = v_map_it.second;
-		m_vector.erase( m_vector.begin() + v_index );
-		m_vector.emplace( m_vector.cbegin() + v_index, mp_owner, std::forward<Args>(p_args) ... );
-		//m_vector[v_index].~t_optr();
-		//std::construct_at(&m_vector[v_index], mp_owner, std::forward<Args>(p_args) ... );
-		return {{v_map_it, &m_vector}, false};
+		m_vec.erase( m_vec.begin() + v_index );
+		m_vec.emplace( m_vec.cbegin() + v_index, mp_owner, std::forward<Args>(p_args) ... );
+		//m_vec[v_index].~t_optr();
+		//std::construct_at(&m_vec[v_index], mp_owner, std::forward<Args>(p_args) ... );
+		return {v_map_it, &m_vec, false};
 	}
 
 	template <typename T_key, typename ... Args>
-	t_try_emplace try_emplace(T_key && p_key, Args && ... p_args) {
-		t_index v_index = std::ssize(m_vector);
+	iterator try_emplace(T_key && p_key, Args && ... p_args) {
+		t_index v_index = std::ssize(m_vec);
 		t_map_try_emplace v_map_try = m_map.try_emplace(std::forward<T_key>(p_key), v_index);
 		if( v_map_try.second ) {
-			m_vector.emplace_back(mp_owner, std::forward<Args>(p_args) ...);
+			m_vec.emplace_back(mp_owner, std::forward<Args>(p_args) ...);
 		}
-		return {{v_map_try.first, &m_vector}, v_map_try.second};
+		return {v_map_try.first, &m_vec, v_map_try.second};
+	}
+
+	t_index ssize() const {
+		return std::ssize(m_vec);
 	}
 };
 
@@ -112,7 +117,7 @@ struct ot_hive : public is_owned< ot_hive<Key, Value, Less> >, public o_hive<Key
 	ot_hive() : t_base{this->m_owner.get()} {}
 
 	void unset_elements() {
-		for( t_vector_value_type & v_it : std::ranges::reverse_view{this->m_vector} ) { v_it.second->unset(); }
+		for( t_vector_value_type & v_it : std::ranges::reverse_view{this->m_vec} ) { v_it.second->unset(); }
 		//for( t_map_value_type & v_it : std::ranges::reverse_view{this->m_map} ) { Less::unset(v_it.first); }
 	}
 };

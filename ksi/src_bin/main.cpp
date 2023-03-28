@@ -7,7 +7,7 @@ import just.input;
 import just.output;
 import just.args;
 import just.array;
-import ksi.var;
+import ksi.space;
 import ksi.parser;
 
 using t_data = just::array<just::t_index, 3>;

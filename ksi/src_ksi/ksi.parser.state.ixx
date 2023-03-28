@@ -4,7 +4,7 @@ module;
 
 export module ksi.parser:state;
 
-import ksi.log;
+export import ksi.log;
 export import ksi.tokens;
 
 namespace ksi {
@@ -12,6 +12,9 @@ namespace ksi {
 	namespace parser {
 
 		struct state;
+
+		enum class nest_type {n_file, n_module, n_group};
+		enum class kind {n_begin, n_space, n_separator, n_variable, n_literal, n_operator, n_special, n_eof};
 
 		using fn_parse = bool (*) (state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data);
 
@@ -53,6 +56,10 @@ namespace ksi {
 				m_pos;
 			fn_parse
 				m_next_parse;
+			nest_type
+				m_nest = nest_type::n_file;
+			kind
+				m_was_kind = kind::n_begin;
 			bool
 				m_was_space = false,
 				m_done = false,

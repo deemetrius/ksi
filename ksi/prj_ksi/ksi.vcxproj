@@ -36,6 +36,7 @@
     <ClCompile Include="..\src_ksi\ksi.act.cpp" />
     <ClCompile Include="..\src_ksi\ksi.act.ixx" />
     <ClCompile Include="..\src_ksi\ksi.ast.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.ast.tree.ixx" />
     <ClCompile Include="..\src_ksi\ksi.parser.rules.ixx" />
     <ClCompile Include="..\src_ksi\ksi.tokens.ixx" />
     <ClCompile Include="..\src_ksi\ksi.var.array.ixx" />

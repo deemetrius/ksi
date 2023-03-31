@@ -52,6 +52,8 @@ export namespace just {
 		union t_data {
 			empty_type	m_empty;
 			t_element	m_target;
+
+			t_data() {}
 		};
 
 		struct t_pack {

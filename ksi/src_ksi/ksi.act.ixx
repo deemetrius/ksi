@@ -119,21 +119,17 @@ export namespace ksi {
 				m_fn = &do_nothing;
 		};
 
-		struct actions {
-			static inline const action_type
-				s_nothing{L"do_nothing"s, &action_type::do_nothing};
-		};
-
-		//
-
 		struct action {
 			using pointer = action *;
+			using t_cref = const action &;
 
 			// data
 			action_type::const_pointer
-				m_type = &actions::s_nothing;
+				m_type;
 			action_data
 				m_data;
+
+			bool empty() { return m_type->m_fn == &action_type::do_nothing; }
 		};
 
 		struct action_group {
@@ -176,6 +172,13 @@ export namespace ksi {
 				m_groups.emplace_back();
 				m_groups.front().var_add(L"ret"s);
 			}
+		};
+
+		//
+
+		struct actions {
+			static inline const action_type
+				s_nothing{L"do_nothing"s, &action_type::do_nothing};
 		};
 
 	} // ns

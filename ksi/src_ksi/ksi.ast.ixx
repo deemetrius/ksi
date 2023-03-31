@@ -6,6 +6,7 @@ export module ksi.ast;
 
 export import ksi.log;
 export import ksi.space;
+export import :tree;
 
 export namespace ksi {
 
@@ -74,6 +75,7 @@ export namespace ksi {
 			using t_mods = std::map<text_str, t_module_extension, std::ranges::less>;
 			using t_mods_iterator = t_mods::iterator;
 			using t_try_emplace = std::pair<t_mods::iterator, bool>;
+			using t_body_ptr = std::unique_ptr<body>;
 
 			// data
 			space::pointer
@@ -88,6 +90,8 @@ export namespace ksi {
 				m_mods;
 			t_module_extension::pointer
 				m_mod_current;
+			t_body_ptr
+				m_body;
 
 			prepare_data(space::pointer p_space, log_base::pointer p_log) :
 				m_space{p_space},

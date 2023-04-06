@@ -23,8 +23,8 @@ export namespace ksi {
 		using sequence_pointer = sequence *;
 
 		struct stack {
-			using t_ptr = var::with_ring::optr<var::value>;
-			using t_items = var::with_ring::o_vector<var::value>;
+			using t_ptr = var::optr_nest::optr<var::value>;
+			using t_items = var::optr_nest::o_vector<var::value>;
 
 			// data
 			var::owner
@@ -80,9 +80,9 @@ export namespace ksi {
 				m_action_id = 0;
 		};
 
-		struct group_space : public var::with_ring::is_owned<group_space> {
+		struct group_space : public var::optr_nest::is_owned<group_space> {
 			using pointer = group_space *;
-			using t_vars = var::with_ring::o_vector<var::value>;
+			using t_vars = var::optr_nest::o_vector<var::value>;
 
 			// data
 			pos_action

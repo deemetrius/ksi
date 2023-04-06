@@ -24,7 +24,7 @@ export namespace ksi {
 
 	struct t_module : public var::with_id_name<var::n_id_mod>, public just::with_deleter<t_module> {
 		using pointer = t_module *;
-		using t_vars = var::with_ring::o_hive<text_str, var::value, std::ranges::less>;
+		using t_vars = var::optr_nest::o_hive<text_str, var::value, std::ranges::less>;
 		using t_seqs = std::vector<act::sequence>;
 		using t_props = std::vector<property_seq>;
 

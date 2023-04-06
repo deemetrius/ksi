@@ -11,9 +11,9 @@ export namespace ksi {
 	namespace var {
 
 		struct value_map : public value_base, public marker_map {
-			using t_items = with_ring::template ot_map<value, value, value_less>;
+			using t_items = optr_nest::template ot_map<value, value, value_less>;
 			using t_items_pointer = t_items *;
-			using t_items_ptr = with_ring::optr<t_items>;
+			using t_items_ptr = optr_nest::optr<t_items>;
 
 			// data
 			t_items_ptr

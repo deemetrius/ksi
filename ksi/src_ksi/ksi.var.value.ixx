@@ -13,9 +13,11 @@ export namespace ksi {
 
 	namespace var {
 
-		using ring = just::owned_ring;
-		using with_ring = just::with_ring<ring>;
-		using owner = var::with_ring::owner;
+		struct optr_nest : public just::optr_nest<optr_nest> {};
+
+		//using ring = just::owned_ring;
+		//using optr_nest = just::optr_nest<ring>;
+		using owner = var::optr_nest::owner;
 		using owner_pointer = owner::pointer;
 
 		struct value_base : public just::with_deleter<value_base> {
@@ -78,7 +80,7 @@ export namespace ksi {
 
 		//
 
-		struct value : public with_ring::is_owned<value> {
+		struct value : public optr_nest::is_owned<value> {
 			using pointer = value *;
 
 			// data

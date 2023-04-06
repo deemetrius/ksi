@@ -6,7 +6,7 @@ export module just.optr;
 
 /*
 Smart pointer 'optr' служит для учёта циклических ссылок.
-Если в методе optr::clear() брошено исключение, то деструктор кладёт 'target' в "ring" список.
+Если в методе optr::clear() брошено исключение, то деструктор кладёт 'target' в "bad_targets" список.
 В clear() используются: std::list и std::map
 */
 
@@ -29,57 +29,6 @@ export namespace just {
 
 	struct separator {};
 
-	struct owned_ring {
-		struct is_owned_base :
-			public node_list<is_owned_base>
-		{
-			// data
-			std::exception_ptr
-				m_exception;
-
-			virtual ~is_owned_base() = default;
-		};
-
-		using t_zero = node_list<is_owned_base>;
-		using pointer = is_owned_base *;
-
-		static owned_ring s_ring;
-
-		// data
-		t_zero
-			m_zero;
-		t_index
-			m_count;
-
-		~owned_ring() { clear(); }
-
-		void add(pointer p_target, std::exception_ptr p_exception) {
-			p_target->m_exception = p_exception;
-			m_zero.node_attach(p_target);
-			++m_count;
-		}
-
-		void del(pointer p_target) {
-			if( ! p_target->node_empty() ) {
-				p_target->node_detach();
-				--m_count;
-			}
-		}
-
-		void clear() {
-			while( ! m_zero.node_empty() ) { // since (delete it) might add some to ring in front
-				for( typename t_zero::target_pointer it : m_zero.node_range() ) { // forward it
-					it->node_detach();
-					delete it;
-				}
-			}
-			m_zero.node_reset();
-			m_count = 0;
-		}
-	};
-
-	owned_ring owned_ring::s_ring;
-
 	template <typename T>
 	concept c_unsetable = requires(T & p) {
 		p.unset_elements();
@@ -87,8 +36,59 @@ export namespace just {
 
 	enum class owned_status { not_unset, unset_started, unset_done };
 
-	template <typename T_ring>
-	struct with_ring {
+	template <typename T_nest>
+	struct optr_nest {
+		
+		struct bad_targets {
+			struct is_owned_base :
+				public node_list<is_owned_base>
+			{
+				// data
+				std::exception_ptr
+					m_exception;
+
+				virtual ~is_owned_base() = default;
+			};
+
+			using t_zero = node_list<is_owned_base>;
+			using pointer = is_owned_base *;
+
+			// data
+			t_zero
+				m_zero;
+			t_index
+				m_count;
+
+			~bad_targets() { clear(); }
+
+			void add(pointer p_target, std::exception_ptr p_exception) {
+				p_target->m_exception = p_exception;
+				m_zero.node_attach(p_target);
+				++m_count;
+			}
+
+			void del(pointer p_target) {
+				if( ! p_target->node_empty() ) {
+					p_target->node_detach();
+					--m_count;
+				}
+			}
+
+			void clear() {
+				while( ! m_zero.node_empty() ) { // since (delete it) might add some to ring in front
+					for( typename t_zero::target_pointer it : m_zero.node_range() ) { // forward it
+						it->node_detach();
+						delete it;
+					}
+				}
+				m_zero.node_reset();
+				m_count = 0;
+			}
+		};
+
+		static inline bad_targets s_ring;
+
+		//
 
 		struct owner {
 			using pointer = owner *;
@@ -103,11 +103,11 @@ export namespace just {
 
 		template <typename T>
 		struct is_owned :
-			public T_ring::is_owned_base
+			public bad_targets::is_owned_base
 		{
 			using t_ptr = std::unique_ptr<owner>;
-			using t_ring = T_ring;
-			using t_ring_pointer = T_ring *;
+			using t_ring = bad_targets;
+			using t_ring_pointer = bad_targets *;
 
 			// data
 			t_ptr
@@ -115,7 +115,7 @@ export namespace just {
 			owned_status
 				m_unset_status{owned_status::not_unset};
 			t_ring_pointer
-				m_ring = &t_ring::s_ring;
+				m_ring = &s_ring;
 
 			is_owned() : m_owner{std::make_unique<owner>()} {}
 
@@ -141,7 +141,7 @@ export namespace just {
 			using type = T;
 			using pointer = type *;
 			using reference = type &;
-			using t_ring = T_ring;
+			using t_ring = bad_targets;
 			using t_ring_pointer = t_ring *;
 		
 			struct params {

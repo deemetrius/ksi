@@ -11,9 +11,9 @@ export namespace ksi {
 	namespace var {
 
 		struct value_array : public value_base, public marker_array {
-			using t_items = with_ring::template ot_vector<value>;
+			using t_items = optr_nest::template ot_vector<value>;
 			using t_items_pointer = t_items *;
-			using t_items_ptr = with_ring::optr<t_items>;
+			using t_items_ptr = optr_nest::optr<t_items>;
 
 			// data
 			t_items_ptr

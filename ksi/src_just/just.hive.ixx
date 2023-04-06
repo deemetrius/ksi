@@ -4,7 +4,12 @@ module;
 
 export module just.hive;
 
-export import just.std;
+/*
+Контейнер hive совмещает в себе vector и map.
+Он обеспечивает доступ к элементу по ключу и по индексу.
+*/
+
+export import just.iter;
 export import <vector>;
 export import <map>;
 
@@ -16,9 +21,11 @@ export namespace just {
 		using t_vec_pointer = t_vec *;
 		using t_map = std::map<Key, t_index, Less>;
 		using t_map_iterator = t_map::iterator;
+		using t_vec_iterator = t_vec::iterator;
 		using value_pointer = Value *;
 		using key_const_pointer = const Key *;
 		using t_pair = std::pair<typename t_map::iterator, bool>;
+		using range_vec = just::range_for<t_vec_iterator>;
 
 		struct value_type {
 			// data
@@ -57,6 +64,8 @@ export namespace just {
 
 		iterator begin() { return {m_map.begin(), &m_vec}; }
 		iterator end() { return {m_map.end(), &m_vec}; }
+
+		range_vec range() { return {m_vec.begin(), m_vec.end()}; }
 
 		template <typename ... Args>
 		iterator try_emplace(const Key & p_key, Args && ... p_args) {

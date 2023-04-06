@@ -40,7 +40,7 @@ export namespace ksi {
 			t_type get_type() const override;
 			t_ptr copy(owner_pointer p_owner) override { return std::make_unique<value_exact>(*this); }
 			void write(just::output_base & o) override {
-				if constexpr ( std::is_base_of_v<with_id_name, std::remove_pointer_t<T> > ) {
+				if constexpr ( std::is_base_of_v<data_with_cat_set, std::remove_pointer_t<T> > ) {
 					o << m_value->m_name->c_str();
 				} else if constexpr ( std::is_same_v<t_text, T> ) {
 					o << m_value->c_str();

@@ -10,12 +10,6 @@ export namespace ksi {
 
 	using namespace std::string_literals;
 
-	enum n_id : t_integer {
-		n_id_cat	= 0x00'00'00'00'00'00'00'00,
-		n_id_type	= 0x00'00'01'00'00'00'00'00,
-		n_id_mod	= 0x00'00'02'00'00'00'00'00
-	};
-
 	struct wrong_config {};
 
 	struct config {
@@ -32,8 +26,8 @@ export namespace ksi {
 
 		// data
 		t_integer
-			m_cat_id	= n_id_cat,
-			m_type_id	= n_id_type;
+			m_cat_id	= var::n_id_cat,
+			m_type_id	= var::n_id_type;
 		var::category
 			mc_any,
 			mc_null,

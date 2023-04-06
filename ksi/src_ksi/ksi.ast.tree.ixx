@@ -17,6 +17,7 @@ export namespace ksi {
 			n_assign_before,	//	a=
 			n_mult,				//	* / .mod
 			n_plus,				//	+ -
+			n_cmp,				//	== <> < > <= >=
 			n_assign_after,		//	=a
 			n_root
 		};

@@ -26,6 +26,10 @@ struct o_vector {
 
 	o_vector(owner::pointer p_owner) : mp_owner{p_owner} {}
 
+	o_vector(t_size p_size, owner::pointer p_owner) : mp_owner{p_owner} {
+		m_items.reserve(p_size);
+	}
+
 	template <typename ... Args>
 	o_vector(owner::pointer p_owner, t_size p_size, Args && ... p_args) : mp_owner{p_owner} {
 		if( p_size > 0 ) {
@@ -42,7 +46,11 @@ struct o_vector {
 		return v.get();
 	}
 
-	t_optr & operator [] (t_size p_index) { return m_items[p_index]; }
+	void pop_back() { m_items.pop_back(); }
+
+	t_optr & operator [] (t_index p_index) { return m_items[p_index]; }
+
+	t_optr & back() { return m_items.back(); }
 };
 
 // ot_vector

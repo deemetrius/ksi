@@ -22,7 +22,45 @@ export namespace ksi {
 		struct sequence;
 		using sequence_pointer = sequence *;
 
-		struct stack {};
+		struct stack {
+			using t_ptr = var::with_ring::optr<var::value>;
+			using t_items = var::with_ring::o_vector<var::value>;
+
+			// data
+			var::owner
+				m_owner;
+			t_ptr
+				m_cell;
+			t_items
+				m_items;
+
+			stack() : m_cell{&m_owner}, m_items{16, &m_owner} {}
+
+			void set(const t_ptr & v_ptr) {
+				m_cell = v_ptr;
+			}
+
+			void push() {
+				m_items.emplace_back();
+				*m_items.back() = *m_cell;
+			}
+
+			void push_link() {
+				m_items.emplace_back(m_cell);
+			}
+
+			void pop() {
+				m_items.pop_back();
+			}
+
+			void assign() {
+				*m_items.back() = *m_cell;
+			}
+
+			void link() {
+				m_items.back() = m_cell;
+			}
+		};
 
 		//
 

@@ -32,15 +32,24 @@ export namespace ksi {
 			return po;
 		}
 
+		enum n_id : t_integer {
+			n_id_cat	= 0x00'00'00'00'00'00'00'00LL,
+			n_id_type	= 0x00'00'01'00'00'00'00'00LL,
+			n_id_mod	= 0x00'00'02'00'00'00'00'00LL
+		};
+
+		template <n_id C_base_id>
 		struct with_id_name {
 			// data
-			t_integer
+			t_index
 				m_id;
 			t_text
 				m_name;
+
+			t_index id() { return m_id - C_base_id; }
 		};
 
-		struct with_cat_set : public with_id_name {
+		struct data_with_cat_set {
 			using t_cat_map = std::vector<bool>;
 			using t_cat_set = std::set<t_integer>;
 			using t_cat_vec = std::vector<t_integer>;
@@ -52,8 +61,14 @@ export namespace ksi {
 				m_cat_set;
 			t_cat_vec
 				m_cat_vec;
+		};
 
-			with_cat_set(t_integer p_id, t_text p_name) : with_id_name{p_id, p_name} {
+		template <n_id C_base_id>
+		struct with_cat_set : public with_id_name<C_base_id>, public data_with_cat_set {
+			using t_from_cat = with_cat_set<n_id_cat>;
+			using t_base = with_id_name<C_base_id>;
+
+			with_cat_set(t_integer p_id, t_text p_name) : t_base{p_id, p_name} {
 				m_cat_map.push_back(true);
 				m_cat_set.insert(0);
 			}
@@ -66,33 +81,33 @@ export namespace ksi {
 				m_cat_set.insert(p_id);
 			}
 
-			bool cat_has(const with_cat_set & p_cat) {
+			bool cat_has(const t_from_cat & p_cat) {
 				return ( p_cat.m_id <= std::ssize(m_cat_map) ) && m_cat_map[p_cat.m_id];
 			}
 
-			void cat_add_from_set(const with_cat_set & p_cat) {
+			void cat_add_from_set(const t_from_cat & p_cat) {
 				for( t_integer v_id : p_cat.m_cat_set ) {
 					inner_cat_add(v_id);
 				}
 			}
 
-			void cat_add_indirect(const with_cat_set & p_cat) {
+			void cat_add_indirect(const t_from_cat & p_cat) {
 				inner_cat_add(p_cat.m_id);
 				cat_add_from_set(p_cat);
 			}
 
-			void cat_add(const with_cat_set & p_cat) {
+			void cat_add(const t_from_cat & p_cat) {
 				m_cat_vec.push_back(p_cat.m_id);
 				cat_add_indirect(p_cat);
 			}
 		};
 
-		struct category : public with_cat_set {
+		struct category : public with_cat_set<n_id_cat> {
 			using pointer = category *;
 			using with_cat_set::with_cat_set;
 		};
 
-		struct type : public with_cat_set {
+		struct type : public with_cat_set<n_id_type> {
 			using pointer = type *;
 			using with_cat_set::with_cat_set;
 		};

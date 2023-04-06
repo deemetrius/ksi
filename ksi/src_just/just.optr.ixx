@@ -4,6 +4,12 @@ module;
 
 export module just.optr;
 
+/*
+Smart pointer 'optr' служит для учёта циклических ссылок.
+Если в методе optr::clear() брошено исключение, то деструктор кладёт 'target' в "ring" список.
+В clear() используются: std::list и std::map
+*/
+
 export import <type_traits>;
 export import <concepts>;
 export import <list>;
@@ -189,12 +195,14 @@ export namespace just {
 			}*/
 
 			optr & operator = (const optr & p_other) {
-				if( m_target == p_other.m_target ) { return; }
+				if( m_target == p_other.m_target ) { return *this; }
 				clear();
 				init(&p_other.m_target->m_owner->m_hosts);
 				m_target = p_other.m_target;
 				return *this;
 			}
+
+			//optr & operator = (optr && p_other) = delete;
 
 			/*optr & operator = (optr && p_other) {
 				if( m_target == p_other.m_target ) { return; }

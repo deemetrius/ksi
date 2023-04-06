@@ -62,13 +62,31 @@ export namespace ksi {
 			}
 
 			t_index var_get(t_text p_name) {
-				typename t_module::t_vars::iterator v_it = m_module->m_vars.find(*p_name);
+				/*typename t_module::t_vars::iterator v_it = m_module->m_vars.find(*p_name);
 				if( v_it == m_module->m_vars.end() ) {
 					return inner_var_get(p_name);
 				}
-				return (*v_it).m_index;
+				return (*v_it).m_index;*/
+				t_index ret = m_module->var_get(p_name);
+				return (ret == -1) ? inner_var_get(p_name) : ret;
 			}
 		};
+
+		/*struct mod_property_adder {
+			// data
+			t_module::pointer
+				m_module;
+			t_index
+				m_id;
+			t_text
+				m_name;
+			act::sequence
+				m_seq;
+
+			act::pos_module_aspect pos() {
+				return {m_module->id(), m_id};
+			}
+		};*/
 
 		struct prepare_data {
 			//using t_mod_ptr = std::unique_ptr<t_module_extension, just::hold_deleter>;

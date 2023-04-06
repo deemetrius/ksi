@@ -16,13 +16,13 @@ export namespace ksi {
 	
 	struct property_seq {
 		// data
+		t_index
+			m_seq_id;
 		property_status
-			m_status;
-		act::sequence
-			m_seq;
+			m_status = property_status::n_undefined;
 	};
 
-	struct t_module : public var::with_id_name, public just::with_deleter<t_module> {
+	struct t_module : public var::with_id_name<var::n_id_mod>, public just::with_deleter<t_module> {
 		using pointer = t_module *;
 		using t_vars = var::with_ring::o_hive<text_str, var::value, std::ranges::less>;
 		using t_seqs = std::vector<act::sequence>;
@@ -46,9 +46,10 @@ export namespace ksi {
 
 		t_index var_get(t_text p_name) {
 			typename t_vars::iterator v_it = m_vars.find(*p_name);
-			if( v_it == m_vars.end() ) {
+			/*if( v_it == m_vars.end() ) {
 				v_it = m_vars.try_emplace(*p_name);
-			}
+			}*/
+			if( v_it == m_vars.end() ) { return -1; }
 			return (*v_it).m_index;
 		}
 	};
@@ -60,7 +61,7 @@ export namespace ksi {
 
 		// data
 		t_integer
-			m_mod_id = n_id_mod;
+			m_mod_id = var::n_id_mod;
 		t_mods
 			m_mods;
 		t_module::pointer
@@ -95,14 +96,14 @@ export namespace ksi {
 			typename t_mods::iterator v_it = m_mods.try_emplace(*p_mod_ptr->m_name,
 				std::move(p_mod_ptr)
 			);
-			if( typename t_mods::value_type v = *v_it; v.m_value->get()->m_id != (v.m_index + n_id_mod) ) {
+			if( typename t_mods::value_type v = *v_it; v.m_value->get()->m_id != (v.m_index + var::n_id_mod) ) {
 				t_text v_msg = just::implode({
 					L"extending module notice: Module id differs: "s,
 					v.m_value->get()->m_name,
 					L" (pos: "s,
 					std::to_wstring(v.m_index),
 					L", id: "s,
-					std::to_wstring(v.m_value->get()->m_id - n_id_mod),
+					std::to_wstring(v.m_value->get()->m_id - var::n_id_mod),
 					L")"s
 				});
 				p_log->add({fs::path{}, {0,0}, v_msg});

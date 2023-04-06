@@ -51,10 +51,12 @@ struct o_hive {
 	t_vector
 		m_vec;
 
-	// no copy, no move
+	// no copy, but move
 
 	o_hive(const o_hive &) = delete;
 	o_hive(o_hive &&) = default;
+
+	// no copy assign, no move assign
 
 	o_hive & operator = (const o_hive &) = delete;
 	o_hive & operator = (o_hive &&) = delete;

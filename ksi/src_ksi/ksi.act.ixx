@@ -27,14 +27,14 @@ export namespace ksi {
 			using t_items = var::optr_nest::o_vector<var::value>;
 
 			// data
-			var::owner
-				m_owner;
+			var::junction
+				m_point;
 			t_ptr
 				m_cell;
 			t_items
 				m_items;
 
-			stack() : m_cell{&m_owner}, m_items{16, &m_owner} {}
+			stack() : m_cell{&m_point}, m_items{16, &m_point} {}
 
 			void set(const t_ptr & v_ptr) {
 				m_cell = v_ptr;
@@ -80,7 +80,7 @@ export namespace ksi {
 				m_action_id = 0;
 		};
 
-		struct group_space : public var::optr_nest::is_owned<group_space> {
+		struct group_space : public var::optr_nest::with_point<group_space> {
 			using pointer = group_space *;
 			using t_vars = var::optr_nest::o_vector<var::value>;
 

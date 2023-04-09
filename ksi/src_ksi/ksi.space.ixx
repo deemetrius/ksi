@@ -29,8 +29,8 @@ export namespace ksi {
 		using t_props = std::vector<property_seq>;
 
 		// data
-		var::owner
-			m_owner;
+		var::junction
+			m_point;
 		t_vars
 			m_vars;
 		t_seqs
@@ -40,7 +40,7 @@ export namespace ksi {
 		t_props
 			m_props;
 
-		t_module(t_integer p_id, t_text p_name) : with_id_name{p_id, p_name}, m_vars{&m_owner} {
+		t_module(t_integer p_id, t_text p_name) : with_id_name{p_id, p_name}, m_vars{&m_point} {
 			m_do = &m_seqs.emplace_back();
 		}
 

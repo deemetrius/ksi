@@ -11,7 +11,7 @@ struct o_map {
 	using t_try_emplace = decltype( std::declval<t_items>().try_emplace( std::declval<Key>() ) );
 
 	// data
-	owner::pointer
+	junction::pointer
 		mp_owner;
 	t_items
 		m_items;
@@ -26,7 +26,7 @@ struct o_map {
 
 	//
 
-	o_map(owner::pointer p_owner) : mp_owner{p_owner} {}
+	o_map(junction::pointer p_owner) : mp_owner{p_owner} {}
 
 	template <typename T_key, typename ... Args>
 	t_try_emplace try_emplace(T_key && p_key, Args && ... p_args) {
@@ -37,14 +37,14 @@ struct o_map {
 // ot_map
 
 template <typename Key, typename Value, typename Less>
-struct ot_map : public is_owned< ot_map<Key, Value, Less> >, public o_map<Key, Value, Less> 
+struct ot_map : public with_point< ot_map<Key, Value, Less> >, public o_map<Key, Value, Less> 
 {
 	using t_base = o_map<Key, Value, Less>;
 	using t_base::t_optr;
 	using t_base::t_items;
 	using value_type = t_items::value_type;
 
-	ot_map() : t_base{this->m_owner.get()} {}
+	ot_map() : t_base{this->m_point.get()} {}
 
 	void unset_elements() {
 		for( value_type & v_it : std::ranges::reverse_view{this->m_items} ) {

@@ -10,7 +10,7 @@ namespace ksi {
 
 		group_space::group_space(pos_action p_act_pos, sequence::pointer p_seq) :
 			m_act_pos{p_act_pos},
-			m_vars{this->m_owner.get(), p_seq->m_groups[p_act_pos.m_group_id].var_count()}
+			m_vars{this->m_point.get(), p_seq->m_groups[p_act_pos.m_group_id].var_count()}
 		{}
 
 		seq_space::seq_space(pos_module_aspect p_seq_pos, space_pointer p_space) : m_seq_pos{p_seq_pos} {

@@ -38,20 +38,20 @@ export namespace just {
 
 	template <typename T_nest>
 	struct optr_nest {
-		
+
 		struct bad_targets {
-			struct is_owned_base :
-				public node_list<is_owned_base>
+			struct is_target_base :
+				public node_list<is_target_base>
 			{
 				// data
 				std::exception_ptr
 					m_exception;
 
-				virtual ~is_owned_base() = default;
+				virtual ~is_target_base() = default;
 			};
 
-			using t_zero = node_list<is_owned_base>;
-			using pointer = is_owned_base *;
+			using t_zero = node_list<is_target_base>;
+			using pointer = is_target_base *;
 
 			// data
 			t_zero
@@ -90,38 +90,38 @@ export namespace just {
 
 		//
 
-		struct owner {
-			using pointer = owner *;
+		struct junction {
+			using pointer = junction *;
 			using t_items = std::list<pointer>;
 			using t_items_pointer = t_items *;
 			using iterator = t_items::const_iterator;
 
 			// data
 			t_items
-				m_hosts;
+				m_sources;
 		};
 
 		template <typename T>
-		struct is_owned :
-			public bad_targets::is_owned_base
+		struct with_point :
+			public bad_targets::is_target_base
 		{
-			using t_ptr = std::unique_ptr<owner>;
+			using t_ptr = std::unique_ptr<junction>;
 			using t_ring = bad_targets;
 			using t_ring_pointer = bad_targets *;
 
 			// data
 			t_ptr
-				m_owner;
+				m_point;
 			owned_status
 				m_unset_status{owned_status::not_unset};
 			t_ring_pointer
 				m_ring = &s_ring;
 
-			is_owned() : m_owner{std::make_unique<owner>()} {}
+			with_point() : m_point{std::make_unique<junction>()} {}
 
-			is_owned(is_owned &&) = default;
+			with_point(with_point &&) = default;
 
-			~is_owned() { m_ring->del(this); }
+			~with_point() { m_ring->del(this); }
 
 			void unset() {
 				if( m_unset_status == owned_status::not_unset) {
@@ -136,7 +136,7 @@ export namespace just {
 		// optr
 
 		template <typename T>
-		requires (std::derived_from<T, is_owned<T> >)
+		requires (std::derived_from<T, with_point<T> >)
 		struct optr {
 			using type = T;
 			using pointer = type *;
@@ -153,19 +153,19 @@ export namespace just {
 			};
 
 			// data
-			owner::pointer
-				m_host;
-			owner::iterator
+			junction::pointer
+				m_source;
+			junction::iterator
 				m_iterator;
 			pointer
 				m_target{nullptr};
 
 			template <typename ... T_args>
-			optr(owner::pointer p_host, separator = {}, T_args && ... p_args) :
-				m_host{p_host}
+			optr(junction::pointer p_host, separator = {}, T_args && ... p_args) :
+				m_source{p_host}
 			{
 				std::unique_ptr<type> v_target{ std::make_unique<type>(std::forward<T_args>(p_args) ...) };
-				init(&v_target->m_owner->m_hosts);
+				init(&v_target->m_point->m_sources);
 				m_target = v_target.release();
 			}
 
@@ -180,15 +180,15 @@ export namespace just {
 			optr(const optr & p_other) = delete;
 			optr(optr && p_other) = default;
 
-			optr(owner::pointer p_host, const optr & p_other) :
-				m_host{p_host}
+			optr(junction::pointer p_host, const optr & p_other) :
+				m_source{p_host}
 			{
-				init(&p_other.m_target->m_owner->m_hosts);
+				init(&p_other.m_target->m_point->m_sources);
 				m_target = p_other.m_target;
 			}
 
-			/*optr(owner::pointer p_host, optr && p_other) :
-				m_host{p_host}
+			/*optr(junction::pointer p_host, optr && p_other) :
+				m_source{p_host}
 			{
 				std::ranges::swap(m_target, p_other.m_target);
 				std::ranges::swap(m_iterator, p_other.m_iterator);
@@ -197,7 +197,7 @@ export namespace just {
 			optr & operator = (const optr & p_other) {
 				if( m_target == p_other.m_target ) { return *this; }
 				clear();
-				init(&p_other.m_target->m_owner->m_hosts);
+				init(&p_other.m_target->m_point->m_sources);
 				m_target = p_other.m_target;
 				return *this;
 			}
@@ -217,32 +217,32 @@ export namespace just {
 
 			void clear() {
 				if( m_target == nullptr ) { return; }
-				typename owner::t_items_pointer v_hosts = &m_target->m_owner->m_hosts;
-				if( m_iterator != v_hosts->cend() ) { v_hosts->erase(m_iterator); }
-				if( v_hosts->empty() ) {
+				typename junction::t_items_pointer v_sources = &m_target->m_point->m_sources;
+				if( m_iterator != v_sources->cend() ) { v_sources->erase(m_iterator); }
+				if( v_sources->empty() ) {
 					delete m_target;
 					m_target = nullptr;
 					return;
 				}
-				using t_set = std::set<owner::pointer>;
-				using iterator = owner::t_items::iterator;
+				using t_set = std::set<junction::pointer>;
+				using iterator = junction::t_items::iterator;
 				using t_pair = std::pair<iterator, iterator>;
 				using t_list = std::list<t_pair>;
 				t_set v_set;
-				v_set.insert( m_target->m_owner.get() );
+				v_set.insert( m_target->m_point.get() );
 				t_list v_list;
-				v_list.emplace_back(v_hosts->begin(), v_hosts->end() );
+				v_list.emplace_back(v_sources->begin(), v_sources->end() );
 				do {
 					t_pair * v_pair = &v_list.back();
 					if( v_pair->first == v_pair->second ) {
 						v_list.pop_back();
 						if( v_list.empty() ) { break; }
 					} else {
-						typename owner::pointer v_owner = *v_pair->first;
+						typename junction::pointer v_owner = *v_pair->first;
 						if( v_owner == nullptr ) { return; }
 						if( ! v_set.contains(v_owner) ) {
 							v_set.insert(v_owner);
-							v_list.emplace_back(v_owner->m_hosts.begin(), v_owner->m_hosts.end() );
+							v_list.emplace_back(v_owner->m_sources.begin(), v_owner->m_sources.end() );
 						}
 						++v_pair->first;
 					}
@@ -253,9 +253,9 @@ export namespace just {
 			} // fn
 
 		private:
-			void init(owner::t_items_pointer p_hosts) {
+			void init(junction::t_items_pointer p_hosts) {
 				m_iterator = p_hosts->cend();
-				p_hosts->push_front(m_host);
+				p_hosts->push_front(m_source);
 				m_iterator = p_hosts->cbegin();
 			}
 		}; // struct

@@ -17,8 +17,7 @@ export namespace ksi {
 
 		//using ring = just::owned_ring;
 		//using optr_nest = just::optr_nest<ring>;
-		using owner = var::optr_nest::owner;
-		using owner_pointer = owner::pointer;
+		using junction = var::optr_nest::junction;
 
 		struct value_base : public just::with_deleter<value_base> {
 			using pointer = value_base *;
@@ -27,7 +26,7 @@ export namespace ksi {
 			virtual ~value_base() = default;
 
 			virtual t_type get_type() const = 0;
-			virtual t_ptr copy(owner_pointer p_owner) = 0;
+			virtual t_ptr copy(junction::pointer p_owner) = 0;
 			virtual void write(just::output_base & o) {}
 			virtual t_variant variant() = 0;
 		};
@@ -40,7 +39,7 @@ export namespace ksi {
 			value_exact(T p_value) : m_value{p_value} {}
 
 			t_type get_type() const override;
-			t_ptr copy(owner_pointer p_owner) override { return std::make_unique<value_exact>(*this); }
+			t_ptr copy(junction::pointer p_owner) override { return std::make_unique<value_exact>(*this); }
 			void write(just::output_base & o) override {
 				if constexpr ( std::is_base_of_v<data_with_cat_set, std::remove_pointer_t<T> > ) {
 					o << m_value->m_name->c_str();
@@ -80,7 +79,7 @@ export namespace ksi {
 
 		//
 
-		struct value : public optr_nest::is_owned<value> {
+		struct value : public optr_nest::with_point<value> {
 			using pointer = value *;
 
 			// data
@@ -97,11 +96,11 @@ export namespace ksi {
 
 			//
 
-			value(const value & p) : m_value{p->copy( this->m_owner.get() )} {}
-			value(value && p) : m_value{p->copy( this->m_owner.get() )} {}
+			value(const value & p) : m_value{p->copy( this->m_point.get() )} {}
+			value(value && p) : m_value{p->copy( this->m_point.get() )} {}
 
-			value & operator = (const value & p) { m_value = p->copy( this->m_owner.get() ); return *this; }
-			value & operator = (value && p) { m_value = p->copy( this->m_owner.get() ); return *this; }
+			value & operator = (const value & p) { m_value = p->copy( this->m_point.get() ); return *this; }
+			value & operator = (value && p) { m_value = p->copy( this->m_point.get() ); return *this; }
 
 			//
 

@@ -44,7 +44,7 @@ struct o_hive {
 	using t_map_try_emplace = std::pair<typename t_map::iterator, bool>;
 
 	// data
-	owner::pointer
+	junction::pointer
 		mp_owner;
 	t_map
 		m_map;
@@ -63,7 +63,7 @@ struct o_hive {
 
 	//
 
-	o_hive(owner::pointer p_owner) : mp_owner{p_owner} {}
+	o_hive(junction::pointer p_owner) : mp_owner{p_owner} {}
 
 	iterator begin() { return {m_map.begin(), &m_vec}; }
 	iterator end() { return {m_map.end(), &m_vec}; }
@@ -107,7 +107,7 @@ struct o_hive {
 // ot_hive
 
 template <typename Key, typename Value, typename Less>
-struct ot_hive : public is_owned< ot_hive<Key, Value, Less> >, public o_hive<Key, Value, Less> 
+struct ot_hive : public with_point< ot_hive<Key, Value, Less> >, public o_hive<Key, Value, Less> 
 {
 	using t_base = o_hive<Key, Value, Less>;
 	using t_base::t_optr;
@@ -116,7 +116,7 @@ struct ot_hive : public is_owned< ot_hive<Key, Value, Less> >, public o_hive<Key
 	using t_vector_value_type = t_vector::value_type;
 	using t_map_value_type = t_map::value_type;
 
-	ot_hive() : t_base{this->m_owner.get()} {}
+	ot_hive() : t_base{this->m_point.get()} {}
 
 	void unset_elements() {
 		for( t_vector_value_type & v_it : std::ranges::reverse_view{this->m_vec} ) { v_it.second->unset(); }

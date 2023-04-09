@@ -9,7 +9,7 @@ struct o_vector {
 	using t_items = std::vector<t_optr>;
 
 	// data
-	owner::pointer
+	junction::pointer
 		mp_owner;
 	t_items
 		m_items;
@@ -24,14 +24,14 @@ struct o_vector {
 
 	//
 
-	o_vector(owner::pointer p_owner) : mp_owner{p_owner} {}
+	o_vector(junction::pointer p_owner) : mp_owner{p_owner} {}
 
-	o_vector(t_size p_size, owner::pointer p_owner) : mp_owner{p_owner} {
+	o_vector(t_size p_size, junction::pointer p_owner) : mp_owner{p_owner} {
 		m_items.reserve(p_size);
 	}
 
 	template <typename ... Args>
-	o_vector(owner::pointer p_owner, t_size p_size, Args && ... p_args) : mp_owner{p_owner} {
+	o_vector(junction::pointer p_owner, t_size p_size, Args && ... p_args) : mp_owner{p_owner} {
 		if( p_size > 0 ) {
 			m_items.reserve(p_size);
 			for( size_t i = 0; i < p_size; ++i ) {
@@ -56,12 +56,12 @@ struct o_vector {
 // ot_vector
 
 template <typename T>
-struct ot_vector : public is_owned< ot_vector<T> >, public o_vector<T> 
+struct ot_vector : public with_point< ot_vector<T> >, public o_vector<T> 
 {
 	using t_base = o_vector<T>;
 	using t_optr = t_base::t_optr;
 
-	ot_vector() : t_base{this->m_owner.get()} {}
+	ot_vector() : t_base{this->m_point.get()} {}
 
 	void unset_elements() {
 		for( t_optr & v_it : std::ranges::reverse_view{this->m_items} ) { v_it->unset(); }

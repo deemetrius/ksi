@@ -19,11 +19,11 @@ export namespace ksi {
 			t_items_ptr
 				m_ptr;
 
-			value_map(owner_pointer p_owner) : m_ptr{p_owner} {}
-			value_map(owner_pointer p_owner, value_map * p_other) : m_ptr{p_owner, p_other->m_ptr} {}
+			value_map(junction::pointer p_owner) : m_ptr{p_owner} {}
+			value_map(junction::pointer p_owner, value_map * p_other) : m_ptr{p_owner, p_other->m_ptr} {}
 
 			t_type get_type() const override { return &config::handle->mt_map; }
-			t_ptr copy(owner_pointer p_owner) override { return std::make_unique<value_map>(p_owner, this); }
+			t_ptr copy(junction::pointer p_owner) override { return std::make_unique<value_map>(p_owner, this); }
 			t_variant variant() override { return static_cast<t_map>(this); }
 
 			static t_items_pointer get(value::pointer p_value) {
@@ -34,8 +34,8 @@ export namespace ksi {
 			}
 		};
 	
-		value::value(marker_map) : m_value{std::make_unique<value_map>( this->m_owner.get() )} {}
-		value & value::operator = (marker_map) { m_value = std::make_unique<value_map>( this->m_owner.get() ); return *this; }
+		value::value(marker_map) : m_value{std::make_unique<value_map>( this->m_point.get() )} {}
+		value & value::operator = (marker_map) { m_value = std::make_unique<value_map>( this->m_point.get() ); return *this; }
 
 	} // ns
 

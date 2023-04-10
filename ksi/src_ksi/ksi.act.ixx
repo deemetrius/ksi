@@ -80,7 +80,7 @@ export namespace ksi {
 				m_action_id = 0;
 		};
 
-		struct group_space : public var::optr_nest::with_point<group_space> {
+		struct group_space : public var::optr_nest::is_target<group_space> {
 			using pointer = group_space *;
 			using t_vars = var::optr_nest::o_vector<var::value>;
 

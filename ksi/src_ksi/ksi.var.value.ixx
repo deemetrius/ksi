@@ -79,7 +79,7 @@ export namespace ksi {
 
 		//
 
-		struct value : public optr_nest::with_point<value> {
+		struct value : public optr_nest::is_target<value> {
 			using pointer = value *;
 
 			// data

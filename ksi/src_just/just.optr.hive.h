@@ -107,7 +107,7 @@ struct o_hive {
 // ot_hive
 
 template <typename Key, typename Value, typename Less>
-struct ot_hive : public with_point< ot_hive<Key, Value, Less> >, public o_hive<Key, Value, Less> 
+struct ot_hive : public is_target< ot_hive<Key, Value, Less> >, public o_hive<Key, Value, Less> 
 {
 	using t_base = o_hive<Key, Value, Less>;
 	using t_base::t_optr;

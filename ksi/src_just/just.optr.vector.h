@@ -31,11 +31,11 @@ struct o_vector {
 	}
 
 	template <typename ... Args>
-	o_vector(junction::pointer p_owner, t_size p_size, Args && ... p_args) : mp_owner{p_owner} {
+	o_vector(junction::pointer p_owner, t_size p_size, const Args & ... p_args) : mp_owner{p_owner} {
 		if( p_size > 0 ) {
 			m_items.reserve(p_size);
 			for( size_t i = 0; i < p_size; ++i ) {
-				m_items.emplace_back(mp_owner, std::forward<Args>(p_args) ...);
+				m_items.emplace_back(mp_owner, p_args ...);
 			}
 		}
 	}
@@ -56,7 +56,7 @@ struct o_vector {
 // ot_vector
 
 template <typename T>
-struct ot_vector : public with_point< ot_vector<T> >, public o_vector<T> 
+struct ot_vector : public is_target< ot_vector<T> >, public o_vector<T> 
 {
 	using t_base = o_vector<T>;
 	using t_optr = t_base::t_optr;

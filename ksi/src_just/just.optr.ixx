@@ -101,27 +101,32 @@ export namespace just {
 				m_sources;
 		};
 
-		template <typename T>
-		struct with_point :
-			public bad_targets::is_target_base
-		{
+		struct with_point : public bad_targets::is_target_base {
 			using t_ptr = std::unique_ptr<junction>;
-			using t_ring = bad_targets;
-			using t_ring_pointer = bad_targets *;
 
 			// data
 			t_ptr
 				m_point;
+
+			with_point() : m_point{std::make_unique<junction>()} {}
+			with_point(with_point &&) = default;
+		};
+
+		template <typename T>
+		struct is_target : public with_point {
+			
+			using t_ring = bad_targets;
+			using t_ring_pointer = bad_targets *;
+
+			// data
 			owned_status
 				m_unset_status{owned_status::not_unset};
 			t_ring_pointer
 				m_ring = &s_ring;
 
-			with_point() : m_point{std::make_unique<junction>()} {}
-
-			with_point(with_point &&) = default;
-
-			~with_point() { m_ring->del(this); }
+			is_target() = default;
+			is_target(is_target &&) = default;
+			~is_target() { m_ring->del(this); }
 
 			void unset() {
 				if( m_unset_status == owned_status::not_unset) {
@@ -136,7 +141,7 @@ export namespace just {
 		// optr
 
 		template <typename T>
-		requires (std::derived_from<T, with_point<T> >)
+		requires (std::derived_from<T, is_target<T> >)
 		struct optr {
 			using type = T;
 			using pointer = type *;

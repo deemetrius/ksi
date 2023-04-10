@@ -37,7 +37,7 @@ struct o_map {
 // ot_map
 
 template <typename Key, typename Value, typename Less>
-struct ot_map : public with_point< ot_map<Key, Value, Less> >, public o_map<Key, Value, Less> 
+struct ot_map : public is_target< ot_map<Key, Value, Less> >, public o_map<Key, Value, Less> 
 {
 	using t_base = o_map<Key, Value, Less>;
 	using t_base::t_optr;

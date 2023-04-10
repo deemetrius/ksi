@@ -13,11 +13,19 @@ export namespace ksi {
 
 		enum class mode { n_default, n_target };
 
-		struct token_base : public just::with_deleter<token_base> {
+		struct token_info {
 			// data
 			mode
 				m_mode = mode::n_default;
-			
+		};
+
+		struct token_base : public just::with_deleter<token_base> {
+			// data
+			token_info
+				m_info;
+
+			token_base(token_info p_info) : m_info{p_info} {}
+
 			virtual ~token_base() {}
 
 			virtual void perform(ast::prepare_data & p_data) = 0;
@@ -29,10 +37,13 @@ export namespace ksi {
 			T_data
 				m_data;
 
-			token_exact(T_data && p_data) : m_data{std::move(p_data)} {}
+			token_exact(T_data && p_data, token_info p_info = {}) :
+				token_base{p_info},
+				m_data{std::move(p_data)}
+			{}
 
 			void perform(ast::prepare_data & p_data) override {
-				m_data.perform(p_data);
+				m_data.rule_perform(p_data, m_info);
 			}
 		};
 
@@ -41,7 +52,7 @@ export namespace ksi {
 		struct nest {
 			using t_ptr = std::unique_ptr<token_base, just::hold_deleter>;
 			using t_items = std::list<t_ptr>;
-		
+
 			// data
 			t_items
 				m_items;

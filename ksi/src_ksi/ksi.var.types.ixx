@@ -33,9 +33,9 @@ export namespace ksi {
 		}
 
 		enum n_id : t_integer {
-			n_id_cat	= 0x00'00'00'00'00'00'00'00LL,
-			n_id_type	= 0x00'00'01'00'00'00'00'00LL,
-			n_id_mod	= 0x00'00'02'00'00'00'00'00LL
+			n_id_cat	= 0LL,
+			n_id_type	= 1'000'000'000'000'000LL,
+			n_id_mod	= 2'000'000'000'000'000LL
 		};
 
 		template <n_id C_base_id>

@@ -13,6 +13,11 @@ export namespace just {
 
 	struct empty_type {};
 
+	template <typename T>
+	struct in_place_type {
+		using type = T;
+	};
+
 	using t_byte = unsigned char;
 
 	using t_integer = std::intptr_t;

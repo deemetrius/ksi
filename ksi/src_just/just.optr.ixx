@@ -112,11 +112,46 @@ export namespace just {
 			with_point(with_point &&) = default;
 		};
 
+		/*template <typename T>
+		struct holder {
+			using handle = T *;
+
+			static void free(handle p_handle) { delete p_handle; }
+
+			using t_fn_free = decltype(&free);
+
+			// data
+			bool
+				m_dispose;
+			handle
+				m_handle;
+			t_fn_free
+				m_fn_free = &free;
+
+			holder(handle p_handle) : m_dispose{false}, m_handle{p_handle} {}
+
+			template <typename T, typename ... T_args>
+			holder(in_place_type<T>, T_args && ... p_args) :
+				m_dispose{true},
+				m_handle{ new T{std::forward<T_args>(p_args) ...} }
+			{}
+
+			~holder() {
+				if( m_dispose ) { m_fn_free(m_handle); }
+			}
+
+			handle release() {
+				m_dispose = false;
+				return m_handle;
+			}
+		};*/
+
 		template <typename T>
 		struct is_target : public with_point {
-			
+			using handle = T *;
 			using t_ring = bad_targets;
 			using t_ring_pointer = bad_targets *;
+			//using t_holder = holder<T>;
 
 			// data
 			owned_status
@@ -128,11 +163,17 @@ export namespace just {
 			is_target(is_target &&) = default;
 			~is_target() { m_ring->del(this); }
 
+			handle get_target() {
+				return static_cast<handle>(this);
+			}
+
+			//virtual t_holder get_holder() { return t_holder{get_target()}; }
+
 			void unset() {
 				if( m_unset_status == owned_status::not_unset) {
 					m_unset_status = owned_status::unset_started;
 					static_assert(c_unsetable<T>);
-					static_cast<T *>(this)->unset_elements();
+					get_target()->unset_elements();
 					m_unset_status = owned_status::unset_done;
 				}
 			}
@@ -148,7 +189,7 @@ export namespace just {
 			using reference = type &;
 			using t_ring = bad_targets;
 			using t_ring_pointer = t_ring *;
-		
+
 			struct params {
 				// data
 				pointer

@@ -62,11 +62,6 @@ export namespace ksi {
 			}
 
 			t_index var_get(t_text p_name) {
-				/*typename t_module::t_vars::iterator v_it = m_module->m_vars.find(*p_name);
-				if( v_it == m_module->m_vars.end() ) {
-					return inner_var_get(p_name);
-				}
-				return (*v_it).m_index;*/
 				t_index ret = m_module->var_get(p_name);
 				return (ret == -1) ? inner_var_get(p_name) : ret;
 			}
@@ -89,7 +84,6 @@ export namespace ksi {
 		};*/
 
 		struct prepare_data {
-			//using t_mod_ptr = std::unique_ptr<t_module_extension, just::hold_deleter>;
 			using t_mods = std::map<text_str, t_module_extension, std::ranges::less>;
 			using t_mods_iterator = t_mods::iterator;
 			using t_try_emplace = std::pair<t_mods::iterator, bool>;

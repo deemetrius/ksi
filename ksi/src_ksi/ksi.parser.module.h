@@ -13,7 +13,7 @@ struct t_module_def {
 			p_state.m_next_parse = &rule_module::parse;
 		}
 
-		void perform(ast::prepare_data & p_data) {
+		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
 			p_data.m_mod_current = p_data.mod_get(this->m_name);
 		}
 	};
@@ -31,8 +31,9 @@ struct t_var_mod {
 			p_state.m_next_parse = &rule_module_after_var::parse;
 		}
 
-		void perform(ast::prepare_data & p_data) {
+		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
 			t_index v_id = p_data.m_mod_current->var_get(m_name);
+			//
 		}
 	};
 };
@@ -48,7 +49,7 @@ struct t_var_mod_assign {
 			p_state.m_next_parse = &rule_module_after_assign::parse;
 		}
 
-		void perform(ast::prepare_data & p_data) {
+		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
 		}
 	};
 };
@@ -68,7 +69,7 @@ struct t_literal_int {
 		void action(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
 		}
 
-		void perform(ast::prepare_data & p_data) {
+		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
 		}
 	};
 };

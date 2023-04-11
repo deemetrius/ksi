@@ -116,6 +116,10 @@ export namespace ksi {
 		act::sequence::pointer seq_get(act::pos_module_aspect p_seq_pos) {
 			return &mod_get(p_seq_pos.m_module_id)->m_seqs[p_seq_pos.m_aspect_id];
 		}
+
+		var::cell & var_get(act::pos_module_aspect p_var_pos) {
+			return mod_get(p_var_pos.m_module_id)->m_vars[p_var_pos.m_aspect_id];
+		}
 	};
 
 } // ns

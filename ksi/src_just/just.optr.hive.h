@@ -102,6 +102,10 @@ struct o_hive {
 	t_index ssize() const {
 		return std::ssize(m_vec);
 	}
+
+	t_optr & operator [] (t_index p_index) {
+		return m_vec[p_index];
+	}
 };
 
 // ot_hive

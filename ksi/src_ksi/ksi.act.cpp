@@ -39,7 +39,20 @@ namespace ksi {
 				}
 			}
 		}
-	
+
+		//
+
+		void actions::do_mod_var(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data) {
+			//p_stack.set( p_call->m_space->var_get(p_data.m_aspect_pos) );
+			//p_stack.push();
+			// todo: lazy init
+		}
+
+		void actions::do_mod_var_link(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data) {
+			p_stack.set( p_call->m_space->var_get(p_data.m_aspect_pos) );
+			p_stack.push_link();
+		}
+
 	} // ns
 
 } // ns

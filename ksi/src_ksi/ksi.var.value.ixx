@@ -120,6 +120,8 @@ export namespace ksi {
 			void unset_elements() { m_value.reset(); }
 		};
 
+		using cell = optr_nest::optr<value>;
+
 	} // ns
 
 } // ns

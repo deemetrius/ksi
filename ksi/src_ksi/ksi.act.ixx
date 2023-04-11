@@ -23,30 +23,32 @@ export namespace ksi {
 		using sequence_pointer = sequence *;
 
 		struct stack {
-			using t_ptr = var::optr_nest::optr<var::value>;
 			using t_items = var::optr_nest::o_vector<var::value>;
 
 			// data
 			var::junction
 				m_point;
-			t_ptr
+			var::cell
+				m_empty_cell,
 				m_cell;
 			t_items
 				m_items;
 
-			stack() : m_cell{&m_point}, m_items{16, &m_point} {}
+			stack() : m_empty_cell{&m_point}, m_cell{&m_point}, m_items{16, &m_point} {}
 
-			void set(const t_ptr & v_ptr) {
+			void set(const var::cell & v_ptr) {
 				m_cell = v_ptr;
 			}
 
 			void push() {
 				m_items.emplace_back();
 				*m_items.back() = *m_cell;
+				m_cell = m_empty_cell;
 			}
 
 			void push_link() {
 				m_items.emplace_back(m_cell);
+				m_cell = m_empty_cell;
 			}
 
 			void pop() {
@@ -215,9 +217,15 @@ export namespace ksi {
 		//
 
 		struct actions {
+			static void do_mod_var(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data);
+
+			static void do_mod_var_link(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data);
+
 			static inline const action_type
-				s_nothing{L"do_nothing"s, &action_type::do_nothing};
-		};
+				s_nothing		{L"do_nothing"s,		&action_type::do_nothing},
+				s_mod_var_link	{L"do_mod_var_link"s,	&do_mod_var_link}
+			;
+		}; // actions
 
 	} // ns
 

@@ -44,11 +44,8 @@ export namespace ksi {
 			m_do = &m_seqs.emplace_back();
 		}
 
-		t_index var_get(t_text p_name) {
+		t_index var_get_id(t_text p_name) {
 			typename t_vars::iterator v_it = m_vars.find(*p_name);
-			/*if( v_it == m_vars.end() ) {
-				v_it = m_vars.try_emplace(*p_name);
-			}*/
 			if( v_it == m_vars.end() ) { return -1; }
 			return (*v_it).m_index;
 		}

@@ -40,7 +40,7 @@ export namespace ksi {
 
 			void extend(space::pointer p_space, log_base::pointer p_log) {
 				for( t_vars::iterator v_it : m_vars_vec ) {
-					m_module->var_get(v_it->first);
+					m_module->var_get_id(v_it->first);
 				}
 				m_vars.clear();
 				m_vars_vec.clear();
@@ -61,8 +61,8 @@ export namespace ksi {
 				return v_try.first->second;
 			}
 
-			t_index var_get(t_text p_name) {
-				t_index ret = m_module->var_get(p_name);
+			t_index var_get_id(t_text p_name) {
+				t_index ret = m_module->var_get_id(p_name);
 				return (ret == -1) ? inner_var_get(p_name) : ret;
 			}
 		};
@@ -86,6 +86,7 @@ export namespace ksi {
 		struct prepare_data {
 			using t_mods = std::map<text_str, t_module_extension, std::ranges::less>;
 			using t_mods_iterator = t_mods::iterator;
+			using t_mods_vec = std::vector<t_mods_iterator>;
 			using t_try_emplace = std::pair<t_mods::iterator, bool>;
 			using t_body_ptr = std::unique_ptr<body>;
 
@@ -100,6 +101,8 @@ export namespace ksi {
 				m_mod_id;
 			t_mods
 				m_mods;
+			t_mods_vec
+				m_mods_vec;
 			t_module_extension::pointer
 				m_mod_current;
 			t_body_ptr
@@ -112,8 +115,8 @@ export namespace ksi {
 			{}
 
 			void extend() {
-				for( typename t_mods::value_type & v_it : m_mods ) {
-					v_it.second.extend(m_space, m_log);
+				for( t_mods_iterator v_it : m_mods_vec ) {
+					v_it->second.extend(m_space, m_log);
 				}
 				m_space->m_mod_id = m_mod_id;
 			}
@@ -127,6 +130,7 @@ export namespace ksi {
 				t_mods_iterator v_it = m_mods.find(*p_name);
 				if( v_it == m_mods.end() ) {
 					t_try_emplace v_try = m_mods.try_emplace(*p_name, m_space, p_name, m_mod_id);
+					m_mods_vec.emplace_back(v_try.first);
 					return &v_try.first->second;
 				}
 				return &v_it->second;

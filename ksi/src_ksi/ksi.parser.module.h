@@ -32,7 +32,7 @@ struct t_var_mod {
 		}
 
 		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
-			//t_index v_id = p_data.m_mod_current->var_get_id(m_name);
+			t_index v_var_id = p_data.var_add(m_name, m_path, m_pos);
 			//
 		}
 	};

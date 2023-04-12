@@ -16,10 +16,10 @@ export namespace ksi {
 	
 	struct property_seq {
 		// data
-		t_index
-			m_seq_id;
 		property_status
 			m_status = property_status::n_undefined;
+		act::sequence
+			m_seq;
 	};
 
 	struct t_module : public var::with_id_name<var::n_id_mod>, public just::with_deleter<t_module> {

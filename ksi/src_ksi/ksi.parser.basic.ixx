@@ -171,6 +171,10 @@ namespace ksi {
 			// data
 			t_text
 				m_name;
+			fs::path
+				m_path;
+			t_pos
+				m_pos;
 
 			bool parse(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
 				if( ! std::iswalpha(*p_state.m_pos.m_pos) ) { return false; }
@@ -178,6 +182,10 @@ namespace ksi {
 				v_pos.next();
 				while( std::iswalnum(*v_pos.m_pos) || *v_pos.m_pos == L'_' ) { v_pos.next(); }
 				m_name = text_str{p_state.m_pos.m_pos, v_pos.m_pos};
+				//
+				m_path = p_state.m_path;
+				m_pos = p_state.m_pos.pos();
+				//
 				p_state.m_pos = v_pos;
 				return true;
 			}

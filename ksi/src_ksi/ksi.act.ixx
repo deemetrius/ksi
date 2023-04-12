@@ -210,7 +210,12 @@ export namespace ksi {
 
 			sequence() {
 				m_groups.emplace_back();
-				m_groups.front().var_add(L"ret"s);
+				//m_groups.front().var_add(L"ret"s);
+			}
+
+			void clear() {
+				m_groups.clear();
+				m_groups.emplace_back();
 			}
 		};
 

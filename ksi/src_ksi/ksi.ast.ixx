@@ -15,9 +15,7 @@ export namespace ksi {
 		using namespace std::string_literals;
 
 		struct t_module_extension : public just::with_deleter<t_module_extension> {
-			/*using t_vars = std::map<text_str, t_index, std::ranges::less>;
-			using t_vars_vec = std::vector<t_vars::iterator>;
-			using t_vars_try = std::pair<t_vars::iterator, bool>;*/
+			using t_props = just::ordered_map<text_str, ext_property>;
 			using pointer = t_module_extension *;
 
 			// data
@@ -25,12 +23,8 @@ export namespace ksi {
 				m_module;
 			space::t_mod_ptr
 				m_new_module;
-			/*t_vars
-				m_vars;
-			t_vars_vec
-				m_vars_vec;
-			t_module::t_props
-				m_props;*/
+			t_props
+				m_props;
 
 			t_module_extension(space::pointer p_space, t_text p_name, t_integer & p_id) {
 				m_module = p_space->mod_find(p_name);
@@ -41,45 +35,34 @@ export namespace ksi {
 			}
 
 			void extend(space::pointer p_space, log_base::pointer p_log) {
-				// todo: vars
+				// vars
+				for( typename t_props::t_map_value_type & v_it : m_props ) {
+					m_module->var_add(v_it.second.m_value);
+				}
 				//
 				if( m_new_module ) { p_space->mod_move(m_new_module, p_log); }
 			}
 
-			/*t_index inner_var_get_id(t_text p_name) {
-				t_index ret = std::ssize(m_vars) + m_module->m_vars.ssize();
-				t_vars_try v_try = m_vars.try_emplace(*p_name, ret);
-				if( v_try.second ) {
-					m_vars_vec.emplace_back(v_try.first);
-				}
-				return v_try.first->second;
-			}
-
-			t_index var_get_id(t_text p_name) {
-				t_index ret = m_module->var_get_id(p_name);
-				return (ret == -1) ? inner_var_get_id(p_name) : ret;
-			}
-
 			t_index var_find_id(t_text p_name) {
-				t_index ret = m_module->var_get_id(p_name);
-				if( ret != -1 ) { return ret; }
-				//
-				t_vars::iterator v_it = m_vars.find(*p_name);
-				return (v_it == m_vars.end() ) ? -1 : v_it->second;
+				t_index v_index = m_module->var_find_id(p_name);
+				if( v_index != -1 ) { return v_index; }
+				typename t_props::t_map_iterator v_it = m_props.find(*p_name);
+				return ( v_it == m_props.m_map.end() ) ? (-1) : ( v_it->second.m_index + m_module->m_props.ssize() );
+			}
+
+			act::sequence::pointer var_seq_get(t_index p_id) {
+				t_index v_size = m_module->m_props.ssize();
+				if( p_id < v_size ) {
+					t_index v_seq_index = m_module->m_props[p_id].second.m_value.m_seq_index;
+					return &m_module->m_seqs[v_seq_index];
+				}
+				return &m_props[p_id - v_size].second.m_value.m_seq;
 			}
 
 			t_index var_add(t_text p_name) {
-				m_props.emplace_back();
-				return inner_var_get_id(p_name);
-			}*/
-
-			/*act::sequence::pointer seq_get(t_index p_id) {
-				t_index v_size = std::ssize(m_module->m_seqs);
-				if( p_id < v_size ) {
-					return &m_module->m_props[p_id].m_seq;
-				}
-				return &m_props[p_id - v_size].m_seq;
-			}*/
+				typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_name);
+				return v_it.first->second.m_index;
+			}
 		};
 
 		struct prepare_data {
@@ -133,6 +116,27 @@ export namespace ksi {
 					return &v_try.first->second;
 				}
 				return &v_it->second;
+			}
+
+			t_index var_add(t_text p_name, fs::path p_path, t_pos p_pos) {
+				t_index v_var_id = m_mod_current->var_find_id(p_name);
+				if( v_var_id != -1 ) {
+					t_text v_msg = just::implode({
+						L"deduce notice: "s,
+						m_mod_current->m_module->m_name,
+						L" Reassignment of variable: "s,
+						p_name
+					});
+					m_log->add({p_path, p_pos, v_msg});
+					act::sequence::pointer v_seq = m_mod_current->var_seq_get(v_var_id);
+					v_seq->clear();
+					m_body = std::make_unique<body>(v_seq);
+				} else {
+					v_var_id = m_mod_current->var_add(p_name);
+					act::sequence::pointer v_seq = m_mod_current->var_seq_get(v_var_id);
+					m_body = std::make_unique<body>(v_seq);
+				}
+				return v_var_id;
 			}
 
 			/*t_index var_add(t_text p_name, fs::path p_path, t_pos p_pos) {

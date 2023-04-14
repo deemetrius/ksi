@@ -40,13 +40,13 @@ export namespace ksi {
 		var::cell
 			m_cell;
 		t_index
-			m_seq_position;
+			m_seq_index;
 		property_status
 			m_status = property_status::n_undefined;
 
-		t_property(var::optr_nest::junction::pointer p_point, t_index p_seq_position) :
+		t_property(var::optr_nest::junction::pointer p_point, t_index p_seq_index) :
 			m_cell{p_point},
-			m_seq_position{p_seq_position}
+			m_seq_index{p_seq_index}
 		{}
 	};
 
@@ -72,7 +72,8 @@ export namespace ksi {
 		t_index var_add(ast::ext_property & p_ext_prop) {
 			t_index v_seq_position = std::ssize(m_seqs);
 			m_seqs.emplace_back(std::move(p_ext_prop.m_seq));
-			m_props.try_emplace(*p_ext_prop.m_name, &m_point, v_seq_position);
+			typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_ext_prop.m_name, &m_point, v_seq_position);
+			return v_it.first->second.m_index;
 		}
 
 		t_index var_find_id(t_text p_name) {
@@ -134,9 +135,6 @@ export namespace ksi {
 					L")"s
 				});
 				p_log->add({fs::path{}, {0,0}, v_msg});
-				/*just::g_console
-				<< "{wrong module id: " << v.m_key->data()
-				<< ' ' << (v.m_value->get()->m_id - n_id_mod) << ' ' << v.m_index << "}\n";*/
 			}
 		}
 

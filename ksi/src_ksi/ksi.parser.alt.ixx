@@ -80,7 +80,7 @@ namespace ksi {
 			}
 		};
 
-		template <typename T_back, typename ... T_rules>
+		template <typename T_back, typename T_action, typename ... T_rules>
 		struct rule_alt_back {
 			using t_alt = rule_alt<true, T_rules ...>;
 
@@ -88,6 +88,8 @@ namespace ksi {
 				bool ret = t_alt::parse(p_state, p_tokens, p_data);
 				if( ! ret ) {
 					p_state.m_next_parse = &T_back::parse;
+					T_action v_data;
+					v_data.action(p_state, p_tokens, p_data);
 				}
 				return true;
 			}

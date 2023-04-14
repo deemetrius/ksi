@@ -36,7 +36,7 @@ namespace ksi {
 				t_var_mod_assign
 			> {};
 
-			struct rule_module_after_assign : public rule_alt_back<rule_module,
+			struct rule_module_after_assign : public rule_alt_back<rule_module, end_var_mod_assign,
 				t_opt_space,
 				t_literal_int
 			> {};

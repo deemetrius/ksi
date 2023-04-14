@@ -54,6 +54,16 @@ struct t_var_mod_assign {
 	};
 };
 
+struct end_var_mod_assign {
+	void action(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
+		p_tokens.add(this);
+	}
+
+	void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
+		// todo: apply ast tree to seq
+	}
+};
+
 struct t_literal_int {
 	static inline t_text s_name = L"t_literal_int"s;
 	static constexpr kind s_kind = kind::n_literal;

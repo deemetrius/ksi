@@ -5,6 +5,7 @@ module;
 export module ksi.space;
 
 export import just.hive;
+export import just.ordered_map;
 export import ksi.act;
 export import <memory>;
 
@@ -22,17 +23,41 @@ export namespace ksi {
 			m_seq;
 	};
 
+	namespace ast {
+
+		struct ext_property {
+			// data
+			t_text
+				m_name;
+			act::sequence
+				m_seq;
+		};
+
+	} // ns
+
+	struct t_property {
+		// data
+		var::cell
+			m_cell;
+		t_index
+			m_seq_position;
+		property_status
+			m_status = property_status::n_undefined;
+
+		t_property(var::optr_nest::junction::pointer p_point, t_index p_seq_position) :
+			m_cell{p_point},
+			m_seq_position{p_seq_position}
+		{}
+	};
+
 	struct t_module : public var::with_id_name<var::n_id_mod>, public just::with_deleter<t_module> {
 		using pointer = t_module *;
-		using t_vars = var::optr_nest::o_hive<text_str, var::value, std::ranges::less>;
 		using t_seqs = std::vector<act::sequence>;
-		using t_props = std::vector<property_seq>;
+		using t_props = just::ordered_map<text_str, t_property>;
 
 		// data
 		var::junction
 			m_point;
-		t_vars
-			m_vars;
 		t_seqs
 			m_seqs;
 		act::sequence::pointer
@@ -40,14 +65,19 @@ export namespace ksi {
 		t_props
 			m_props;
 
-		t_module(t_integer p_id, t_text p_name) : with_id_name{p_id, p_name}, m_vars{&m_point} {
+		t_module(t_integer p_id, t_text p_name) : with_id_name{p_id, p_name} {
 			m_do = &m_seqs.emplace_back();
 		}
 
-		t_index var_get_id(t_text p_name) {
-			typename t_vars::iterator v_it = m_vars.find(*p_name);
-			if( v_it == m_vars.end() ) { return -1; }
-			return (*v_it).m_index;
+		t_index var_add(ast::ext_property & p_ext_prop) {
+			t_index v_seq_position = std::ssize(m_seqs);
+			m_seqs.emplace_back(std::move(p_ext_prop.m_seq));
+			m_props.try_emplace(*p_ext_prop.m_name, &m_point, v_seq_position);
+		}
+
+		t_index var_find_id(t_text p_name) {
+			typename t_props::t_map_iterator v_it = m_props.find(*p_name);
+			return ( v_it == m_props.m_map.end() ) ? -1 : v_it->second.m_index;
 		}
 	};
 
@@ -115,7 +145,7 @@ export namespace ksi {
 		}
 
 		var::cell & var_get(act::pos_module_aspect p_var_pos) {
-			return mod_get(p_var_pos.m_module_id)->m_vars[p_var_pos.m_aspect_id];
+			return mod_get(p_var_pos.m_module_id)->m_props[p_var_pos.m_aspect_id].second.m_value.m_cell;
 		}
 	};
 

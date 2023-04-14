@@ -28,6 +28,7 @@
     <ClCompile Include="..\src_just\just.keep.ixx" />
     <ClCompile Include="..\src_just\just.list.ixx" />
     <ClCompile Include="..\src_just\just.list_forward.ixx" />
+    <ClCompile Include="..\src_just\just.ordered_map.ixx" />
     <ClCompile Include="..\src_just\just.output.ixx" />
     <ClCompile Include="..\src_just\just.optr.ixx" />
     <ClCompile Include="..\src_just\just.pool.ixx" />

@@ -59,8 +59,8 @@ export namespace ksi {
 				return &m_props[p_id - v_size].second.m_value.m_seq;
 			}
 
-			t_index var_add(t_text p_name) {
-				typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_name);
+			t_index var_add(t_text p_name, fs::path p_path) {
+				typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_name, p_name, p_path);
 				return v_it.first->second.m_index;
 			}
 		};
@@ -132,33 +132,12 @@ export namespace ksi {
 					v_seq->clear();
 					m_body = std::make_unique<body>(v_seq);
 				} else {
-					v_var_id = m_mod_current->var_add(p_name);
+					v_var_id = m_mod_current->var_add(p_name, p_path);
 					act::sequence::pointer v_seq = m_mod_current->var_seq_get(v_var_id);
 					m_body = std::make_unique<body>(v_seq);
 				}
 				return v_var_id;
 			}
-
-			/*t_index var_add(t_text p_name, fs::path p_path, t_pos p_pos) {
-				t_index v_var_id = m_mod_current->var_find_id(p_name);
-				if( v_var_id != -1 ) {
-					t_text v_msg = just::implode({
-						L"deduce notice: "s,
-						m_mod_current->m_module->m_name,
-						L" Reassignment of variable: "s,
-						p_name
-					});
-					m_log->add({p_path, p_pos, v_msg});
-					act::sequence::pointer v_seq = m_mod_current->seq_get(v_var_id);
-					v_seq->clear();
-					m_body = std::make_unique<body>(v_seq);
-				} else {
-					v_var_id = m_mod_current->var_add(p_name);
-					act::sequence::pointer v_seq = m_mod_current->seq_get(v_var_id);
-					m_body = std::make_unique<body>(v_seq);
-				}
-				return v_var_id;
-			}*/
 		};
 
 	} // ns

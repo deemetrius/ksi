@@ -32,8 +32,11 @@ struct t_var_mod {
 		}
 
 		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
-			//t_index v_var_id = p_data.var_add(m_name, m_path, m_pos);
-			//
+			t_index v_var_id = p_data.var_add(m_name, m_path, m_pos);
+			p_data.m_body->node_add(&ast::body::node_types::s_leaf, {
+				&act::actions::s_mod_var_link,
+				{m_pos, 0, {p_data.m_mod_current->m_module->id(), v_var_id}}
+			});
 		}
 	};
 };

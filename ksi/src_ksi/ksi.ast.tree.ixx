@@ -116,8 +116,13 @@ export namespace ksi {
 					p_tree->m_last = p_node;
 				}
 
+				static void add_leaf(tree_pointer p_tree, node_pointer p_node) {
+					p_tree->m_last->m_right = p_node;
+				}
+
 				static inline const node_type
-					s_root{&do_root, &add_root, precedence::n_root, precedence::n_root}
+					s_root{&do_root, &add_root, precedence::n_root, precedence::n_root},
+					s_leaf{&do_leaf, &add_leaf, precedence::n_leaf, precedence::n_leaf}
 				;
 			}; // types
 
@@ -184,6 +189,12 @@ export namespace ksi {
 
 			void action_add(act::action::t_cref p_action) {
 				group_current()->m_actions.emplace_back(p_action);
+			}
+
+			// nodes
+
+			void node_add(node_type::const_pointer p_node_type, act::action::t_cref p_action) {
+				p_node_type->node_add(this, tree_current(), p_action);
 			}
 
 		}; // body

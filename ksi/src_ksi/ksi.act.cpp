@@ -14,30 +14,35 @@ namespace ksi {
 		{}
 
 		seq_space::seq_space(pos_module_aspect p_seq_pos, space_pointer p_space) : m_seq_pos{p_seq_pos} {
-			m_act_poses.emplace_back(pos_action{}, p_space->seq_get(p_seq_pos) );
+			m_group_spaces.emplace_back(pos_action{}, p_space->seq_get(p_seq_pos) );
 		}
 
 		void run_space::run() {
 			stack p_stack;
-			while( m_call_stack.size() > 0 ) {
-				seq_space::pointer v_seq_space = &m_call_stack.back();
-				t_module::pointer v_mod = m_space->mod_get(v_seq_space->m_seq_pos.m_module_id);
-				sequence::pointer v_seq = &v_mod->m_seqs[v_seq_space->m_seq_pos.m_aspect_id];
-				if( v_seq_space->m_act_poses.size() > 0 ) {
-					group_space::pointer v_group_space = &v_seq_space->back();
-					pos_action::pointer v_pos_action = &v_group_space->m_act_pos;
-					action_group::pointer v_group = &v_seq->m_groups[v_pos_action->m_group_id];
-					if( v_pos_action->m_action_id < std::ssize(v_group->m_actions) ) {
-						action::pointer v_action = &v_group->m_actions[v_pos_action->m_action_id];
+			//
+			t_index v_call_stack_size = std::ssize(m_call_stack);
+			while( v_call_stack_size > 0 ) {
+				t_index v_seq_space_id = v_call_stack_size - 1;
+				pos_module_aspect v_seq_pos = m_call_stack[v_seq_space_id].m_seq_pos;
+				sequence::pointer v_seq = m_space->seq_get(v_seq_pos);
+				//
+				t_index v_act_poses_size = std::ssize(m_call_stack[v_seq_space_id].m_group_spaces);
+				if( v_act_poses_size > 0 ) {
+					t_index v_group_space_id = v_act_poses_size -1;
+					pos_action v_action_pos = this->act_pos(v_seq_space_id, v_group_space_id);
+					action_group::pointer v_group = &v_seq->m_groups[v_action_pos.m_group_id];
+					if( v_action_pos.m_action_id < std::ssize(v_group->m_actions) ) {
+						action::pointer v_action = &v_group->m_actions[v_action_pos.m_action_id];
+						++v_action_pos.m_action_id;
+						this->act_pos(v_seq_space_id, v_group_space_id) = v_action_pos;
 						v_action->m_type->m_fn(this, p_stack, v_action->m_data);
-						++v_pos_action->m_action_id;
 					} else {
-						v_seq_space->m_act_poses.pop_back();
+						m_call_stack[v_seq_space_id].m_group_spaces.pop_back();
 					}
 				} else {
 					m_call_stack.pop_back();
 				}
-			}
+			} // while
 		}
 
 		//

@@ -74,8 +74,6 @@ export namespace ksi {
 		};
 
 		struct pos_action {
-			using pointer = pos_action *;
-
 			// data
 			t_index
 				m_group_id = 0,
@@ -103,11 +101,11 @@ export namespace ksi {
 			pos_module_aspect
 				m_seq_pos;
 			t_items
-				m_act_poses;
+				m_group_spaces;
 
 			seq_space(pos_module_aspect p_seq_pos, space_pointer p_space);
 
-			t_items::reference back() { return m_act_poses.back(); }
+			t_items::reference back() { return m_group_spaces.back(); }
 		};
 
 		struct run_space {
@@ -127,6 +125,10 @@ export namespace ksi {
 			}
 
 			t_items::reference back() { return m_call_stack.back(); }
+
+			pos_action & act_pos(t_index p_seq_space_id, t_index p_group_space_id) {
+				return m_call_stack[p_seq_space_id].m_group_spaces[p_group_space_id].m_act_pos;
+			}
 
 			void run();
 		};
@@ -208,7 +210,7 @@ export namespace ksi {
 			t_items
 				m_groups;
 
-			sequence() {
+			sequence(fs::path p_path) : m_path{p_path} {
 				m_groups.emplace_back();
 				//m_groups.front().var_add(L"ret"s);
 			}

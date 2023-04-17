@@ -31,6 +31,8 @@ export namespace ksi {
 				m_name;
 			act::sequence
 				m_seq;
+
+			//ext_property(t_text p_name, fs::path p_path) : m_name{p_name}, m_seq{p_path} {}
 		};
 
 	} // ns
@@ -66,7 +68,7 @@ export namespace ksi {
 			m_props;
 
 		t_module(t_integer p_id, t_text p_name) : with_id_name{p_id, p_name} {
-			m_do = &m_seqs.emplace_back();
+			m_do = &m_seqs.emplace_back(fs::path{});
 		}
 
 		t_index var_add(ast::ext_property & p_ext_prop) {

@@ -139,10 +139,13 @@ namespace ksi {
 		struct is_char {
 			t_char
 				m_value = L'\0';
+			t_pos
+				m_pos;
 
 			bool parse(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
 				if( just::is_one_of(*p_state.m_pos.m_pos, C ...) ) {
 					m_value = *p_state.m_pos.m_pos;
+					m_pos = p_state.m_pos.pos();
 					p_state.m_pos.next();
 					return true;
 				}

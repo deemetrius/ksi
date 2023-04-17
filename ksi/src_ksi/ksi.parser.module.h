@@ -50,9 +50,14 @@ struct t_var_mod_assign {
 	struct t_data : public is_char<L'='> {
 		void action(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
 			p_state.m_next_parse = &rule_module_after_assign::parse;
+			p_tokens.add(this);
 		}
 
 		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
+			p_data.m_body->node_add(&ast::body::node_types::s_assign, {
+				&act::actions::s_assign,
+				{m_pos, m_value}
+			});
 		}
 	};
 };
@@ -80,9 +85,14 @@ struct t_literal_int {
 
 	struct t_data : public is_integer {
 		void action(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
+			p_tokens.add(this);
 		}
 
 		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
+			p_data.m_body->node_add(&ast::body::node_types::s_leaf, {
+				&act::actions::s_put_int,
+				{m_pos, m_value}
+			});
 		}
 	};
 };

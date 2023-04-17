@@ -200,6 +200,8 @@ namespace ksi {
 			// data
 			t_integer
 				m_value = 0;
+			t_pos
+				m_pos;
 
 			static bool is_sign(t_char p) { return just::is_one_of(p, L'-', L'+'); }
 			static bool is_separator(t_char p) { return just::is_one_of(p, L'_', L'\''); }
@@ -214,6 +216,7 @@ namespace ksi {
 				while( std::iswdigit(*v_pos.m_pos) || is_separator(*v_pos.m_pos) ) { v_pos.next(); }
 				if( ! p_state.m_pos.differs(v_pos) ) { return false; }
 				text_str v_text{p_state.m_pos.m_pos, v_pos.m_pos};
+				m_pos = p_state.m_pos.pos();
 				p_state.m_pos = v_pos;
 				std::erase_if(v_text, [](t_char p)->bool{
 					return is_separator(p);

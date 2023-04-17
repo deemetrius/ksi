@@ -111,6 +111,28 @@ export namespace ksi {
 					p_body->action_add(p_node->m_action);
 				}
 
+				static void inner_add(tree_pointer p_tree, node_pointer p_target, node_pointer p_node) {
+					p_node->m_left = p_target->m_right;
+					p_target->m_right = p_node;
+					p_tree->m_last = p_node;
+				}
+
+				static void add_left_right(tree_pointer p_tree, node_pointer p_node) {
+					node_pointer v_target = p_tree->m_root;
+					while( p_node->m_type->m_prec_before < v_target->m_right->m_type->m_prec_after ) {
+						v_target = v_target->m_right;
+					}
+					inner_add(p_tree, v_target, p_node);
+				}
+
+				static void add_right_left(tree_pointer p_tree, node_pointer p_node) {
+					node_pointer v_target = p_tree->m_root;
+					while( p_node->m_type->m_prec_before <= v_target->m_right->m_type->m_prec_after ) {
+						v_target = v_target->m_right;
+					}
+					inner_add(p_tree, v_target, p_node);
+				}
+
 				static void add_root(tree_pointer p_tree, node_pointer p_node) {
 					p_tree->m_root = p_node;
 					p_tree->m_last = p_node;
@@ -122,7 +144,8 @@ export namespace ksi {
 
 				static inline const node_type
 					s_root{&do_root, &add_root, precedence::n_root, precedence::n_root},
-					s_leaf{&do_leaf, &add_leaf, precedence::n_leaf, precedence::n_leaf}
+					s_leaf{&do_leaf, &add_leaf, precedence::n_leaf, precedence::n_leaf},
+					s_assign{&do_usual_right_left, &add_right_left, precedence::n_assign_before, precedence::n_assign_after}
 				;
 			}; // types
 

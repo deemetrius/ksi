@@ -36,6 +36,11 @@ export namespace ksi {
 
 			stack() : m_empty_cell{&m_point}, m_cell{&m_point}, m_items{16, &m_point} {}
 
+			template <typename ... T_args>
+			void add(T_args && ... p_args) {
+				m_items.emplace_back(just::separator{}, std::forward<T_args>(p_args) ...);
+			}
+
 			void set(const var::cell & v_ptr) {
 				m_cell = v_ptr;
 			}
@@ -228,9 +233,19 @@ export namespace ksi {
 
 			static void do_mod_var_link(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data);
 
+			static void do_put_int(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data) {
+				p_stack.add(p_data.m_value);
+			}
+
+			static void do_assign(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data) {
+				// todo:
+			}
+
 			static inline const action_type
 				s_nothing		{L"do_nothing"s,		&action_type::do_nothing},
-				s_mod_var_link	{L"do_mod_var_link"s,	&do_mod_var_link}
+				s_mod_var_link	{L"do_mod_var_link"s,	&do_mod_var_link},
+				s_put_int		{L"do_put_int"s,		&do_put_int},
+				s_assign		{L"do_assign"s,			&do_assign}
 			;
 		}; // actions
 

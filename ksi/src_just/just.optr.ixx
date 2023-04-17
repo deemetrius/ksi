@@ -248,6 +248,14 @@ export namespace just {
 				return *this;
 			}
 
+			optr & operator = (optr && p_other) {
+				if( m_target == p_other.m_target ) { return *this; }
+				clear();
+				init(&p_other.m_target->m_point->m_sources);
+				m_target = p_other.m_target;
+				return *this;
+			}
+
 			//optr & operator = (optr && p_other) = delete;
 
 			/*optr & operator = (optr && p_other) {

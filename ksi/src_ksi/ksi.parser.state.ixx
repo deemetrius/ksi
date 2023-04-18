@@ -60,6 +60,8 @@ namespace ksi {
 				m_nest = nest_type::n_file;
 			kind
 				m_was_kind = kind::n_begin;
+			t_pos
+				m_space_pos;
 			bool
 				m_was_space = false,
 				m_done = false,

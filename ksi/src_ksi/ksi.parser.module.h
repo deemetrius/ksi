@@ -63,7 +63,12 @@ struct t_var_mod_assign {
 };
 
 struct end_var_mod_assign {
+	// data
+	t_pos
+		m_space_pos;
+
 	void action(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
+		m_space_pos = p_state.m_space_pos;
 		p_tokens.add(this);
 	}
 

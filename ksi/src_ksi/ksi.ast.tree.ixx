@@ -111,6 +111,8 @@ export namespace ksi {
 					p_body->action_add(p_node->m_action);
 				}
 
+				//
+
 				static void inner_add(tree_pointer p_tree, node_pointer p_target, node_pointer p_node) {
 					p_node->m_left = p_target->m_right;
 					p_target->m_right = p_node;
@@ -179,6 +181,7 @@ export namespace ksi {
 
 			tree_pointer tree_add_sibling() {
 				tree_pointer ret = m_pool_trees.make(this);
+				m_trees.back()->m_sibling = ret;
 				m_trees.back() = ret;
 				return ret;
 			}

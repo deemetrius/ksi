@@ -15,13 +15,13 @@ export namespace ksi {
 
 	enum class property_status { n_undefined, n_calculating, n_ready };
 	
-	struct property_seq {
+	/*struct property_seq {
 		// data
 		property_status
 			m_status = property_status::n_undefined;
 		act::sequence
 			m_seq;
-	};
+	};*/
 
 	namespace ast {
 
@@ -144,8 +144,8 @@ export namespace ksi {
 			return &mod_get(p_seq_pos.m_module_id)->m_seqs[p_seq_pos.m_aspect_id];
 		}
 
-		var::cell & var_get(act::pos_module_aspect p_var_pos) {
-			return mod_get(p_var_pos.m_module_id)->m_props[p_var_pos.m_aspect_id].second.m_value.m_cell;
+		t_property & var_get(act::pos_module_aspect p_var_pos) {
+			return mod_get(p_var_pos.m_module_id)->m_props[p_var_pos.m_aspect_id].second.m_value;
 		}
 	};
 

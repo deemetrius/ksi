@@ -51,6 +51,8 @@ struct o_vector {
 	t_optr & operator [] (t_index p_index) { return m_items[p_index]; }
 
 	t_optr & back() { return m_items.back(); }
+
+	t_index ssize() const { return std::ssize(m_items); }
 };
 
 // ot_vector

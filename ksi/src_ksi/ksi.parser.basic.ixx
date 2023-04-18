@@ -118,6 +118,7 @@ namespace ksi {
 						break;
 					} while( true );
 					if( p_state.m_pos.differs(v_pos) ) {
+						p_state.m_space_pos = p_state.m_pos.pos();
 						p_state.m_pos = v_pos;
 						if( v_depth > 0 ) {
 							text_str v_msg = just::implode({

@@ -54,8 +54,12 @@ namespace ksi {
 		}
 
 		void actions::do_mod_var_link(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data) {
-			p_stack.set( p_call->m_space->var_get(p_data.m_aspect_pos) );
+			p_stack.set( p_call->m_space->var_get(p_data.m_aspect_pos).m_cell );
 			p_stack.push_link();
+		}
+
+		void actions::do_mod_var_ready(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data) {
+			p_call->m_space->var_get(p_data.m_aspect_pos).m_status = property_status::n_ready;
 		}
 
 	} // ns

@@ -33,9 +33,11 @@ struct t_var_mod {
 
 		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
 			t_index v_var_id = p_data.var_add(m_name, m_path, m_pos);
+			p_data.m_var_pos.m_module_id = p_data.m_mod_current->m_module->id();
+			p_data.m_var_pos.m_aspect_id = v_var_id;
 			p_data.m_body->node_add(&ast::body::node_types::s_leaf, {
 				&act::actions::s_mod_var_link,
-				{m_pos, 0, {p_data.m_mod_current->m_module->id(), v_var_id}}
+				{m_pos, 0, p_data.m_var_pos}
 			});
 		}
 	};
@@ -56,7 +58,7 @@ struct t_var_mod_assign {
 		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
 			p_data.m_body->node_add(&ast::body::node_types::s_assign, {
 				&act::actions::s_assign,
-				{m_pos, m_value}
+				{m_pos}
 			});
 		}
 	};
@@ -73,7 +75,17 @@ struct end_var_mod_assign {
 	}
 
 	void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
-		// todo: apply ast tree to seq
+		//
+		{
+			ast::body::body_pointer v_body = p_data.m_body.get();
+			v_body->apply();
+			//act::sequence::pointer v_seq = v_body->m_seq;
+			//act::pos_module_aspect v_var_pos = v_seq->m_groups[0].m_actions[0].m_data.m_aspect_pos; // todo: fix
+			v_body->action_add({
+				&act::actions::s_mod_var_ready, {m_space_pos, 0, p_data.m_var_pos}
+			});
+		}
+		p_data.m_body.reset();
 	}
 };
 

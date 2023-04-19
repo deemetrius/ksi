@@ -2,7 +2,6 @@
 
 import <new>;
 import <clocale>;
-//import <iostream>;
 import just.input;
 import just.output;
 import just.args;
@@ -10,7 +9,7 @@ import just.array;
 import ksi.space;
 import ksi.parser;
 
-using t_data = just::array<just::t_index, 3>;
+//using t_data = just::array<just::t_index, 3>;
 
 int wmain(int p_args_count, wchar_t * p_args[], wchar_t * p_env[]) {
 	using namespace std::string_literals;
@@ -35,6 +34,7 @@ int wmain(int p_args_count, wchar_t * p_args[], wchar_t * p_env[]) {
 		ksi::t_integer v_res = ksi::parser::parse(&v_space, v_path, v_f, &v_log);
 		just::g_console << (v_res ? "* Parsed" : "* Not parsed") << just::g_new_line;
 		v_log.out();
+		just::g_console << v_space.m_mod_main;
 
 		/*ksi::var::value v1{&ksi::hcfg->mc_null}, v2{&ksi::hcfg->mt_cat};
 		just::g_console << ksi::var::compare(v1, v2) << just::g_new_line;*/

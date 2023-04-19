@@ -4,6 +4,7 @@ module;
 
 export module just.text;
 
+export import just.output;
 export import <memory>;
 export import <string>;
 export import <initializer_list>;
@@ -49,6 +50,13 @@ export namespace just {
 
 	text_str implode(std::initializer_list<text> p_items, text p_delimiter = {}, text p_prefix = {}) {
 		return implode_items(p_items, p_delimiter, p_prefix);
+	}
+
+	//
+
+	output_base & operator << (output_base & p_out, const text & p_text) {
+		p_out << p_text.m_ptr->data();
+		return p_out;
 	}
 
 } // ns

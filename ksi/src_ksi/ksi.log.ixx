@@ -18,8 +18,9 @@ export namespace ksi {
 			m_col = 1;
 	};
 
-	just::output_base & operator << (just::output_base & p_out, t_pos p_pos) {
-		return p_out << '[' << p_pos.m_line << ':' << p_pos.m_col << ']';
+	just::output_base & operator << (just::output_base & p_out, const t_pos & p_pos) {
+		p_out << '[' << p_pos.m_line << ':' << p_pos.m_col << ']';
+		return p_out;
 	}
 
 	struct log_message {

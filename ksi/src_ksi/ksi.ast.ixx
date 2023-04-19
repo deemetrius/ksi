@@ -89,6 +89,8 @@ export namespace ksi {
 				m_mod_current;
 			t_body_ptr
 				m_body;
+			act::pos_module_aspect
+				m_var_pos;
 
 			prepare_data(space::pointer p_space, log_base::pointer p_log) :
 				m_space{p_space},

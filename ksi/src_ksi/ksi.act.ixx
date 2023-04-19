@@ -255,9 +255,43 @@ export namespace ksi {
 				s_nothing		{L"do_nothing"s,		&action_type::do_nothing},
 				s_mod_var_link	{L"do_mod_var_link"s,	&do_mod_var_link},
 				s_put_int		{L"do_put_int"s,		&do_put_int},
-				s_assign		{L"do_assign"s,			&do_assign}
+				s_assign		{L"do_assign"s,			&do_assign},
+				s_mod_var_ready	{L"do_mod_var_ready"s,	&do_mod_var_ready}
 			;
 		}; // actions
+
+		//
+
+		just::output_base & operator << (just::output_base & p_out, const pos_module_aspect & p_pos) {
+			p_out << '{' << p_pos.m_module_id << ',' << p_pos.m_aspect_id << '}';
+			return p_out;
+		}
+
+		just::output_base & operator << (just::output_base & p_out, const action & p_action) {
+			p_out
+				<< p_action.m_type->m_name
+				<< ' ' << p_action.m_data.m_pos
+				<< ' ' << p_action.m_data.m_value
+				<< ' ' << p_action.m_data.m_aspect_pos
+			;
+			return p_out;
+		}
+
+		just::output_base & operator << (just::output_base & p_out, const action_group & p_group) {
+			for( const action & v_it : p_group.m_actions ) {
+				p_out << v_it << just::g_new_line;
+			}
+			return p_out;
+		}
+
+		just::output_base & operator << (just::output_base & p_out, const sequence & p_seq) {
+			for( t_index v_pos = 0; const action_group & v_it : p_seq.m_groups ) {
+				p_out << "\tgroup " << v_pos << just::g_new_line;
+				p_out << v_it << just::g_new_line;
+				++v_pos;
+			}
+			return p_out;
+		}
 
 	} // ns
 

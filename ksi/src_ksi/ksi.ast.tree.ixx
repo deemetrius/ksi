@@ -88,7 +88,7 @@ export namespace ksi {
 			struct node_types {
 				static void do_root(body_pointer p_body, node_pointer p_parent, node_pointer p_node) {
 					node_pointer v_node = p_node->m_right;
-					if( v_node ) { v_node->m_type->m_perform(p_body, p_node, v_node); }
+					if( v_node != nullptr ) { v_node->m_type->m_perform(p_body, p_node, v_node); }
 				}
 
 				static void do_leaf(body_pointer p_body, node_pointer p_parent, node_pointer p_node) {
@@ -221,6 +221,13 @@ export namespace ksi {
 
 			void node_add(node_type::const_pointer p_node_type, act::action::t_cref p_action) {
 				p_node_type->node_add(this, tree_current(), p_action);
+			}
+
+			//
+
+			void apply() {
+				node_pointer v_node = m_main_tree->m_root;
+				v_node->m_type->m_perform(this, nullptr, v_node);
 			}
 
 		}; // body

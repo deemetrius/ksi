@@ -73,6 +73,7 @@ export namespace ksi {
 
 		t_index var_add(ast::ext_property & p_ext_prop) {
 			t_index v_seq_position = std::ssize(m_seqs);
+			//just::g_console << p_ext_prop.m_seq;
 			m_seqs.emplace_back(std::move(p_ext_prop.m_seq));
 			typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_ext_prop.m_name, &m_point, v_seq_position);
 			return v_it.first->second.m_index;
@@ -148,5 +149,16 @@ export namespace ksi {
 			return mod_get(p_var_pos.m_module_id)->m_props[p_var_pos.m_aspect_id].second.m_value;
 		}
 	};
+
+	//
+
+	just::output_base & operator << (just::output_base & p_out, t_module::pointer p_mod) {
+		for( t_index v_pos = 0; act::sequence & v_it : p_mod->m_seqs ) {
+			p_out << "seq " << v_pos << just::g_new_line;
+			p_out << v_it;
+			++v_pos;
+		}
+		return p_out;
+	}
 
 } // ns

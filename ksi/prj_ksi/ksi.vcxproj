@@ -32,6 +32,7 @@
     <ClCompile Include="..\src_just\just.output.ixx" />
     <ClCompile Include="..\src_just\just.optr.ixx" />
     <ClCompile Include="..\src_just\just.pool.ixx" />
+    <ClCompile Include="..\src_just\just.ptr.ixx" />
     <ClCompile Include="..\src_just\just.std.ixx" />
     <ClCompile Include="..\src_just\just.text.ixx" />
     <ClCompile Include="..\src_ksi\ksi.act.cpp" />

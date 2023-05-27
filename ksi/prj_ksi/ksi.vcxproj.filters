@@ -149,6 +149,9 @@
     <ClCompile Include="..\src_just\just.ordered_map.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\src_just\just.ptr.ixx">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\res\ksi.lang.file.ico">

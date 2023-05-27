@@ -4,6 +4,7 @@ module;
 
 export module ksi.space;
 
+export import just.ptr;
 export import just.hive;
 export import just.ordered_map;
 export import ksi.act;
@@ -52,7 +53,7 @@ export namespace ksi {
 		{}
 	};
 
-	struct t_module : public var::with_id_name<var::n_id_mod>, public just::with_deleter<t_module> {
+	struct t_module : public var::with_id_name<var::n_id_mod> /*, public just::with_deleter<t_module>*/ {
 		using pointer = t_module *;
 		using t_seqs = std::vector<act::sequence>;
 		using t_props = just::ordered_map<text_str, t_property>;
@@ -87,7 +88,8 @@ export namespace ksi {
 
 	struct space {
 		using pointer = space *;
-		using t_mod_ptr = std::unique_ptr<t_module, just::hold_deleter>;
+		//using t_mod_ptr = std::unique_ptr<t_module, just::hold_deleter>;
+		using t_mod_ptr = just::ptr<t_module>;
 		using t_mods = just::hive<text_str, t_mod_ptr, std::ranges::less>;
 
 		// data
@@ -106,7 +108,7 @@ export namespace ksi {
 			typename t_mods::iterator v_it = m_mods.find(*p_name);
 			if( v_it == m_mods.end() ) {
 				v_it = m_mods.try_emplace(*p_name,
-					std::make_unique<t_module>(m_mod_id, p_name)
+					std::in_place_type<t_module>, m_mod_id, p_name
 				);
 				++m_mod_id;
 				return (*v_it).m_value->get();

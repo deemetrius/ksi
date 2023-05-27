@@ -29,7 +29,7 @@ export namespace ksi {
 			t_module_extension(space::pointer p_space, t_text p_name, t_integer & p_id) {
 				m_module = p_space->mod_find(p_name);
 				if( m_module == nullptr ) {
-					m_new_module = std::make_unique<t_module>(p_id++, p_name);
+					m_new_module.set(std::in_place_type<t_module>, p_id++, p_name);
 					m_module = m_new_module.get();
 				}
 			}
@@ -40,7 +40,7 @@ export namespace ksi {
 					m_module->var_add(v_it.second.m_value);
 				}
 				//
-				if( m_new_module ) { p_space->mod_move(m_new_module, p_log); }
+				if( !m_new_module.empty() ) { p_space->mod_move(m_new_module, p_log); }
 			}
 
 			t_index var_find_id(t_text p_name) {

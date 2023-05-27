@@ -81,6 +81,8 @@ export namespace ksi {
 				m_error_count = 0;
 			t_integer
 				m_mod_id;
+			space::t_action_pool_ptr
+				m_action_pool;
 			t_mods
 				m_mods;
 			t_mods_vec
@@ -95,10 +97,13 @@ export namespace ksi {
 			prepare_data(space::pointer p_space, log_base::pointer p_log) :
 				m_space{p_space},
 				m_log{p_log},
-				m_mod_id{p_space->m_mod_id}
+				m_mod_id{p_space->m_mod_id},
+				m_action_pool{std::make_unique<space::t_action_pool>()}
 			{}
 
 			void extend() {
+				m_space->m_action_pools.push_front( std::move(m_action_pool) );
+				//
 				for( t_mods_iterator v_it : m_mods_vec ) {
 					v_it->second.extend(m_space, m_log);
 				}

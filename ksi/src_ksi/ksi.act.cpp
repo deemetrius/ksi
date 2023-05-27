@@ -32,7 +32,7 @@ namespace ksi {
 					pos_action v_action_pos = this->act_pos(v_seq_space_id, v_group_space_id);
 					action_group::pointer v_group = &v_seq->m_groups[v_action_pos.m_group_id];
 					if( v_action_pos.m_action_id < std::ssize(v_group->m_actions) ) {
-						action::pointer v_action = &v_group->m_actions[v_action_pos.m_action_id];
+						action::pointer v_action = v_group->m_actions[v_action_pos.m_action_id];
 						++v_action_pos.m_action_id;
 						this->act_pos(v_seq_space_id, v_group_space_id) = v_action_pos;
 						v_action->m_type->m_fn(this, p_stack, v_action->m_data);

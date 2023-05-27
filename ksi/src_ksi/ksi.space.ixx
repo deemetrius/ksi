@@ -5,10 +5,12 @@ module;
 export module ksi.space;
 
 export import just.ptr;
+export import just.pool;
 export import just.hive;
 export import just.ordered_map;
 export import ksi.act;
 export import <memory>;
+export import <forward_list>;
 
 export namespace ksi {
 
@@ -91,6 +93,10 @@ export namespace ksi {
 		//using t_mod_ptr = std::unique_ptr<t_module, just::hold_deleter>;
 		using t_mod_ptr = just::ptr<t_module>;
 		using t_mods = just::hive<text_str, t_mod_ptr, std::ranges::less>;
+		//
+		using t_action_pool = just::pool<act::action, 16>;
+		using t_action_pool_ptr = std::unique_ptr<t_action_pool>;
+		using t_action_pools = std::forward_list<t_action_pool_ptr>;
 
 		// data
 		t_integer
@@ -99,6 +105,8 @@ export namespace ksi {
 			m_mods;
 		t_module::pointer
 			m_mod_main;
+		t_action_pools
+			m_action_pools;
 
 		space() {
 			m_mod_main = mod_add(L"@main"s);

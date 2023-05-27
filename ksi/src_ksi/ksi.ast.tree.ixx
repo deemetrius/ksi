@@ -52,7 +52,7 @@ export namespace ksi {
 					m_kind = kind::n_none;
 
 				void node_add(body_pointer p_body, tree_pointer p_tree,
-					act::action::t_cref p_action, tree_pointer p_other_tree = nullptr
+					act::action::pointer p_action, tree_pointer p_other_tree = nullptr
 				) const {
 					node_pointer v_node = p_body->m_pool_nodes.make(this, p_action, p_other_tree);
 					m_fn_add(p_tree, v_node);
@@ -63,7 +63,7 @@ export namespace ksi {
 				// data
 				node_type::const_pointer
 					m_type;
-				act::action
+				act::action::pointer
 					m_action;
 				tree_pointer
 					m_tree = nullptr;
@@ -81,7 +81,7 @@ export namespace ksi {
 					m_last;
 
 				tree(body_pointer p_body) {
-					node_types::s_root.node_add(p_body, this, {&act::actions::s_nothing});
+					node_types::s_root.node_add(p_body, this, &act::actions::s_action_none);
 				}
 			};
 
@@ -213,13 +213,13 @@ export namespace ksi {
 
 			// actions
 
-			void action_add(act::action::t_cref p_action) {
+			void action_add(act::action::pointer p_action) {
 				group_current()->m_actions.emplace_back(p_action);
 			}
 
 			// nodes
 
-			void node_add(node_type::const_pointer p_node_type, act::action::t_cref p_action) {
+			void node_add(node_type::const_pointer p_node_type, act::action::pointer p_action) {
 				p_node_type->node_add(this, tree_current(), p_action);
 			}
 

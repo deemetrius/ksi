@@ -188,7 +188,7 @@ export namespace ksi {
 
 		struct action_group {
 			using pointer = action_group *;
-			using t_items = std::vector<action>;
+			using t_items = std::vector<action::pointer>;
 			using t_var_names = std::vector<t_text>;
 			using t_var_names_ptr = std::unique_ptr<t_var_names>;
 
@@ -236,6 +236,7 @@ export namespace ksi {
 		//
 
 		struct actions {
+
 			static void do_mod_var(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data);
 
 			static void do_mod_var_link(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data);
@@ -258,6 +259,9 @@ export namespace ksi {
 				s_assign		{L"do_assign"s,			&do_assign},
 				s_mod_var_ready	{L"do_mod_var_ready"s,	&do_mod_var_ready}
 			;
+			static inline act::action
+				s_action_none{&act::actions::s_nothing}
+			;
 		}; // actions
 
 		//
@@ -278,8 +282,8 @@ export namespace ksi {
 		}
 
 		just::output_base & operator << (just::output_base & p_out, const action_group & p_group) {
-			for( const action & v_it : p_group.m_actions ) {
-				p_out << v_it << just::g_new_line;
+			for( action::pointer v_it : p_group.m_actions ) {
+				p_out << (*v_it) << just::g_new_line;
 			}
 			return p_out;
 		}

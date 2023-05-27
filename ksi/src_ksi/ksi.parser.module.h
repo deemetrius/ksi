@@ -35,10 +35,11 @@ struct t_var_mod {
 			t_index v_var_id = p_data.var_add(m_name, m_path, m_pos);
 			p_data.m_var_pos.m_module_id = p_data.m_mod_current->m_module->id();
 			p_data.m_var_pos.m_aspect_id = v_var_id;
-			p_data.m_body->node_add(&ast::body::node_types::s_leaf, {
+			act::action::pointer v_action = p_data.m_action_pool->make(
 				&act::actions::s_mod_var_link,
-				{m_pos, 0, p_data.m_var_pos}
-			});
+				act::action_data{m_pos, 0, p_data.m_var_pos}
+			);
+			p_data.m_body->node_add(&ast::body::node_types::s_leaf, v_action);
 		}
 	};
 };
@@ -56,10 +57,11 @@ struct t_var_mod_assign {
 		}
 
 		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
-			p_data.m_body->node_add(&ast::body::node_types::s_assign, {
+			act::action::pointer v_action = p_data.m_action_pool->make(
 				&act::actions::s_assign,
-				{m_pos}
-			});
+				act::action_data{m_pos}
+			);
+			p_data.m_body->node_add(&ast::body::node_types::s_assign, v_action);
 		}
 	};
 };
@@ -79,11 +81,11 @@ struct end_var_mod_assign {
 		{
 			ast::body::body_pointer v_body = p_data.m_body.get();
 			v_body->apply();
-			//act::sequence::pointer v_seq = v_body->m_seq;
-			//act::pos_module_aspect v_var_pos = v_seq->m_groups[0].m_actions[0].m_data.m_aspect_pos; // todo: fix
-			v_body->action_add({
-				&act::actions::s_mod_var_ready, {m_space_pos, 0, p_data.m_var_pos}
-			});
+			act::action::pointer v_action = p_data.m_action_pool->make(
+				&act::actions::s_mod_var_ready,
+				act::action_data{m_space_pos, 0, p_data.m_var_pos}
+			);
+			v_body->action_add(v_action);
 		}
 		p_data.m_body.reset();
 	}
@@ -106,10 +108,11 @@ struct t_literal_int {
 		}
 
 		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
-			p_data.m_body->node_add(&ast::body::node_types::s_leaf, {
+			act::action::pointer v_action = p_data.m_action_pool->make(
 				&act::actions::s_put_int,
-				{m_pos, m_value}
-			});
+				act::action_data{m_pos, m_value}
+			);
+			p_data.m_body->node_add(&ast::body::node_types::s_leaf, v_action);
 		}
 	};
 };

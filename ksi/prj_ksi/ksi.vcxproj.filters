@@ -134,9 +134,6 @@
     <ClCompile Include="..\src_ksi\ksi.act.ixx">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="..\src_just\just.hive.ixx">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="..\src_ksi\ksi.act.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>

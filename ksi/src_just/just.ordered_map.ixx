@@ -44,7 +44,10 @@ export namespace just {
 			// data
 			t_vec_iterator
 				m_iter;
+			bool
+				m_added = false;
 
+			t_map_value_type * operator -> () { return m_iter->operator -> (); }
 			t_map_value_type & operator * () { return **m_iter; }
 			iterator & operator ++ () { ++m_iter; return *this; }
 

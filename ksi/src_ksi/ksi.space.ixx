@@ -6,7 +6,6 @@ export module ksi.space;
 
 export import just.ptr;
 export import just.pool;
-export import just.hive;
 export import just.ordered_map;
 export import ksi.act;
 export import <memory>;
@@ -92,7 +91,7 @@ export namespace ksi {
 		using pointer = space *;
 		//using t_mod_ptr = std::unique_ptr<t_module, just::hold_deleter>;
 		using t_mod_ptr = just::ptr<t_module>;
-		using t_mods = just::hive<text_str, t_mod_ptr, std::ranges::less>;
+		using t_mods = just::ordered_map<text_str, t_mod_ptr>;
 		//
 		using t_action_pool = just::pool<act::action, 16>;
 		using t_action_pool_ptr = std::unique_ptr<t_action_pool>;
@@ -113,38 +112,38 @@ export namespace ksi {
 		}
 
 		t_module::pointer mod_add(t_text p_name) {
-			typename t_mods::iterator v_it = m_mods.find(*p_name);
-			if( v_it == m_mods.end() ) {
-				v_it = m_mods.try_emplace(*p_name,
+			typename t_mods::t_map_iterator v_it = m_mods.find(*p_name);
+			if( v_it == m_mods.m_map.end() ) {
+				typename t_mods::t_emplace_result v_add = m_mods.try_emplace(*p_name,
 					std::in_place_type<t_module>, m_mod_id, p_name
 				);
 				++m_mod_id;
-				return (*v_it).m_value->get();
+				return v_add.first->second.m_value.get();
 			}
-			return (*v_it).m_value->get();
+			return v_it->second.m_value.get();
 		}
 
 		t_module::pointer mod_find(t_text p_name) {
-			typename t_mods::iterator v_it = m_mods.find(*p_name);
-			return v_it == m_mods.end() ? nullptr : (*v_it).m_value->get();
+			typename t_mods::t_map_iterator v_it = m_mods.find(*p_name);
+			return v_it == m_mods.m_map.end() ? nullptr : v_it->second.m_value.get();
 		}
 
 		t_module::pointer mod_get(t_index p_index) {
-			return m_mods.m_vec[p_index].get();
+			return m_mods[p_index].second.m_value.get();
 		}
 
 		void mod_move(t_mod_ptr & p_mod_ptr, log_base::pointer p_log) {
-			typename t_mods::iterator v_it = m_mods.try_emplace(*p_mod_ptr->m_name,
+			typename t_mods::t_emplace_result v_it = m_mods.try_emplace(*p_mod_ptr->m_name,
 				std::move(p_mod_ptr)
 			);
-			if( typename t_mods::value_type v = *v_it; v.m_value->get()->m_id != (v.m_index + var::n_id_mod) ) {
+			if( typename t_mods::value_type & v = v_it.first->second; v.m_value->m_id != (v.m_index + var::n_id_mod) ) {
 				t_text v_msg = just::implode({
 					L"extending module notice: Module id differs: "s,
-					v.m_value->get()->m_name,
+					v.m_value->m_name,
 					L" (pos: "s,
 					std::to_wstring(v.m_index),
 					L", id: "s,
-					std::to_wstring(v.m_value->get()->m_id - var::n_id_mod),
+					std::to_wstring(v.m_value->m_id - var::n_id_mod),
 					L")"s
 				});
 				p_log->add({fs::path{}, {0,0}, v_msg});

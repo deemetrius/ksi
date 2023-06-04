@@ -99,7 +99,11 @@ export namespace just {
 			// data
 			t_items
 				m_sources;
+
+			bool is_root() const { return m_sources.empty(); }
 		};
+
+		static inline junction s_root_junction;
 
 		struct with_point : public bad_targets::is_target_base {
 			using t_ptr = std::unique_ptr<junction>;
@@ -190,13 +194,13 @@ export namespace just {
 			using t_ring = bad_targets;
 			using t_ring_pointer = t_ring *;
 
-			struct params {
+			/*struct params {
 				// data
 				pointer
 					m_target;
 				t_ring_pointer
 					m_ring = &t_ring::s_ring;
-			};
+			};*/
 
 			// data
 			junction::pointer
@@ -224,7 +228,13 @@ export namespace just {
 			}
 
 			optr(const optr & p_other) = delete;
-			optr(optr && p_other) = default;
+			optr(optr && p_other) {
+				m_source = p_other.m_source;
+				m_iterator = p_other.m_iterator;
+				m_target = p_other.m_target;
+				//
+				p_other.m_target = nullptr;
+			}
 
 			optr(junction::pointer p_host, const optr & p_other) :
 				m_source{p_host}
@@ -293,7 +303,10 @@ export namespace just {
 						if( v_list.empty() ) { break; }
 					} else {
 						typename junction::pointer v_owner = *v_pair->first;
-						if( v_owner == nullptr ) { return; }
+						if( v_owner->is_root() ) {
+							m_target = nullptr;
+							return;
+						}
 						if( ! v_set.contains(v_owner) ) {
 							v_set.insert(v_owner);
 							v_list.emplace_back(v_owner->m_sources.begin(), v_owner->m_sources.end() );

@@ -26,15 +26,17 @@ export namespace ksi {
 			using t_items = var::optr_nest::o_vector<var::value>;
 
 			// data
-			var::junction
-				m_point;
 			var::cell
 				m_empty_cell,
 				m_cell;
 			t_items
 				m_items;
 
-			stack() : m_empty_cell{&m_point}, m_cell{&m_point}, m_items{16, &m_point} {}
+			stack() :
+				m_empty_cell{&var::optr_nest::s_root_junction},
+				m_cell{&var::optr_nest::s_root_junction},
+				m_items{16, &var::optr_nest::s_root_junction}
+			{}
 
 			var::cell & last() { return m_items.back(); }
 

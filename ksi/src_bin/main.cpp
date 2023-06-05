@@ -9,8 +9,6 @@ import just.array;
 import ksi.space;
 import ksi.parser;
 
-//using t_data = just::array<just::t_index, 3>;
-
 int wmain(int p_args_count, wchar_t * p_args[], wchar_t * p_env[]) {
 	using namespace std::string_literals;
 	try {

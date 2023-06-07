@@ -34,6 +34,7 @@
     <ClCompile Include="..\src_just\just.ptr.ixx" />
     <ClCompile Include="..\src_just\just.std.ixx" />
     <ClCompile Include="..\src_just\just.text.ixx" />
+    <ClCompile Include="..\src_just\just.vector.ixx" />
     <ClCompile Include="..\src_ksi\ksi.act.cpp" />
     <ClCompile Include="..\src_ksi\ksi.act.ixx" />
     <ClCompile Include="..\src_ksi\ksi.ast.ixx" />

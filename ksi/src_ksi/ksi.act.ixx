@@ -4,6 +4,7 @@ module;
 
 export module ksi.act;
 
+export import just.vector;
 export import ksi.var;
 export import ksi.log;
 export import <vector>;
@@ -23,7 +24,8 @@ export namespace ksi {
 		using sequence_pointer = sequence *;
 
 		struct stack {
-			using t_items = var::optr_nest::o_vector<var::value>;
+			//using t_items = var::optr_nest::o_vector<var::value>;
+			using t_items = just::vector<var::cell, just::grow_step<16, 15> >;
 
 			// data
 			var::cell
@@ -34,20 +36,21 @@ export namespace ksi {
 
 			stack() :
 				m_empty_cell{&var::optr_nest::s_root_junction},
-				m_cell{&var::optr_nest::s_root_junction},
-				m_items{16, &var::optr_nest::s_root_junction}
+				m_cell{&var::optr_nest::s_root_junction}/*,
+				m_items{16, &var::optr_nest::s_root_junction}*/
 			{}
 
-			var::cell & last() { return m_items.back(); }
+			var::cell & last(t_index p_position_from_end = 0) { return m_items.back(p_position_from_end); }
 
-			var::cell & pre_last() {
-				t_index v_index = m_items.ssize() - 2;
-				return m_items[v_index];
-			}
+			/*var::cell & pre_last() {
+				//t_index v_index = m_items.ssize() - 2;
+				//return m_items[v_index];
+				return m_items.back(1);
+			}*/
 
 			template <typename ... T_args>
 			void add(T_args && ... p_args) {
-				m_items.emplace_back(just::separator{}, std::forward<T_args>(p_args) ...);
+				m_items.emplace_back(&var::optr_nest::s_root_junction, just::separator{}, std::forward<T_args>(p_args) ...);
 			}
 
 			void set(const var::cell & v_ptr) {
@@ -55,13 +58,13 @@ export namespace ksi {
 			}
 
 			void push() {
-				m_items.emplace_back();
-				*m_items.back() = *m_cell;
+				m_items.emplace_back(&var::optr_nest::s_root_junction, just::separator{}, *m_cell);
+				//*m_items.back() = *m_cell;
 				m_cell = m_empty_cell;
 			}
 
 			void push_link() {
-				m_items.emplace_back(m_cell);
+				m_items.emplace_back(&var::optr_nest::s_root_junction, m_cell);
 				m_cell = m_empty_cell;
 			}
 
@@ -250,7 +253,7 @@ export namespace ksi {
 			}
 
 			static void do_assign(run_space::pointer p_call, stack & p_stack, action_data::t_cref p_data) {
-				*p_stack.last() = *p_stack.pre_last();
+				*p_stack.last() = *p_stack.last(1);
 				p_stack.pop();
 			}
 

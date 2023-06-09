@@ -44,7 +44,7 @@ export namespace just {
 
 		struct mem {
 			static pointer allocate(t_index p_reserve) {
-				return reinterpret_cast<pointer>(
+				return static_cast<pointer>(
 					::operator new(s_size * p_reserve, s_align, std::nothrow)
 				);
 			}

@@ -29,18 +29,19 @@ export namespace just {
 
 	template <typename T, typename Grow = grow_step<> >
 	struct vector {
-		using element_type = T;
-		using pointer = element_type *;
-		using reference = element_type &;
+		using value_type = T;
+		using pointer = value_type *;
+		using reference = value_type &;
 		using t_grow = Grow;
 
 		static constexpr std::align_val_t
-			s_align{alignof(element_type)};
+			s_align{alignof(value_type)};
 		static constexpr t_size
-			s_size{sizeof(element_type)};
+			s_size{sizeof(value_type)};
 
 		static constexpr bool
-			s_with_destructor = ! std::is_trivially_destructible_v<element_type>;
+			s_with_custom_default_constructor = ! std::is_trivially_default_constructible_v<value_type>,
+			s_with_destructor = ! std::is_trivially_destructible_v<value_type>;
 
 		struct mem {
 			static pointer allocate(t_index p_reserve) {
@@ -88,6 +89,15 @@ export namespace just {
 		// data
 		t_data
 			m_data;
+
+		union t_late {
+			// data
+			value_type
+				m_item;
+
+			t_late() requires (s_with_custom_default_constructor) {}
+			~t_late() requires (s_with_destructor) {}
+		};
 
 	public:
 
@@ -144,6 +154,17 @@ export namespace just {
 			}
 		}
 
+		void erase(t_index p_position) {
+			if constexpr ( s_with_destructor ) {
+				m_data.m_handle[p_position].~value_type();
+			}
+			if( p_position < m_data.m_count - 1 ) {
+				t_index v_rest_count = m_data.m_count - p_position - 1;
+				std::memmove(m_data.m_handle + p_position, m_data.m_handle + p_position + 1, v_rest_count * s_size);
+			}
+			--m_data.m_count;
+		}
+
 		void pop_back_n(t_index p_number) {
 			if constexpr ( s_with_destructor ) {
 				for( t_index vi = 0; vi < p_number; ++vi ) {
@@ -156,7 +177,7 @@ export namespace just {
 
 		void pop_back() {
 			if constexpr ( s_with_destructor ) {
-				back().~element_type();
+				back().~value_type();
 			}
 			--m_data.m_count;
 		}
@@ -179,6 +200,51 @@ export namespace just {
 		// add
 
 		template <typename ... Args>
+		void emplace(t_index p_position, Args && ... p_args) {
+			if( p_position >= m_data.m_count ) {
+				emplace_back(std::forward<Args>(p_args) ...);
+				return;
+			}
+			if( full() ) {
+				t_index v_new_reserve = t_grow::calc_new_reserve(m_data.m_reserve, 1);
+				vector v{v_new_reserve, m_data.m_mem};
+
+				// construct inserted at temporary location
+				t_late v_inserted;
+				new (&v_inserted.m_item) value_type{std::forward<Args>(p_args) ...};
+
+				// copy items before position
+				if( p_position > 0 ) {
+					std::memcpy(v.m_data.m_handle, m_data.m_handle, p_position * s_size);
+				}
+
+				// copy inserted
+				std::memcpy(v.m_data.m_handle + p_position, &v_inserted.m_item, s_size);
+
+				// copy rest items
+				t_index v_rest_count = m_data.m_count - p_position;
+				std::memcpy(v.m_data.m_handle + p_position + 1, m_data.m_handle + p_position, v_rest_count * s_size);
+
+				// update counts and swap
+				v.m_data.m_count = std::exchange(m_data.m_count, 0) + 1;
+				std::ranges::swap(m_data, v.m_data);
+			} else {
+				// construct inserted at temporary location
+				t_late v_inserted;
+				new (&v_inserted.m_item) value_type{std::forward<Args>(p_args) ...};
+
+				// move rest items
+				t_index v_rest_count = m_data.m_count - p_position;
+				std::memmove(m_data.m_handle + p_position + 1, m_data.m_handle + p_position, v_rest_count * s_size);
+
+				// copy inserted
+				std::memcpy(m_data.m_handle + p_position, &v_inserted.m_item, s_size);
+
+				++m_data.m_count;
+			}
+		}
+
+		template <typename ... Args>
 		void emplace_back(Args && ... p_args) {
 			if( full() ) {
 				t_index v_new_reserve = t_grow::calc_new_reserve(m_data.m_reserve, 1);
@@ -187,10 +253,9 @@ export namespace just {
 				std::ranges::swap(m_data.m_count, v.m_data.m_count);
 				std::ranges::swap(m_data, v.m_data);
 			}
-			new (m_data.m_handle + m_data.m_count) element_type{std::forward<Args>(p_args) ...};
+			new (m_data.m_handle + m_data.m_count) value_type{std::forward<Args>(p_args) ...};
 			++m_data.m_count;
 		}
 	};
-
 
 } //

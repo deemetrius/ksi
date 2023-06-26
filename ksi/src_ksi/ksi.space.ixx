@@ -7,12 +7,41 @@ export module ksi.space;
 export import just.ptr;
 export import just.pool;
 export import just.ordered_map;
-export import ksi.undefined_yet;
+export import ksi.act;
 export import <forward_list>;
 
 export namespace ksi {
 
 	using namespace std::string_literals;
+
+	enum class property_status { n_undefined, n_calculating, n_ready };
+
+	namespace ast {
+
+		struct ext_property {
+			// data
+			t_text
+				m_name;
+			act::sequence
+				m_seq;
+		};
+
+	} // ns
+
+	struct t_property {
+		// data
+		var::cell
+			m_cell;
+		t_index
+			m_seq_index;
+		property_status
+			m_status = property_status::n_undefined;
+
+		t_property(t_index p_seq_index) :
+			m_cell{&var::optr_nest::s_root_junction},
+			m_seq_index{p_seq_index}
+		{}
+	};
 
 	struct t_module : public var::with_id_name<var::n_id_mod> {
 		using pointer = t_module *;
@@ -34,8 +63,10 @@ export namespace ksi {
 		t_index var_add(ast::ext_property & p_ext_prop) {
 			t_index v_seq_position = std::ssize(m_seqs);
 			//just::g_console << p_ext_prop.m_seq;
-			m_seqs.emplace_back( std::move(p_ext_prop.m_seq) );
-			typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_ext_prop.m_name, &var::optr_nest::s_root_junction, v_seq_position);
+			typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_ext_prop.m_name, v_seq_position);
+			if( v_it.second ) {
+				m_seqs.emplace_back( std::move(p_ext_prop.m_seq) );
+			}
 			return v_it.first->second.m_index;
 		}
 

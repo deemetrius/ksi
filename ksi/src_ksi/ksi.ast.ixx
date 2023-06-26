@@ -5,7 +5,7 @@ module;
 export module ksi.ast;
 
 export import ksi.log;
-export import ksi.space;
+export import ksi.undefined_yet;
 export import :tree;
 
 export namespace ksi {
@@ -50,18 +50,9 @@ export namespace ksi {
 				return ( v_it == m_props.m_map.end() ) ? (-1) : ( v_it->second.m_index + m_module->m_props.ssize() );
 			}
 
-			act::sequence::pointer var_seq_get(t_index p_id) {
-				t_index v_size = m_module->m_props.ssize();
-				if( p_id < v_size ) {
-					t_index v_seq_index = m_module->m_props[p_id].second.m_value.m_seq_index;
-					return &m_module->m_seqs[v_seq_index];
-				}
-				return &m_props[p_id - v_size].second.m_value.m_seq;
-			}
-
-			t_index var_add(t_text p_name, fs::path p_path) {
+			t_props::t_map_iterator var_add(t_text p_name, fs::path p_path) {
 				typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_name, p_name, p_path);
-				return v_it.first->second.m_index;
+				return v_it.first;
 			}
 		};
 
@@ -71,6 +62,7 @@ export namespace ksi {
 			using t_mods_vec = std::vector<t_mods_iterator>;
 			using t_try_emplace = std::pair<t_mods::iterator, bool>;
 			using t_body_ptr = std::unique_ptr<body>;
+			using t_map_prop_iterator = t_module_extension::t_props::t_map_iterator;
 
 			// data
 			space::pointer
@@ -127,22 +119,22 @@ export namespace ksi {
 
 			t_index var_add(t_text p_name, fs::path p_path, t_pos p_pos) {
 				t_index v_var_id = m_mod_current->var_find_id(p_name);
-				if( v_var_id != -1 ) {
+				if( v_var_id == -1 ) {
+					v_var_id = m_mod_current->m_module->m_props.ssize() + m_mod_current->m_props.ssize();
+				} else {
 					t_text v_msg = just::implode({
 						L"deduce notice: "s,
 						m_mod_current->m_module->m_name,
-						L" Reassignment of variable: "s,
+						L" Variable is already defined: "s,
 						p_name
 					});
 					m_log->add({p_path, p_pos, v_msg});
-					act::sequence::pointer v_seq = m_mod_current->var_seq_get(v_var_id);
-					v_seq->clear();
-					m_body = std::make_unique<body>(v_seq);
-				} else {
-					v_var_id = m_mod_current->var_add(p_name, p_path);
-					act::sequence::pointer v_seq = m_mod_current->var_seq_get(v_var_id);
-					m_body = std::make_unique<body>(v_seq);
+					t_map_prop_iterator v_it = m_mod_current->var_add(p_name, p_path);
+					m_body = std::make_unique<body>( &v_it->second.m_value.m_seq );
 				}
+				t_map_prop_iterator v_it = m_mod_current->var_add(p_name, p_path);
+				m_body = std::make_unique<body>( &v_it->second.m_value.m_seq );
+
 				return v_var_id;
 			}
 		};

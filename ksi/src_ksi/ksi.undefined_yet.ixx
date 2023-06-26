@@ -4,37 +4,34 @@ module;
 
 export module ksi.undefined_yet;
 
-export import ksi.act;
+export import ksi.space;
 
 export namespace ksi {
 
-	enum class property_status { n_undefined, n_calculating, n_ready };
+	struct undefined_yet {
+	
+		struct unknown_property {
+			using t_items = just::vector<act::action::pointer, just::grow_step<8, 7> >;
 
-	namespace ast {
-
-		struct ext_property {
 			// data
-			t_text
-				m_name;
-			act::sequence
-				m_seq;
+			t_items
+				m_items;
 		};
 
-	} // ns
+		struct per_module {
+			using t_items = std::map<text_str, unknown_property, std::ranges::less>;
 
-	struct t_property {
+			// data
+			t_items
+				m_items;
+		};
+
+		using t_items = std::map<text_str, per_module, std::ranges::less>;
+
 		// data
-		var::cell
-			m_cell;
-		t_index
-			m_seq_index;
-		property_status
-			m_status = property_status::n_undefined;
+		t_items
+			m_items;
 
-		t_property(var::optr_nest::junction::pointer p_point, t_index p_seq_index) :
-			m_cell{p_point},
-			m_seq_index{p_seq_index}
-		{}
 	};
 
 } // ns

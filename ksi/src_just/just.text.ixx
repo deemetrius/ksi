@@ -35,6 +35,8 @@ export namespace just {
 
 		t_reference operator * () const { return *m_ptr.get(); }
 		t_pointer operator -> () const { return m_ptr.get(); }
+
+		bool is_same(const text & p_other) const { return m_ptr.get() == p_other.m_ptr.get(); }
 	};
 
 	template <typename T_container>

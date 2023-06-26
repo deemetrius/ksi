@@ -259,6 +259,7 @@ export namespace ksi {
 
 			static inline const action_type
 				s_nothing		{L"do_nothing"s,		&action_type::do_nothing},
+				s_mod_var		{L"do_mod_var"s,		&do_mod_var},
 				s_mod_var_link	{L"do_mod_var_link"s,	&do_mod_var_link},
 				s_put_int		{L"do_put_int"s,		&do_put_int},
 				s_assign		{L"do_assign"s,			&do_assign},

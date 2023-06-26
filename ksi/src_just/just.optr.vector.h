@@ -6,7 +6,7 @@ template <typename T>
 struct o_vector {
 	using pointer = T *;
 	using t_optr = optr<T>;
-	using t_items = std::vector<t_optr>;
+	using t_items = just::vector<t_optr>;
 
 	// data
 	junction::pointer
@@ -31,9 +31,11 @@ struct o_vector {
 	}
 
 	template <typename ... Args>
-	o_vector(junction::pointer p_owner, t_size p_size, const Args & ... p_args) : mp_owner{p_owner} {
+	o_vector(junction::pointer p_owner, t_size p_size, const Args & ... p_args) :
+		mp_owner{p_owner},
+		m_items{p_size > 0 ? p_size : t_items::t_grow::get_initial_reserve()}
+	{
 		if( p_size > 0 ) {
-			m_items.reserve(p_size);
 			for( size_t i = 0; i < p_size; ++i ) {
 				m_items.emplace_back(mp_owner, p_args ...);
 			}
@@ -52,7 +54,7 @@ struct o_vector {
 
 	t_optr & back() { return m_items.back(); }
 
-	t_index ssize() const { return std::ssize(m_items); }
+	t_index ssize() const { return m_items.size(); }
 };
 
 // ot_vector
@@ -66,6 +68,6 @@ struct ot_vector : public is_target< ot_vector<T> >, public o_vector<T>
 	ot_vector() : t_base{this->m_point.get()} {}
 
 	void unset_elements() {
-		for( t_optr & v_it : std::ranges::reverse_view{this->m_items} ) { v_it->unset(); }
+		for( t_optr & v_it : this->m_items.reverse_range() ) { v_it->unset(); }
 	}
 };

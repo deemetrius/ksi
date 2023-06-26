@@ -5,7 +5,7 @@
 template <typename Key, typename Value, typename Less>
 struct o_hive {
 	using t_optr = optr<Value>;
-	using t_vector = std::vector<t_optr>;
+	using t_vector = just::vector<t_optr>;
 	using t_vector_pointer = t_vector *;
 	using t_map = std::map<Key, t_index, Less>;
 	using map_iterator = t_map::iterator;
@@ -100,7 +100,7 @@ struct o_hive {
 	}
 
 	t_index ssize() const {
-		return std::ssize(m_vec);
+		return m_vec.size();
 	}
 
 	t_optr & operator [] (t_index p_index) {

@@ -7,61 +7,19 @@ export module ksi.space;
 export import just.ptr;
 export import just.pool;
 export import just.ordered_map;
-export import ksi.act;
-export import <memory>;
+export import ksi.undefined_yet;
 export import <forward_list>;
 
 export namespace ksi {
 
 	using namespace std::string_literals;
 
-	enum class property_status { n_undefined, n_calculating, n_ready };
-	
-	/*struct property_seq {
-		// data
-		property_status
-			m_status = property_status::n_undefined;
-		act::sequence
-			m_seq;
-	};*/
-
-	namespace ast {
-
-		struct ext_property {
-			// data
-			t_text
-				m_name;
-			act::sequence
-				m_seq;
-
-			//ext_property(t_text p_name, fs::path p_path) : m_name{p_name}, m_seq{p_path} {}
-		};
-
-	} // ns
-
-	struct t_property {
-		// data
-		var::cell
-			m_cell;
-		t_index
-			m_seq_index;
-		property_status
-			m_status = property_status::n_undefined;
-
-		t_property(var::optr_nest::junction::pointer p_point, t_index p_seq_index) :
-			m_cell{p_point},
-			m_seq_index{p_seq_index}
-		{}
-	};
-
-	struct t_module : public var::with_id_name<var::n_id_mod> /*, public just::with_deleter<t_module>*/ {
+	struct t_module : public var::with_id_name<var::n_id_mod> {
 		using pointer = t_module *;
 		using t_seqs = std::vector<act::sequence>;
 		using t_props = just::ordered_map<text_str, t_property>;
 
 		// data
-		var::junction
-			m_point;
 		t_seqs
 			m_seqs;
 		act::sequence::pointer
@@ -76,8 +34,8 @@ export namespace ksi {
 		t_index var_add(ast::ext_property & p_ext_prop) {
 			t_index v_seq_position = std::ssize(m_seqs);
 			//just::g_console << p_ext_prop.m_seq;
-			m_seqs.emplace_back(std::move(p_ext_prop.m_seq));
-			typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_ext_prop.m_name, &m_point, v_seq_position);
+			m_seqs.emplace_back( std::move(p_ext_prop.m_seq) );
+			typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_ext_prop.m_name, &var::optr_nest::s_root_junction, v_seq_position);
 			return v_it.first->second.m_index;
 		}
 

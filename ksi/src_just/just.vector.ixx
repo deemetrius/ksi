@@ -81,13 +81,13 @@ export namespace just {
 	protected:
 
 		struct t_data {
-			pointer
-				m_handle;
-			size_type
-				m_reserve,
-				m_count = 0;
 			mem_const_pointer
 				m_mem = &s_mem;
+			size_type
+				m_reserve = 0,
+				m_count = 0;
+			pointer
+				m_handle = nullptr;
 		};
 
 		using t_data_pointer = t_data *;
@@ -108,17 +108,20 @@ export namespace just {
 	public:
 
 		base_vector(const base_vector &) = delete;
-		base_vector(base_vector &&) = delete;
 		base_vector & operator = (const base_vector &) = delete;
+
+		base_vector(base_vector && p_other) {
+			std::ranges::swap(m_data, p_other.m_data);
+		}
 
 		base_vector & operator = (base_vector && p_other) {
 			std::ranges::swap(m_data, p_other.m_data);
+			return *this;
 		}
 
 		base_vector(mem_const_pointer p_mem = &s_mem) : base_vector(t_grow::get_initial_reserve(), p_mem) {}
 
-		base_vector(size_type p_reserve, mem_const_pointer p_mem = &s_mem) {
-			m_data.m_mem = p_mem;
+		base_vector(size_type p_reserve, mem_const_pointer p_mem = &s_mem) : m_data{p_mem} {
 			m_data.m_handle = m_data.m_mem->do_alloc(p_reserve);
 			m_data.m_reserve = p_reserve;
 		}

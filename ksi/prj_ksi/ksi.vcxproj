@@ -41,6 +41,7 @@
     <ClCompile Include="..\src_ksi\ksi.ast.tree.ixx" />
     <ClCompile Include="..\src_ksi\ksi.parser.rules.ixx" />
     <ClCompile Include="..\src_ksi\ksi.tokens.ixx" />
+    <ClCompile Include="..\src_ksi\ksi.undefined_yet.ixx" />
     <ClCompile Include="..\src_ksi\ksi.var.array.ixx" />
     <ClCompile Include="..\src_ksi\ksi.var.config.ixx" />
     <ClCompile Include="..\src_ksi\ksi.log.ixx" />

@@ -20,7 +20,7 @@ import <utility>;
 import <set>;
 import <ranges>;
 
-export import <vector>;
+export import just.vector;
 export import <map>;
 
 export import just.list;

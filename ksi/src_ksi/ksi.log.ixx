@@ -23,12 +23,24 @@ export namespace ksi {
 		return p_out;
 	}
 
-	struct log_message {
+	struct log_pos {
 		// data
 		fs::path
 			m_path;
 		t_pos
 			m_pos;
+
+		log_pos & log_pos_only() { return *this; }
+		const log_pos & log_pos_only() const { return *this; }
+	};
+
+	just::output_base & operator << (just::output_base & p_out, const log_pos & p_log_pos) {
+		p_out << p_log_pos.m_pos << ' ' << p_log_pos.m_path.c_str();
+		return p_out;
+	}
+
+	struct log_message : public log_pos {
+		// data
 		t_text
 			m_msg;
 	};
@@ -54,10 +66,10 @@ export namespace ksi {
 		}
 
 		void out(just::output_base & p_out = just::g_console) override {
-			for( log_message & it : m_items ) {
+			for( const log_message & v_it : m_items ) {
 				p_out
-					<< it.m_pos << ' ' << it.m_path.c_str() << just::g_new_line
-					<< it.m_msg->data() << just::g_new_line
+					<< v_it.log_pos_only() << just::g_new_line
+					<< v_it.m_msg->data() << just::g_new_line
 				;
 			}
 		}

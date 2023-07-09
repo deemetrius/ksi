@@ -168,7 +168,9 @@ export namespace ksi {
 			t_groups
 				m_groups;
 
-			body(act::sequence::pointer p_seq) : m_seq{p_seq} {
+			body(act::sequence::pointer p_seq) :
+				m_seq{p_seq}
+			{
 				m_main_tree = tree_add_group();
 				m_groups.emplace_back(0);
 			}

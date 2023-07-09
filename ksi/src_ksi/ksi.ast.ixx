@@ -7,6 +7,7 @@ export module ksi.ast;
 export import ksi.log;
 export import ksi.undefined_yet;
 export import :tree;
+export import <forward_list>;
 
 export namespace ksi {
 
@@ -29,7 +30,8 @@ export namespace ksi {
 			t_module_extension(space::pointer p_space, t_text p_name, t_integer & p_id) {
 				m_module = p_space->mod_find(p_name);
 				if( m_module == nullptr ) {
-					m_new_module.set(std::in_place_type<t_module>, p_id++, p_name);
+					m_new_module.set(std::in_place_type<t_module>, p_id, p_name);
+					++p_id;
 					m_module = m_new_module.get();
 				}
 			}
@@ -43,15 +45,19 @@ export namespace ksi {
 				if( !m_new_module.empty() ) { p_space->mod_move(m_new_module, p_log); }
 			}
 
+			t_index var_delta() const { return m_module->m_props.size(); }
+
+			t_props::t_map_value_type & var_get(t_index p_index) { return m_props[p_index - var_delta()]; }
+
 			t_index var_find_id(t_text p_name) {
 				t_index v_index = m_module->var_find_id(p_name);
 				if( v_index != -1 ) { return v_index; }
 				typename t_props::t_map_iterator v_it = m_props.find(*p_name);
-				return ( v_it == m_props.m_map.end() ) ? (-1) : ( v_it->second.m_index + m_module->m_props.ssize() );
+				return ( v_it == m_props.m_map.end() ) ? (-1) : ( v_it->second.m_index + var_delta() );
 			}
 
-			t_props::t_map_iterator var_add(t_text p_name, fs::path p_path) {
-				typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_name, p_name, p_path);
+			t_props::t_map_iterator var_add(t_text p_name, fs::path p_path, t_pos p_pos) {
+				typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_name, p_path, p_pos, p_name, p_path);
 				return v_it.first;
 			}
 		};
@@ -63,6 +69,7 @@ export namespace ksi {
 			using t_try_emplace = std::pair<t_mods::iterator, bool>;
 			using t_body_ptr = std::unique_ptr<body>;
 			using t_map_prop_iterator = t_module_extension::t_props::t_map_iterator;
+			using t_duplicated_seqs = std::forward_list<act::sequence>;
 
 			// data
 			space::pointer
@@ -85,6 +92,10 @@ export namespace ksi {
 				m_body;
 			act::pos_module_aspect
 				m_var_pos;
+			t_duplicated_seqs
+				m_duplicated_seqs;
+			undefined_yet
+				m_undefined_props;
 
 			prepare_data(space::pointer p_space, log_base::pointer p_log) :
 				m_space{p_space},
@@ -120,20 +131,22 @@ export namespace ksi {
 			t_index var_add(t_text p_name, fs::path p_path, t_pos p_pos) {
 				t_index v_var_id = m_mod_current->var_find_id(p_name);
 				if( v_var_id == -1 ) {
-					v_var_id = m_mod_current->m_module->m_props.ssize() + m_mod_current->m_props.ssize();
+					v_var_id = m_mod_current->var_delta() + m_mod_current->m_props.size();
+					t_map_prop_iterator v_it = m_mod_current->var_add(p_name, p_path, p_pos);
+					m_body = std::make_unique<body>(&v_it->second.m_value.m_seq);
+					m_undefined_props.known(m_mod_current->m_module->m_name, p_name, {m_mod_current->m_module->m_id, v_var_id});
 				} else {
+					ext_property & v_prop = m_mod_current->var_get(v_var_id).second.m_value;
 					t_text v_msg = just::implode({
-						L"deduce notice: "s,
-						m_mod_current->m_module->m_name,
-						L" Variable is already defined: "s,
-						p_name
+						L"deduce notice: Variable is already defined: "s,
+						p_name, m_mod_current->m_module->m_name,
+						L" ["s, std::to_wstring(v_prop.m_pos.m_line), L":"s, std::to_wstring(v_prop.m_pos.m_col), L"] "s,
+						v_prop.m_path.wstring()
 					});
 					m_log->add({p_path, p_pos, v_msg});
-					t_map_prop_iterator v_it = m_mod_current->var_add(p_name, p_path);
-					m_body = std::make_unique<body>( &v_it->second.m_value.m_seq );
+					act::sequence::pointer v_seq = &m_duplicated_seqs.emplace_front(p_path);
+					m_body = std::make_unique<body>(v_seq);
 				}
-				t_map_prop_iterator v_it = m_mod_current->var_add(p_name, p_path);
-				m_body = std::make_unique<body>( &v_it->second.m_value.m_seq );
 
 				return v_var_id;
 			}

@@ -80,7 +80,7 @@ export namespace just {
 			return *m_vec[p_index];
 		}
 
-		t_index ssize() const { return std::ssize(m_vec); }
+		t_index size() const { return std::ssize(m_vec); }
 
 		void clear() {
 			m_vec.clear();

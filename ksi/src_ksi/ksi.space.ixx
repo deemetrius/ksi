@@ -18,7 +18,7 @@ export namespace ksi {
 
 	namespace ast {
 
-		struct ext_property {
+		struct ext_property : public log_pos {
 			// data
 			t_text
 				m_name;
@@ -62,7 +62,6 @@ export namespace ksi {
 
 		t_index var_add(ast::ext_property & p_ext_prop) {
 			t_index v_seq_position = std::ssize(m_seqs);
-			//just::g_console << p_ext_prop.m_seq;
 			typename t_props::t_emplace_result v_it = m_props.try_emplace(*p_ext_prop.m_name, v_seq_position);
 			if( v_it.second ) {
 				m_seqs.emplace_back( std::move(p_ext_prop.m_seq) );

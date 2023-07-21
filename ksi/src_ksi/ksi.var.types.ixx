@@ -17,9 +17,10 @@ export namespace ksi {
 	using t_integer = just::t_integer;
 	using t_floating = double;
 
+	using text_view = just::text_view;
 	using text_str = just::text_str;
-	using t_char = text_str::value_type;
-	using tc_char_pointer = text_str::const_pointer;
+	using text_char = text_str::value_type;
+	using text_raw = text_str::const_pointer;
 
 	using t_text = just::text;
 

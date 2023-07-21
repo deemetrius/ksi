@@ -1,7 +1,7 @@
 @main -- Привет!
 
-a = 1
+a@ = 1
 
-coords = +115_223
+coords@ = +115_223
 
-coords = 0
+coords@ = 0

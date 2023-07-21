@@ -12,7 +12,8 @@ export import <forward_list>;
 
 export namespace ksi {
 
-	using namespace std::string_literals;
+	//using namespace std::string_literals;
+	using namespace std::literals::string_view_literals;
 
 	enum class property_status { n_undefined, n_calculating, n_ready };
 
@@ -77,7 +78,6 @@ export namespace ksi {
 
 	struct space {
 		using pointer = space *;
-		//using t_mod_ptr = std::unique_ptr<t_module, just::hold_deleter>;
 		using t_mod_ptr = just::ptr<t_module>;
 		using t_mods = just::ordered_map<text_str, t_mod_ptr>;
 		//
@@ -125,14 +125,17 @@ export namespace ksi {
 				std::move(p_mod_ptr)
 			);
 			if( typename t_mods::value_type & v = v_it.first->second; v.m_value->m_id != (v.m_index + var::n_id_mod) ) {
+				text_str
+					v_position = std::to_wstring(v.m_index),
+					v_index = std::to_wstring(v.m_value->m_id - var::n_id_mod);
 				t_text v_msg = just::implode({
-					L"extending module notice: Module id differs: "s,
-					v.m_value->m_name,
-					L" (pos: "s,
-					std::to_wstring(v.m_index),
-					L", id: "s,
-					std::to_wstring(v.m_value->m_id - var::n_id_mod),
-					L")"s
+					L"extending module notice: Module id differs: "sv,
+					v.m_value->m_name.view(),
+					L" (pos: "sv,
+					static_cast<text_view>(v_position),
+					L", id: "sv,
+					static_cast<text_view>(v_index),
+					L")"sv
 				});
 				p_log->add({fs::path{}, {0,0}, v_msg});
 			}

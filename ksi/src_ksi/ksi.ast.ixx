@@ -13,7 +13,8 @@ export namespace ksi {
 
 	namespace ast {
 
-		using namespace std::string_literals;
+		//using namespace std::string_literals;
+		using namespace std::literals::string_view_literals;
 
 		struct t_module_extension : public just::with_deleter<t_module_extension> {
 			using t_props = just::ordered_map<text_str, ext_property>;
@@ -137,11 +138,15 @@ export namespace ksi {
 					m_undefined_props.known(m_mod_current->m_module->m_name, p_name, {m_mod_current->m_module->m_id, v_var_id});
 				} else {
 					ext_property & v_prop = m_mod_current->var_get(v_var_id).second.m_value;
+					text_str
+						v_line = std::to_wstring(v_prop.m_pos.m_line),
+						v_col = std::to_wstring(v_prop.m_pos.m_col),
+						v_path = v_prop.m_path.wstring();
 					t_text v_msg = just::implode({
-						L"deduce notice: Variable is already defined: "s,
-						p_name, m_mod_current->m_module->m_name,
-						L" ["s, std::to_wstring(v_prop.m_pos.m_line), L":"s, std::to_wstring(v_prop.m_pos.m_col), L"] "s,
-						v_prop.m_path.wstring()
+						L"deduce notice: Variable is already defined: "sv,
+						p_name.view(),
+						L" ["sv, static_cast<text_view>(v_line), L":"sv, static_cast<text_view>(v_col), L"] "sv,
+						static_cast<text_view>(v_path)
 					});
 					m_log->add({p_path, p_pos, v_msg});
 					act::sequence::pointer v_seq = &m_duplicated_seqs.emplace_front(p_path);

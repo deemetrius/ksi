@@ -20,7 +20,7 @@ namespace ksi {
 
 		struct position {
 			// data
-			tc_char_pointer
+			text_raw
 				m_pos,
 				m_pos_line = m_pos;
 			t_integer
@@ -67,7 +67,7 @@ namespace ksi {
 				m_done = false,
 				m_nice = false;
 
-			state(fs::path p_path, tc_char_pointer p_pos, fn_parse p_parse) :
+			state(fs::path p_path, text_raw p_pos, fn_parse p_parse) :
 				m_path{p_path},
 				m_pos{p_pos},
 				m_next_parse{p_parse}

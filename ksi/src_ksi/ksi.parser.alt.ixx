@@ -37,14 +37,14 @@ namespace ksi {
 				void
 			>;
 
-			using t_items = std::vector<t_text>;
+			using t_items = std::vector<text_view>;
 
 			static text_str message(state & p_state) {
 				t_items v_items;
 				add(p_state, v_items);
 				return just::implode_items(v_items,
-					text_str{L", "},
-					text_str{L"Expected: "}
+					L", "sv,
+					L"Expected: "sv
 				);
 			}
 

@@ -12,17 +12,24 @@ namespace ksi {
 
 	namespace parser {
 
-		using namespace std::string_literals;
+		//using namespace std::string_literals;
+		using namespace std::literals::string_view_literals;
+
+		inline constexpr text_char
+			g_null_char = L'\0',
+			g_module_char = L'@';
 
 		struct t_eof {
-			static inline t_text s_name = L"t_eof"s;
-			static constexpr kind s_kind = kind::n_eof;
+			static inline constexpr text_view
+				s_name = L"t_eof"sv;
+			static constexpr kind
+				s_kind = kind::n_eof;
 
 			static bool check(state & p_state) { return true; }
 
 			struct t_data {
 				bool parse(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
-					return *p_state.m_pos.m_pos == L'\0';
+					return *p_state.m_pos.m_pos == g_null_char;
 				}
 
 				void action(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
@@ -32,8 +39,10 @@ namespace ksi {
 		};
 
 		struct t_opt_space {
-			static inline t_text s_name = L"t_opt_space"s;
-			static constexpr kind s_kind = kind::n_space;
+			static inline constexpr text_view
+				s_name = L"t_opt_space"sv;
+			static constexpr kind
+				s_kind = kind::n_space;
 
 			static bool check(state & p_state) { return ! p_state.m_was_space; }
 
@@ -67,7 +76,7 @@ namespace ksi {
 							if( v_is_new_line ) { break; }
 							continue;
 						}
-						if( *p_pos.m_pos == L'\0' ) { break; }
+						if( *p_pos.m_pos == g_null_char ) { break; }
 						p_pos.next();
 					} while( true );
 					return true;
@@ -97,7 +106,7 @@ namespace ksi {
 								p_pos.next();
 							}
 							break;
-						case L'\0':
+						case g_null_char:
 							return true;
 						default:
 							p_pos.next();
@@ -121,9 +130,10 @@ namespace ksi {
 						p_state.m_space_pos = p_state.m_pos.pos();
 						p_state.m_pos = v_pos;
 						if( v_depth > 0 ) {
+							text_str v_depth_str = std::to_wstring(v_depth);
 							text_str v_msg = just::implode({
-								L"parse warning: Unclosed multiline comment with depth = "s,
-								std::to_wstring(v_depth)
+								L"parse warning: Unclosed multiline comment with depth = "sv,
+								static_cast<text_view>(v_depth_str)
 							});
 							p_data.m_log->add( p_state.message(v_msg) );
 						}
@@ -136,10 +146,10 @@ namespace ksi {
 			}; // t_data
 		}; // t_opt_space
 
-		template <t_char ... C>
+		template <text_char ... C>
 		struct is_char {
-			t_char
-				m_value = L'\0';
+			text_char
+				m_value = g_null_char;
 			t_pos
 				m_pos;
 
@@ -154,7 +164,7 @@ namespace ksi {
 			}
 		};
 
-		template <text_str::value_type C_char>
+		/*template <text_char C_char>
 		struct is_prefix_name {
 			// data
 			t_text
@@ -169,9 +179,14 @@ namespace ksi {
 				p_state.m_pos = v_pos;
 				return true;
 			}
-		};
+		};*/
 
+		template <text_char Prefix = g_null_char, text_char Ending = g_null_char>
 		struct is_name {
+			static inline constexpr bool
+				s_has_prefix = (Prefix != g_null_char),
+				s_has_ending = (Ending != g_null_char);
+
 			// data
 			t_text
 				m_name;
@@ -181,10 +196,25 @@ namespace ksi {
 				m_pos;
 
 			bool parse(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
-				if( ! std::iswalpha(*p_state.m_pos.m_pos) ) { return false; }
+				// start
+				if constexpr( s_has_prefix ) {
+					if( *p_state.m_pos.m_pos != Prefix || ! std::iswalpha(p_state.m_pos.m_pos[1]) ) { return false; }
+				} else {
+					if( ! std::iswalpha(*p_state.m_pos.m_pos) ) { return false; }
+				}
 				position v_pos = p_state.m_pos;
-				v_pos.next();
+				if constexpr( s_has_prefix ) {
+					v_pos.next(2);
+				} else {
+					v_pos.next();
+				}
+				// mid
 				while( std::iswalnum(*v_pos.m_pos) || *v_pos.m_pos == L'_' ) { v_pos.next(); }
+				// end
+				if constexpr( s_has_ending ) {
+					if( *v_pos.m_pos != Ending ) { return false; }
+					v_pos.next();
+				}
 				m_name = text_str{p_state.m_pos.m_pos, v_pos.m_pos};
 				//
 				m_path = p_state.m_path;
@@ -204,8 +234,8 @@ namespace ksi {
 			t_pos
 				m_pos;
 
-			static bool is_sign(t_char p) { return just::is_one_of(p, L'-', L'+'); }
-			static bool is_separator(t_char p) { return just::is_one_of(p, L'_', L'\''); }
+			static bool is_sign(text_char p) { return just::is_one_of(p, L'-', L'+'); }
+			static bool is_separator(text_char p) { return just::is_one_of(p, L'_', L'\''); }
 
 			bool parse(state & p_state, tokens::nest & p_tokens, ast::prepare_data & p_data) {
 				position v_pos = p_state.m_pos;
@@ -219,21 +249,22 @@ namespace ksi {
 				text_str v_text{p_state.m_pos.m_pos, v_pos.m_pos};
 				m_pos = p_state.m_pos.pos();
 				p_state.m_pos = v_pos;
-				std::erase_if(v_text, [](t_char p)->bool{
+				std::erase_if(v_text, [](text_char p)->bool{
 					return is_separator(p);
 				});
 				try {
 					m_value = std::stoll(v_text);
 				} catch( const std::out_of_range & ) {
 					m_value = (v_text[0] == L'-') ? t_limits::min() : t_limits::max();
+					text_str v_length = std::to_wstring( v_text.size() );
 					text_str v_msg = just::implode({
-						L"parse error: Integer literal is out of range ("s,
-						std::to_wstring( v_text.size() ),
-						L" characters)."s
+						L"parse error: Integer literal is out of range ("sv,
+						static_cast<text_view>(v_length),
+						L" characters)."sv
 					});
 					p_data.log_add( p_state.message(v_msg) );
 				}
-				just::g_console << '{' << m_value << "}\n";
+				//just::g_console << '{' << m_value << "}\n";
 				return true;
 			}
 		};

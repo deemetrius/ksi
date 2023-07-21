@@ -7,12 +7,14 @@ export module just.text;
 export import just.output;
 export import <memory>;
 export import <string>;
+export import <string_view>;
 export import <initializer_list>;
 import <sstream>;
 
 export namespace just {
 
 	using text_str = std::wstring;
+	using text_view = std::wstring_view;
 
 	struct text {
 		using t_ptr = std::shared_ptr<text_str>;
@@ -37,20 +39,22 @@ export namespace just {
 		t_pointer operator -> () const { return m_ptr.get(); }
 
 		bool is_same(const text & p_other) const { return m_ptr.get() == p_other.m_ptr.get(); }
+
+		text_view view() { return *m_ptr.get(); }
 	};
 
 	template <typename T_container>
-	text_str implode_items(const T_container & p_items, text p_delimiter = {}, text p_prefix = {}) {
+	text_str implode_items(const T_container & p_items, text_view p_delimiter = {}, text_view p_prefix = {}) {
 		std::wostringstream ret{};
-		ret << *p_prefix;
-		for( bool v_first = true; const text & it : p_items ) {
-			if( v_first ) { v_first = false; } else { ret << *p_delimiter; }
-			ret << *it;
+		ret << p_prefix;
+		for( bool v_first = true; const text_view & it : p_items ) {
+			if( v_first ) { v_first = false; } else { ret << p_delimiter; }
+			ret << it;
 		}
-		return ret.str();
+		return std::move(ret).str();
 	}
 
-	text_str implode(std::initializer_list<text> p_items, text p_delimiter = {}, text p_prefix = {}) {
+	text_str implode(std::initializer_list<text_view> p_items, text_view p_delimiter = {}, text_view p_prefix = {}) {
 		return implode_items(p_items, p_delimiter, p_prefix);
 	}
 

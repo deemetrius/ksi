@@ -135,7 +135,7 @@ export namespace ksi {
 					v_var_id = m_mod_current->var_delta() + m_mod_current->m_props.size();
 					t_map_prop_iterator v_it = m_mod_current->var_add(p_name, p_path, p_pos);
 					m_body = std::make_unique<body>(&v_it->second.m_value.m_seq);
-					m_undefined_props.known(m_mod_current->m_module->m_name, p_name, {m_mod_current->m_module->m_id, v_var_id});
+					m_undefined_props.known(/*m_mod_current->m_module->m_name,*/ p_name, {m_mod_current->m_module->m_id, v_var_id});
 				} else {
 					ext_property & v_prop = m_mod_current->var_get(v_var_id).second.m_value;
 					text_str
@@ -154,6 +154,11 @@ export namespace ksi {
 				}
 
 				return v_var_id;
+			}
+
+			text_str var_full_name(t_text p_var_name) {
+				text_view v_module_name = m_mod_current->m_module->m_name.view();
+				return just::implode({p_var_name.view(), v_module_name.substr(1)});
 			}
 		};
 

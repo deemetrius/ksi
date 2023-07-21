@@ -36,8 +36,7 @@ struct t_var_mod {
 		}
 
 		void rule_perform(ast::prepare_data & p_data, tokens::token_info & p_info) {
-			text_view v_module_name = p_data.m_mod_current->m_module->m_name.view();
-			t_text v_full_name = just::implode({m_name.view(), v_module_name.substr(1)});
+			t_text v_full_name = p_data.var_full_name(m_name);
 			t_index v_var_id = p_data.var_add(v_full_name, m_path, m_pos);
 			p_data.m_var_pos.m_module_id = p_data.m_mod_current->m_module->id();
 			p_data.m_var_pos.m_aspect_id = v_var_id;

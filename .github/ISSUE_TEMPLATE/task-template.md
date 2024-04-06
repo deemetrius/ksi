@@ -1,6 +1,6 @@
 ---
 name: Task template
-about: 
+about: Task to self
 title: 'Task: '
 labels: task
 assignees: deemetrius

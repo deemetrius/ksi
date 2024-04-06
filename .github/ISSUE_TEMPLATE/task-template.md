@@ -1,6 +1,6 @@
 ---
 name: Task template
-about: Describe this issue template's purpose here.
+about: 
 title: 'Task: '
 labels: task
 assignees: deemetrius
